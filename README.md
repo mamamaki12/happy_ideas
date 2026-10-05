@@ -24,6 +24,16 @@ npm run serve        # http://localhost:4173 で開く
 
 カメラ・マイク・位置情報は **HTTPS または localhost** でしか動きません。スマホで試す場合は GitHub Pages などHTTPSで配信してください。
 
+## スマホで試す（GitHub Pages で公開）
+
+カメラ・位置情報・マイクは HTTPS が必要なので、GitHub Pages で公開するとスマホでそのまま試せます。
+
+1. GitHub のリポジトリで **Settings → Pages → Build and deployment → Source** を **「GitHub Actions」** にする
+2. このブランチを `main` にマージする（または Actions タブから「Deploy to GitHub Pages」を手動実行）
+3. テストが通ると `https://<ユーザー名>.github.io/happy_ideas/` に公開される
+
+iPhone で通知を試すときは、Safari の共有ボタンから「ホーム画面に追加」してから開いてください。
+
 ## チェック
 
 ```bash
