@@ -57,8 +57,11 @@ async function start() {
   } catch (e) { err.textContent = e.message; err.classList.remove('hidden'); }
 }
 
+let ready = null; // カメラ起動中の Promise（起動前に撮影ボタンを押しても待ってから撮る）
 async function shoot() {
-  if (!stream) return start();
+  await ready;
+  if (!stream) { ready = start(); await ready; if (!stream) return; }
+  if (!video.videoWidth) await new Promise((r) => video.addEventListener('loadeddata', r, { once: true }));
   const w = video.videoWidth; const hh = video.videoHeight;
   const c = h('canvas', { width: w, height: hh });
   const ctx = c.getContext('2d');
@@ -88,5 +91,5 @@ app.append(
     h('div', { class: 'row' }, h('div', { class: 'shrink' }, h('label', { for: 'oc' }, '推し色'), colorIn), h('div', {}, h('label', { for: 'of' }, '種類'), frameIn)),
     h('div', { class: 'field', style: { marginTop: '10px' } }, h('label', { for: 'ot' }, 'ひとこと'), textIn)),
   result);
-start();
+ready = start();
 addEventListener('pagehide', () => stopStream(stream));

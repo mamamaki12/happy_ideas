@@ -1,0 +1,3 @@
+.target { font-size: 1.35rem; font-weight: 600; line-height: 1.5; }
+.ok-word { color: var(--ok); }
+.ng-word { color: var(--danger); text-decoration: underline wavy; }
