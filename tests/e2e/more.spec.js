@@ -1,6 +1,6 @@
 // 追加した10個の試作の操作テスト
 import { test, expect } from '@playwright/test';
-import { openApp } from './helpers.js';
+import { openApp, gotoFresh } from './helpers.js';
 
 test('体調サイクル: 開始日を記録すると予測が出る', async ({ page }) => {
   await openApp(page, 'cycle-memo');
@@ -33,7 +33,7 @@ test('ほしいものリスト: 作って共有 → 受け取り側で贈る', a
   await page.getByRole('button', { name: '追加' }).click();
   await page.getByRole('button', { name: 'リストのURLを共有' }).click();
   const url = (await page.evaluate(() => navigator.clipboard.readText())).match(/http:\/\/\S+#w=\S+/)[0];
-  await page.goto(url);
+  await gotoFresh(page, url);
   await expect(page.getByRole('heading', { name: '🎁 ゆきさんのほしいもの' })).toBeVisible();
   await expect(page.getByRole('link', { name: '🔗 商品ページ' })).toHaveAttribute('href', 'https://example.com/kettle');
   await page.getByRole('button', { name: 'これを贈る' }).click();
@@ -104,7 +104,7 @@ test('家族の予定: 作ってURLで共有 → 受け取って .ics', async ({
   await page.getByRole('button', { name: '追加', exact: true }).click();
   await page.getByRole('button', { name: '📤 URLで送る' }).click();
   const url = (await page.evaluate(() => navigator.clipboard.readText())).match(/http:\/\/\S+#s=\S+/)[0];
-  await page.goto(url);
+  await gotoFresh(page, url);
   await expect(page.getByText('参観日')).toBeVisible();
   const [dl] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: '📅 カレンダーに追加（.ics）' }).click()]);
   expect(dl.suggestedFilename()).toMatch(/^family-schedule-.*\.ics$/);

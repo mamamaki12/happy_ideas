@@ -1,6 +1,6 @@
 // センサー・位置情報・外部APIを使うアプリの操作テスト
 import { test, expect } from '@playwright/test';
-import { openApp } from './helpers.js';
+import { openApp, gotoFresh } from './helpers.js';
 
 const orient = (page, beta, gamma = 0, alpha = 0) => page.evaluate(([b, g, a]) => {
   window.dispatchEvent(new DeviceOrientationEvent('deviceorientation', { beta: b, gamma: g, alpha: a }));
@@ -82,7 +82,7 @@ test('スタンプラリー: 作成 → URLで遊ぶ → スタンプ獲得', as
   const shared = await page.evaluate(() => navigator.clipboard.readText());
   const url = shared.match(/http:\/\/\S+#r=\S+/)?.[0];
   expect(url).toBeTruthy();
-  await page.goto(url);
+  await gotoFresh(page, url);
   await expect(page.getByRole('heading', { name: 'テストラリー' })).toBeVisible();
   await page.getByRole('button', { name: '㊞ スタンプを押す' }).click();
   await expect(page.getByText('🎉 コンプリート！')).toBeVisible();

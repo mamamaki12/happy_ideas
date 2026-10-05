@@ -1,7 +1,7 @@
 // 製品版: ラリーメーカー（主催者が作る → QRを読む → 参加者がスタンプを集める）
 import { test, expect } from '@playwright/test';
 import jsQR from 'jsqr';
-import { trackErrors } from './helpers.js';
+import { trackErrors, gotoFresh, readQr } from './helpers.js';
 
 async function makeRally(page) {
   await page.goto('/products/rally/');
@@ -17,8 +17,7 @@ async function makeRally(page) {
   await expect(page.locator('.cp-list li')).toHaveCount(2);
   await page.getByRole('button', { name: '参加用のURLとQRを作る' }).click();
   await page.getByRole('button', { name: '🔳 QRを表示' }).click();
-  const { w, data } = await page.locator('.qr-canvas').evaluate((c) => ({ w: c.width, data: [...c.getContext('2d').getImageData(0, 0, c.width, c.height).data] }));
-  const url = jsQR(new Uint8ClampedArray(data), w, w)?.data;
+  const url = await readQr(page, jsQR);
   expect(url).toMatch(/\/products\/rally\/#z=/);
   await page.getByRole('button', { name: '閉じる' }).click();
   return url;
@@ -33,7 +32,7 @@ test('主催者が作ってQRを配り、参加者が2か所まわってコン�
     expect(dl.suggestedFilename()).toBe(file);
   }
   // 参加者
-  await page.goto(url);
+  await gotoFresh(page, url);
   await expect(page.getByRole('heading', { name: '駅前ラリー' })).toBeVisible();
   await expect(page.getByText('ヒント: 駅の東口')).toBeVisible();
   await page.getByRole('button', { name: '📍 スタンプを押す' }).click();

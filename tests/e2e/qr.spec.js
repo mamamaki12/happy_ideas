@@ -1,12 +1,9 @@
 // QRコード: 画面に出したQRを実際に読み取り、正しいURLになっているか確認
 import { test, expect } from '@playwright/test';
 import jsQR from 'jsqr';
-import { openApp } from './helpers.js';
+import { openApp, gotoFresh, readQr as readQrRaw } from './helpers.js';
 
-async function readQr(page) {
-  const { w, data } = await page.locator('.qr-canvas').evaluate((c) => ({ w: c.width, data: [...c.getContext('2d').getImageData(0, 0, c.width, c.height).data] }));
-  return jsQR(new Uint8ClampedArray(data), w, w)?.data;
-}
+const readQr = (page) => readQrRaw(page, jsQR);
 
 test('スタンプラリー: QR → 読み取ると同じラリーが開く・ポスター・修了証', async ({ page }) => {
   await openApp(page, 'stamp-rally');
@@ -19,7 +16,7 @@ test('スタンプラリー: QR → 読み取ると同じラリーが開く・�
   await page.getByRole('button', { name: '閉じる' }).click();
   const [dl] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: '🖨 ポスターを作る' }).click()]);
   expect(dl.suggestedFilename()).toBe('stamp-rally-poster.png');
-  await page.goto(url);
+  await gotoFresh(page, url);
   await expect(page.getByRole('heading', { name: '駅前ラリー' })).toBeVisible();
   await page.getByRole('button', { name: '㊞ スタンプを押す' }).click();
   const [cert] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: '🏅 修了証を作る' }).click()]);

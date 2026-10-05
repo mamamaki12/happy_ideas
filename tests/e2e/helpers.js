@@ -22,3 +22,21 @@ export async function openApp(page, slug) {
   await expect.poll(async () => page.locator('#app > *').count()).toBeGreaterThan(2);
   return errors;
 }
+
+/** ハッシュだけ違う同じページへ移動すると、アプリ側の再読み込みと競合するので、いったん空ページを挟む */
+export async function gotoFresh(page, url) {
+  await page.goto('about:blank');
+  await page.goto(url);
+}
+
+/** 画面のQRコード（.qr-canvas）を読み取る。縮小してからピクセルを転送するので速い */
+export async function readQr(page, jsQR, selector = '.qr-canvas') {
+  const { w, b64 } = await page.locator(selector).evaluate((c) => {
+    const n = Math.min(c.width, 360); const t = document.createElement('canvas'); t.width = n; t.height = n;
+    const x = t.getContext('2d'); x.imageSmoothingEnabled = false; x.drawImage(c, 0, 0, n, n);
+    const d = x.getImageData(0, 0, n, n).data; let s = '';
+    for (let i = 0; i < d.length; i += 0x8000) s += String.fromCharCode(...d.subarray(i, i + 0x8000));
+    return { w: n, b64: btoa(s) };
+  });
+  return jsQR(new Uint8ClampedArray(Buffer.from(b64, 'base64')), w, w)?.data ?? null;
+}
