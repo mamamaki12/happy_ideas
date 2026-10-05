@@ -1,0 +1,8 @@
+.type-view { text-align: center; padding: 10px; border-radius: 12px; cursor: text; }
+.type-view.miss { animation: shake .2s; background: color-mix(in srgb, var(--danger) 10%, transparent); }
+@keyframes shake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+.type-kanji { font-size: 1.5rem; font-weight: 700; margin: 0; }
+.type-kana { color: var(--muted); margin: 4px 0; }
+.type-roma { font-family: ui-monospace, monospace; font-size: 1.3rem; letter-spacing: .04em; word-break: break-all; margin: 0; }
+.type-roma .done, .type-kana .done { color: var(--accent); }
+.type-hidden { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }

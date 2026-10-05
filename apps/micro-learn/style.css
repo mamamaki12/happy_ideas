@@ -1,0 +1,3 @@
+.ml-card { min-height: 260px; display: flex; flex-direction: column; justify-content: center; }
+.ml-title { font-size: 1.4rem; margin: 10px 0 6px; }
+.ml-body { font-size: 1.05rem; line-height: 1.9; }

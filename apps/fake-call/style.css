@@ -1,0 +1,6 @@
+.call { position: fixed; inset: 0; z-index: 300; background: linear-gradient(#2b2d42, #111); color: #fff; display: flex; flex-direction: column; align-items: center; padding: 18vh 16px 10vh; text-align: center; }
+.call-name { font-size: 2.2rem; font-weight: 600; margin: 6px 0; }
+.call-sub { color: #bbb; margin: 0; }
+.call-btns { margin-top: auto; display: flex; gap: 22vw; }
+.call-btns button { width: 76px; height: 76px; border-radius: 50%; border: 0; font-size: 2rem; color: #fff; }
+.call-no { background: #fa5252; } .call-yes { background: #40c057; }

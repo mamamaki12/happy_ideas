@@ -1,0 +1,5 @@
+.habit-check { width: 56px; height: 56px; border-radius: 50%; font-size: 1.5rem; flex: 0 0 auto; padding: 0; }
+.habit-check.on { background: var(--ok); border-color: var(--ok); color: #fff; }
+.hdays { display: flex; gap: 6px; }
+.hd { flex: 1; text-align: center; font-size: .75rem; padding: 4px 0; border-radius: 6px; background: var(--surface-2); color: var(--muted); }
+.hd.on { background: color-mix(in srgb, var(--ok) 70%, transparent); color: #fff; }
