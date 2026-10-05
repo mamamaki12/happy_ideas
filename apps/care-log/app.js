@@ -1,4 +1,4 @@
-import { h, render, $, store, uid, todayStr, fmtTime, fmtDate, share, confirmDelete, toast } from '../../shared/lib.js';
+import { h, add, render, $, store, uid, todayStr, fmtTime, fmtDate, share, confirmDelete, toast } from '../../shared/lib.js';
 
 // 介護ノート: 体温・血圧・食事量・排泄・服薬・様子を記録し、ケアマネや家族に送る要約を作る。
 const db = store('care-log');
@@ -37,7 +37,7 @@ const temp = h('input', { id: 'ct', type: 'number', step: 0.1, min: 34, max: 42,
 const bp = h('input', { id: 'cb', placeholder: '128/82', maxlength: 9 });
 const meal = h('select', { id: 'cm' }, MEAL.map((m) => h('option', {}, m)));
 const note = h('input', { id: 'cn', placeholder: '例: 夕方少しぼんやり', maxlength: 80 });
-app.append(
+add(app, 
   h('section', { class: 'card' }, h('h2', {}, 'ワンタップ記録'), h('div', { class: 'grid-3' }, ['pee', 'poo', 'med'].map((k) => h('button', { onclick: () => addRec({ type: k }) }, LABEL[k])))),
   h('section', { class: 'card' },
     h('form', { class: 'row', onsubmit: (e) => { e.preventDefault(); if (+temp.value) { addRec({ type: 'temp', v: +temp.value }); temp.value = ''; } } }, h('div', {}, h('label', { for: 'ct' }, '体温（℃）'), temp), h('button', { class: 'shrink', type: 'submit' }, '記録')),

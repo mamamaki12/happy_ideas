@@ -1,4 +1,4 @@
-import { h, render, $, store, uid, daysUntil, notify, notifyButton, todayStr, confirmDelete, share } from '../../shared/lib.js';
+import { h, add, render, $, store, uid, daysUntil, notify, notifyButton, todayStr, confirmDelete, share } from '../../shared/lib.js';
 
 // ライブ・発売日・誕生日までのカウントダウン。前日と当日に通知する。
 const db = store('oshi-countdown');
@@ -23,7 +23,7 @@ function draw() {
 const tIn = h('input', { id: 'ct', required: true, placeholder: '例: 東京ドーム公演', maxlength: 40 });
 const dIn = h('input', { id: 'cd', type: 'date', required: true });
 const cIn = h('input', { id: 'cc', type: 'color', value: '#ff5fa2' });
-app.append(hero, h('form', { class: 'card', onsubmit: (e) => { e.preventDefault(); events.push({ id: uid(), title: tIn.value.trim(), date: dIn.value, color: cIn.value }); save(); tIn.value = ''; draw(); } },
+add(app, hero, h('form', { class: 'card', onsubmit: (e) => { e.preventDefault(); events.push({ id: uid(), title: tIn.value.trim(), date: dIn.value, color: cIn.value }); save(); tIn.value = ''; draw(); } },
   h('h2', {}, '予定を追加'), h('div', { class: 'row' }, h('div', {}, h('label', { for: 'ct' }, 'なに'), tIn), h('div', {}, h('label', { for: 'cd' }, 'いつ'), dIn), h('div', { class: 'shrink' }, h('label', { for: 'cc' }, '色'), cIn)),
   h('div', { class: 'btn-row', style: { marginTop: '10px' } }, h('button', { class: 'primary', type: 'submit' }, '追加'), notifyButton())), listCard);
 draw();

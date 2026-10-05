@@ -1,4 +1,4 @@
-import { h, render, $, store, getPosition, fmtTime, fmtDuration, notify, notifyButton, toast } from '../../shared/lib.js';
+import { h, add, render, $, store, getPosition, fmtTime, fmtDuration, notify, notifyButton, toast } from '../../shared/lib.js';
 import { dayInfo } from './logic.js';
 
 // 現在地の日の出・日の入り・ゴールデンアワー・ブルーアワーを計算（通信不要）。
@@ -38,5 +38,5 @@ function draw() {
 const locBtn = h('button', { class: 'primary', onclick: async () => {
   try { const p = await getPosition(); loc = { lat: p.coords.latitude, lon: p.coords.longitude }; db.set('loc', loc); draw(); } catch (e) { toast(e.message); }
 } }, '📍 現在地で計算');
-app.append(h('section', { class: 'card' }, h('div', { class: 'row' }, h('div', {}, h('label', { for: 'd' }, '日付'), dateIn), h('div', { class: 'shrink' }, locBtn)), h('div', { style: { marginTop: '10px' } }, notifyButton())), out);
+add(app, h('section', { class: 'card' }, h('div', { class: 'row' }, h('div', {}, h('label', { for: 'd' }, '日付'), dateIn), h('div', { class: 'shrink' }, locBtn)), h('div', { style: { marginTop: '10px' } }, notifyButton())), out);
 draw();

@@ -1,4 +1,4 @@
-import { h, render, $, store, uid, toast, yen, vibrate, todayStr, fmtDate } from '../../shared/lib.js';
+import { h, add, render, $, store, uid, toast, yen, vibrate, todayStr, fmtDate } from '../../shared/lib.js';
 
 // 「買わなかった」金額を貯金箱に入れる。目標に向かってたまっていくのを見る。
 const db = store('gaman-bank');
@@ -11,7 +11,7 @@ const save = () => { db.set('log', log); db.set('goal', goal); };
 const head = h('section', { class: 'card center', 'aria-live': 'polite' });
 const listCard = h('section', { class: 'card' });
 
-function add(label, amount) {
+function addEntry(label, amount) {
   log.unshift({ id: uid(), label, amount, date: todayStr() });
   save(); vibrate([30, 40, 30]);
   const total = log.reduce((s, x) => s + x.amount, 0);
@@ -41,10 +41,10 @@ const customAmt = h('input', { id: 'ca', type: 'number', inputmode: 'numeric', m
 const goalName = h('input', { id: 'gn', value: goal.name });
 const goalAmt = h('input', { id: 'ga', type: 'number', inputmode: 'numeric', min: 1, value: goal.amount });
 
-app.append(head,
+add(app, head,
   h('section', { class: 'card' }, h('h2', {}, 'がまんした！'),
-    h('div', { class: 'grid-2' }, presets.map(([l, a]) => h('button', { type: 'button', onclick: () => add(l, a) }, `${l} ${yen(a)}`))),
-    h('form', { class: 'row', style: { marginTop: '12px' }, onsubmit: (e) => { e.preventDefault(); if (+customAmt.value > 0) { add(customLabel.value.trim() || 'その他', +customAmt.value); customAmt.value = ''; customLabel.value = ''; } } },
+    h('div', { class: 'grid-2' }, presets.map(([l, a]) => h('button', { type: 'button', onclick: () => addEntry(l, a) }, `${l} ${yen(a)}`))),
+    h('form', { class: 'row', style: { marginTop: '12px' }, onsubmit: (e) => { e.preventDefault(); if (+customAmt.value > 0) { addEntry(customLabel.value.trim() || 'その他', +customAmt.value); customAmt.value = ''; customLabel.value = ''; } } },
       h('div', {}, h('label', { for: 'cl' }, 'その他'), customLabel), h('div', {}, h('label', { for: 'ca' }, '金額'), customAmt), h('button', { class: 'primary shrink', type: 'submit' }, '入れる'))),
   listCard,
   h('details', { class: 'card' }, h('summary', {}, '目標を変える'),

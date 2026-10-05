@@ -1,4 +1,4 @@
-import { h, render, $, store, blobStore, uid, toast, yen, todayStr, fmtDate, confirmDelete } from '../../shared/lib.js';
+import { h, add, render, $, store, blobStore, uid, toast, yen, todayStr, fmtDate, confirmDelete } from '../../shared/lib.js';
 import { cameraPanel, blobImg } from '../../shared/camera.js';
 
 // レシートを撮って金額とカテゴリだけ入れる家計簿。写真は IndexedDB、記録は localStorage。
@@ -74,5 +74,5 @@ function draw() {
       })));
 }
 
-app.append(form, summary, listCard);
+add(app, form, summary, listCard);
 draw();

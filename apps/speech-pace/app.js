@@ -1,4 +1,4 @@
-import { h, render, $, toast, fmtDuration } from '../../shared/lib.js';
+import { h, add, render, $, toast, fmtDuration } from '../../shared/lib.js';
 import { listen, recognitionSupported } from '../../shared/speech.js';
 import { countFillers, speechRate } from '../../shared/text.js';
 
@@ -36,7 +36,7 @@ const btn = h('button', { class: 'primary big', onclick: () => {
 } }, '🎤 話しはじめる');
 function stop() { clearInterval(iv); on = false; session = null; btn.textContent = '🎤 話しはじめる'; update(); }
 
-app.append(h('section', { class: 'card center' }, big, unit, timer,
+add(app, h('section', { class: 'card center' }, big, unit, timer,
   recognitionSupported() ? btn : h('p', { class: 'notice' }, 'このブラウザは音声認識に非対応です（Chrome推奨）')),
 h('section', { class: 'card' }, h('h2', {}, 'フィラー'), fillerBox, h('h2', {}, '文字起こし'), transcript));
 update();

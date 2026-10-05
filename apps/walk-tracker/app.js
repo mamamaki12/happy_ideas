@@ -1,4 +1,4 @@
-import { h, render, $, store, wakeLock, fmtDuration, fmtDistance, fmtDateTime, geoErrorText, toast, download, confirmDelete } from '../../shared/lib.js';
+import { h, add, render, $, store, wakeLock, fmtDuration, fmtDistance, fmtDateTime, geoErrorText, toast, download, confirmDelete } from '../../shared/lib.js';
 import { trackDistance } from './logic.js';
 
 // 歩いたルートを記録。データは端末内だけ。GPXで書き出せる。
@@ -70,5 +70,5 @@ function drawHist() {
         h('button', { class: 'small', 'aria-label': 'GPXで保存', onclick: () => download(new Blob([gpx(w)], { type: 'application/gpx+xml' }), `walk-${w.t}.gpx`) }, 'GPX'),
         h('button', { class: 'small ghost', 'aria-label': '削除', onclick: () => { if (confirmDelete()) { walks.splice(i, 1); db.set('walks', walks); drawHist(); } } }, '×')))));
 }
-app.append(h('section', { class: 'card center' }, route, big, sub, btn), histCard);
+add(app, h('section', { class: 'card center' }, route, big, sub, btn), histCard);
 drawHist();

@@ -24,6 +24,8 @@ function append(el, children) {
 }
 export const $ = (sel, root = document) => root.querySelector(sel);
 export const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
+/** 子要素を末尾に追加する（null/false は無視。ネイティブ append は null を "null" と表示してしまう） */
+export function add(el, ...children) { append(el, children); return el; }
 /** 子要素を入れ替える */
 export function render(el, ...children) { el.replaceChildren(); append(el, children); }
 

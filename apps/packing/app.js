@@ -1,4 +1,4 @@
-import { h, render, $, store } from '../../shared/lib.js';
+import { h, add, render, $, store } from '../../shared/lib.js';
 import { packingList } from './logic.js';
 
 // 条件を選ぶと持ち物リストができる。チェックしながら詰めて、残りがひと目で分かる。
@@ -18,7 +18,7 @@ function draw() {
     done === all.length ? h('p', { class: 'notice' }, '🎉 準備完了！いってらっしゃい') : null,
     h('button', { class: 'small ghost', onclick: () => { s.checked = {}; save(); draw(); } }, 'チェックを外す'));
 }
-app.append(h('section', { class: 'card' },
+add(app, h('section', { class: 'card' },
   h('div', { class: 'row' },
     h('div', {}, h('label', { for: 'nt' }, '泊数'), h('select', { id: 'nt', onchange: (e) => { s.nights = +e.target.value; save(); draw(); } }, [0, 1, 2, 3, 4, 5, 6, 7, 10, 14].map((n) => h('option', { value: n, selected: n === s.nights }, n ? `${n}泊` : '日帰り')))),
     h('div', {}, h('label', { for: 'se' }, '季節'), h('select', { id: 'se', onchange: (e) => { s.season = e.target.value; save(); draw(); } }, [['summer', '夏'], ['mid', '春・秋'], ['winter', '冬']].map(([k, l]) => h('option', { value: k, selected: k === s.season }, l))))),

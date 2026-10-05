@@ -1,4 +1,4 @@
-import { h, render, $, store, share, notify, notifyButton, todayStr, fmtTime, vibrate } from '../../shared/lib.js';
+import { h, add, render, $, store, share, notify, notifyButton, todayStr, fmtTime, vibrate } from '../../shared/lib.js';
 import { streak } from './logic.js';
 
 // 1日1回「元気です」ボタン。押すと家族へ送る文面がすぐ共有できる。高齢の親の見守りに。
@@ -27,7 +27,7 @@ function draw() {
 }
 // 夜8時を過ぎても押していなければ通知（ページを開いている場合）
 setInterval(() => { if (!log[todayStr()] && new Date().getHours() >= 20 && db.get('nag') !== todayStr()) { db.set('nag', todayStr()); notify('今日の「げんきボタン」がまだです', 'ご家族が待っています'); } }, 60000);
-app.append(top, cal, h('details', { class: 'card' }, h('summary', {}, '設定'),
+add(app, top, cal, h('details', { class: 'card' }, h('summary', {}, '設定'),
   h('label', { for: 'nm' }, 'お名前（送る文面に入ります）'), h('input', { id: 'nm', value: cfg.name, maxlength: 20, oninput: (e) => { cfg.name = e.target.value; db.set('cfg', cfg); } }),
   h('div', { style: { marginTop: '10px' } }, notifyButton())));
 draw();

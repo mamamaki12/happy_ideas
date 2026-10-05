@@ -1,4 +1,4 @@
-import { h, $, startMic, stopStream, wakeLock } from '../../shared/lib.js';
+import { h, add, $, startMic, stopStream, wakeLock } from '../../shared/lib.js';
 import { detectPitch, noteOf } from './logic.js';
 
 // 歌声の音程をリアルタイム表示。ずれ（セント）を針で示し、音程の軌跡を描く。
@@ -41,4 +41,4 @@ async function toggle() {
   lock.on(); btn.textContent = '■ 停止';
   loop(an, new Float32Array(an.fftSize));
 }
-app.append(h('section', { class: 'card center' }, note, gauge, detail, trail, btn));
+add(app, h('section', { class: 'card center' }, note, gauge, detail, trail, btn));

@@ -1,4 +1,4 @@
-import { h, render, $, store, vibrate } from '../../shared/lib.js';
+import { h, add, render, $, store, vibrate } from '../../shared/lib.js';
 import { analyzeTaps } from './logic.js';
 
 // メトロノームに合わせてタップし、ずれ（ミリ秒）を測る。走りがち・もたりがちが分かる。
@@ -43,5 +43,5 @@ function finish() {
     bar, h('p', { class: 'small muted center' }, `← 早い ｜ 遅い →　自己ベスト ${Math.round(best.absMean)}ms（${best.bpm}BPM）`));
   result.classList.remove('hidden');
 }
-app.append(h('section', { class: 'card' }, h('label', { for: 'bpm' }, 'テンポ ', bpmLabel, ' BPM'), bpmIn, h('button', { class: 'primary big', style: { marginTop: '10px' }, onclick: go }, '▶ スタート')),
+add(app, h('section', { class: 'card' }, h('label', { for: 'bpm' }, 'テンポ ', bpmLabel, ' BPM'), bpmIn, h('button', { class: 'primary big', style: { marginTop: '10px' }, onclick: go }, '▶ スタート')),
   h('section', { class: 'card center' }, pad, status), result);

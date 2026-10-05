@@ -1,4 +1,4 @@
-import { h, render, $, store } from '../../shared/lib.js';
+import { h, add, render, $, store } from '../../shared/lib.js';
 
 // 会話のきっかけになるお題カード。場面ごとにデッキを選んで、めくる。
 const DECKS = {
@@ -23,5 +23,5 @@ function next() {
   counter.textContent = `${idx + 1} / ${order.length}`;
 }
 function drawTabs() { render(tabs, Object.entries(NAMES).map(([k, l]) => h('button', { role: 'tab', 'aria-selected': String(k === deck), onclick: () => { deck = k; db.set('deck', deck); shuffle(); drawTabs(); render(card, h('span', {}, 'タップしてお題をめくる')); counter.textContent = ''; } }, l))); }
-app.append(tabs, h('section', { class: 'card center' }, card, counter, h('button', { class: 'primary', onclick: next }, '次のお題')));
+add(app, tabs, h('section', { class: 'card center' }, card, counter, h('button', { class: 'primary', onclick: next }, '次のお題')));
 shuffle(); drawTabs();

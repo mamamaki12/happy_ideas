@@ -1,4 +1,4 @@
-import { h, render, $, store, vibrate, wakeLock, todayStr } from '../../shared/lib.js';
+import { h, add, render, $, store, vibrate, wakeLock, todayStr } from '../../shared/lib.js';
 
 // 呼吸法のガイド。円の大きさと振動でリズムを伝えるので、目を閉じていてもできる。
 const PATTERNS = {
@@ -34,7 +34,7 @@ async function run() {
   running = false; lock.off(); btn.textContent = '▶ はじめる'; count.textContent = ''; circle.className = 'breath-circle'; drawStat();
 }
 function drawStat() { statP.textContent = `今日 ${sessions[todayStr()] || 0} 回 ・ 合計 ${Object.values(sessions).reduce((a, b) => a + b, 0)} 回`; }
-app.append(h('section', { class: 'card' }, h('div', { class: 'row' },
+add(app, h('section', { class: 'card' }, h('div', { class: 'row' },
   h('div', {}, h('label', { for: 'pt' }, '呼吸法'), h('select', { id: 'pt', onchange: (e) => { key = e.target.value; db.set('key', key); } }, Object.entries(PATTERNS).map(([k, p]) => h('option', { value: k, selected: k === key }, p.name)))),
   h('div', { class: 'shrink' }, h('label', { for: 'rounds' }, '回数'), roundsIn))),
 h('section', { class: 'card center' }, circle, count, btn, statP));

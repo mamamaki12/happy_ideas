@@ -1,4 +1,4 @@
-import { h, render, $, store, blobStore, startMic, stopStream, rmsOf, wakeLock, fmtTime, uid, download, confirmDelete, toast } from '../../shared/lib.js';
+import { h, add, render, $, store, blobStore, startMic, stopStream, rmsOf, wakeLock, fmtTime, uid, download, confirmDelete, toast } from '../../shared/lib.js';
 
 // 寝ている間、一定以上の音がしたときだけ前後数秒を録音する（寝言・いびきチェック）。
 const db = store('sleep-sound');
@@ -63,6 +63,6 @@ function drawList() {
       })));
 }
 sens.addEventListener('change', () => db.set('sens', +sens.value));
-app.append(h('section', { class: 'card' }, status, level, h('div', { class: 'field', style: { marginTop: '10px' } }, h('label', { for: 'sens' }, '反応する音の大きさ（右ほど鈍感）'), sens), btn,
+add(app, h('section', { class: 'card' }, status, level, h('div', { class: 'field', style: { marginTop: '10px' } }, h('label', { for: 'sens' }, '反応する音の大きさ（右ほど鈍感）'), sens), btn,
   h('p', { class: 'small muted' }, '録音は端末内にだけ保存されます。画面がスリープすると止まる場合があります。')), listCard);
 drawList();

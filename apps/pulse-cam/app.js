@@ -1,4 +1,4 @@
-import { h, render, $, store, startCamera, stopStream, wakeLock, fmtDateTime, vibrate } from '../../shared/lib.js';
+import { h, add, render, $, store, startCamera, stopStream, wakeLock, fmtDateTime, vibrate } from '../../shared/lib.js';
 import { estimateBpm } from './logic.js';
 
 // 指先でカメラ（とライト）をふさぎ、血流による明るさのわずかな変化から心拍数を推定する。医療目的には使えない。
@@ -69,6 +69,6 @@ function drawLog() {
     h('ul', { class: 'list' }, log.slice(0, 10).map((x) => h('li', {}, h('span', { class: 'grow' }, fmtDateTime(x.t)), h('b', {}, `${x.bpm} bpm`)))));
 }
 
-app.append(h('section', { class: 'card' }, h('p', { class: 'notice' }, '⚠ 技術検証用です。医療機器ではありません。'), video, graph, big, status, startBtn), logCard);
+add(app, h('section', { class: 'card' }, h('p', { class: 'notice' }, '⚠ 技術検証用です。医療機器ではありません。'), video, graph, big, status, startBtn), logCard);
 drawLog();
 addEventListener('pagehide', () => { running = false; stopStream(stream); });

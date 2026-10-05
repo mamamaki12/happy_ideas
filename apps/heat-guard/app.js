@@ -1,4 +1,4 @@
-import { h, render, $, store, getPosition, notify, notifyButton, toast, todayStr } from '../../shared/lib.js';
+import { h, add, render, $, store, getPosition, notify, notifyButton, toast, todayStr } from '../../shared/lib.js';
 import { estimateWbgt, wbgtLevel, safeWindows } from './logic.js';
 
 // 現在地の気象予報（Open-Meteo、APIキー不要）から暑さ指数を推定し、外出しやすい時間帯と水分補給を案内する。
@@ -59,7 +59,7 @@ const waterInfo = h('p', { class: 'center', 'aria-live': 'polite' });
 const drawWater = () => { const min = lastWater ? Math.round((Date.now() - lastWater) / 60000) : null; waterInfo.textContent = min == null ? 'まだ記録がありません' : `最後に飲んでから ${min} 分`; };
 setInterval(() => { drawWater(); if (lastWater && Date.now() - lastWater > 30 * 60000 && !drawWater.warned) { drawWater.warned = true; notify('💧 水分補給の時間です', '30分以上飲んでいません'); } }, 60000);
 
-app.append(out, planCard, h('section', { class: 'card center' }, h('h2', {}, '💧 水分補給'), waterInfo,
+add(app, out, planCard, h('section', { class: 'card center' }, h('h2', {}, '💧 水分補給'), waterInfo,
   h('div', { class: 'btn-row' }, h('button', { class: 'primary', onclick: () => { lastWater = Date.now(); db.set('lastWater', lastWater); drawWater.warned = false; drawWater(); toast('ごくごく。記録しました'); } }, '飲んだ'), notifyButton()),
   h('p', { class: 'small muted' }, '30分以上飲んでいないと通知します（ページを開いている間）。')),
   h('p', { class: 'small muted center' }, '気象データ: Open-Meteo.com ／ 暑さ指数は推定値です。正式な値は環境省「熱中症予防情報サイト」を確認してください。'));

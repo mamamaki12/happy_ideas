@@ -1,4 +1,4 @@
-import { h, render, $, store, wakeLock } from '../../shared/lib.js';
+import { h, add, render, $, store, wakeLock } from '../../shared/lib.js';
 import { speak, synthesisSupported } from '../../shared/speech.js';
 import { LANGS, PHRASES } from './phrases.js';
 
@@ -27,6 +27,6 @@ function draw() {
   render(tabs, Object.keys(PHRASES).map((c) => h('button', { role: 'tab', 'aria-selected': String(c === cat), onclick: () => { cat = c; draw(); } }, c)));
   render(list, PHRASES[cat].map((p) => h('button', { class: 'phrase', onclick: () => showBig(p) }, h('span', { class: 'p-mine' }, p[s.mine]), h('span', { class: 'p-theirs' }, p[s.theirs]))));
 }
-app.append(h('section', { class: 'card' }, h('div', { class: 'row' }, h('div', {}, h('label', { for: 'mine' }, 'わたし'), sel('mine', 'mine')), h('div', {}, h('label', { for: 'theirs' }, '相手'), sel('theirs', 'theirs')))),
+add(app, h('section', { class: 'card' }, h('div', { class: 'row' }, h('div', {}, h('label', { for: 'mine' }, 'わたし'), sel('mine', 'mine')), h('div', {}, h('label', { for: 'theirs' }, '相手'), sel('theirs', 'theirs')))),
   tabs, list, h('p', { class: 'small muted center' }, 'タップすると大きく表示して読み上げます。通信なしで使えます。'));
 draw();

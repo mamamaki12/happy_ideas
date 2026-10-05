@@ -1,4 +1,4 @@
-import { h, render, $, wakeLock, geoErrorText } from '../../shared/lib.js';
+import { h, add, render, $, wakeLock, geoErrorText } from '../../shared/lib.js';
 import { dirName } from '../../shared/compass.js';
 
 // GPSの高度・速度・進行方向をそのまま表示する。端末によって高度が取れないことも確認できる。
@@ -29,5 +29,5 @@ const btn = h('button', { class: 'primary big', onclick: () => {
   watchId = navigator.geolocation.watchPosition(onPos, (e) => { status.textContent = geoErrorText(e); }, { enableHighAccuracy: true, maximumAge: 0 });
   lock.on(); btn.textContent = '■ 停止';
 } }, '▶ 開始');
-app.append(h('section', { class: 'card' }, grid, status, btn));
+add(app, h('section', { class: 'card' }, grid, status, btn));
 render(grid, stat('高度', '—', 'm'), stat('速度', '—', 'km/h'));

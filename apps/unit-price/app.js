@@ -1,4 +1,4 @@
-import { h, render, $ } from '../../shared/lib.js';
+import { h, add, render, $ } from '../../shared/lib.js';
 import { compare } from './logic.js';
 
 const app = $('#app');
@@ -34,5 +34,5 @@ function update() {
   });
 }
 
-app.append(h('section', { class: 'card' }, h('label', { for: 'unit' }, '比べる単位'), unitSel), box);
+add(app, h('section', { class: 'card' }, h('label', { for: 'unit' }, '比べる単位'), unitSel), box);
 draw();

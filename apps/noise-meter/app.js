@@ -1,4 +1,4 @@
-import { h, render, $, startMic, stopStream, rmsOf, wakeLock } from '../../shared/lib.js';
+import { h, add, render, $, startMic, stopStream, rmsOf, wakeLock } from '../../shared/lib.js';
 
 // マイクで周囲の音量を測る。スマホのマイクは校正されていないので「目安のdB」。
 const app = $('#app');
@@ -39,5 +39,5 @@ async function toggle() {
   loop(an, new Float32Array(an.fftSize));
 }
 const offIn = h('input', { id: 'off', type: 'range', min: 70, max: 120, value: offset, oninput: (e) => { offset = +e.target.value; try { localStorage.setItem('happy:noise-meter:offset', offset); } catch { /* noop */ } } });
-app.append(h('section', { class: 'card' }, big, meter, label, hist, stats, btn),
+add(app, h('section', { class: 'card' }, big, meter, label, hist, stats, btn),
   h('details', { class: 'card' }, h('summary', {}, '校正（騒音計アプリや既知の音に合わせる）'), h('label', { for: 'off' }, '補正値'), offIn));

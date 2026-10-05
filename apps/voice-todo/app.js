@@ -1,4 +1,4 @@
-import { h, render, $, store, uid, toast, confirmDelete } from '../../shared/lib.js';
+import { h, add, render, $, store, uid, toast, confirmDelete } from '../../shared/lib.js';
 import { listen, recognitionSupported } from '../../shared/speech.js';
 import { splitTasks } from './logic.js';
 
@@ -39,7 +39,7 @@ function draw() {
       h('button', { class: 'small ghost', onclick: () => { if (confirmDelete('完了した項目')) { todos = open; save(); draw(); } } }, '完了を片付ける')) : null);
 }
 
-app.append(h('section', { class: 'card center' },
+add(app, h('section', { class: 'card center' },
   recognitionSupported() ? micBtn : h('p', { class: 'notice' }, 'このブラウザは音声認識に非対応です。キーボードのマイクボタン（音声入力）も使えます。'),
   live,
   h('form', { class: 'row', onsubmit: (e) => { e.preventDefault(); if (textIn.value.trim()) { addMany(textIn.value); textIn.value = ''; } } }, h('div', {}, textIn), h('button', { class: 'shrink', type: 'submit' }, '追加'))), listCard);

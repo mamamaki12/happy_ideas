@@ -1,4 +1,4 @@
-import { h, render, $, store, toast } from '../../shared/lib.js';
+import { h, add, render, $, store, toast } from '../../shared/lib.js';
 
 // 音声ファイルを使わずに、Web Audio でノイズや雨音・波の音を合成する。タイマー付き。
 const db = store('white-noise');
@@ -59,6 +59,6 @@ async function toggle() {
   else { playing = true; await ctx.resume(); playBtn.textContent = '❚❚ 一時停止'; setTimer(); if (Object.values(vol).every((v) => v === 0)) toast('下のスライダーで音を選んでください'); }
 }
 
-app.append(h('section', { class: 'card' }, playBtn, h('div', { class: 'field', style: { marginTop: '12px' } }, h('label', { for: 'tm' }, 'スリープタイマー'), timerSel), timerInfo),
+add(app, h('section', { class: 'card' }, playBtn, h('div', { class: 'field', style: { marginTop: '12px' } }, h('label', { for: 'tm' }, 'スリープタイマー'), timerSel), timerInfo),
   h('section', { class: 'card' }, h('h2', {}, 'ミックス'), Object.entries(SOUNDS).map(([k, l]) => h('div', { class: 'field' }, h('label', { for: `v-${k}` }, l),
     h('input', { id: `v-${k}`, type: 'range', min: 0, max: 1, step: 0.01, value: vol[k], oninput: (e) => { vol[k] = +e.target.value; db.set('vol', vol); if (gains[k]) gains[k].gain.setTargetAtTime(vol[k], ctx.currentTime, 0.1); } })))));

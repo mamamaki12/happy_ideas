@@ -1,4 +1,4 @@
-import { h, render, $, store } from '../../shared/lib.js';
+import { h, add, render, $, store } from '../../shared/lib.js';
 
 // 停電時のモード。バッテリー残量（Battery Status API）から残り時間の目安を出し、暗い画面で必要な情報だけ表示。
 const db = store('power-outage');
@@ -22,5 +22,5 @@ async function drawBattery() {
 }
 const tipList = h('ul', { class: 'list' }, TIPS.map((t, i) => h('li', {}, h('input', { type: 'checkbox', id: `tp${i}`, checked: !!checks[i], onchange: (e) => { checks[i] = e.target.checked; db.set('checks', checks); } }), h('label', { for: `tp${i}`, class: 'grow', style: { color: 'var(--text)', margin: 0, fontSize: '.95rem' } }, t))));
 const darkBtn = h('button', { class: 'big', onclick: () => { document.body.classList.toggle('blackout'); darkBtn.textContent = document.body.classList.contains('blackout') ? '☀ 通常表示' : '🌑 真っ黒表示（省電力）'; } }, '🌑 真っ黒表示（省電力）');
-app.append(batCard, h('section', { class: 'card' }, h('h2', {}, 'やることリスト'), tipList), h('section', { class: 'card' }, darkBtn, h('p', { class: 'small muted' }, '有機ELの画面では黒い表示ほど電気を使いません。')));
+add(app, batCard, h('section', { class: 'card' }, h('h2', {}, 'やることリスト'), tipList), h('section', { class: 'card' }, darkBtn, h('p', { class: 'small muted' }, '有機ELの画面では黒い表示ほど電気を使いません。')));
 drawBattery();

@@ -1,4 +1,4 @@
-import { h, $, store, requestMotion, wakeLock, fmtDateTime } from '../../shared/lib.js';
+import { h, add, $, store, requestMotion, wakeLock, fmtDateTime } from '../../shared/lib.js';
 import { roughIntensity, intensityLabel } from './logic.js';
 
 // 加速度センサーで揺れを測り、グラフと震度の目安を表示する。机の上に置いて使う。
@@ -42,6 +42,6 @@ async function start() {
   requestAnimationFrame(draw);
 }
 const last = db.get('lastPeak');
-app.append(h('section', { class: 'card center' }, canvas, now, peak, startBtn,
+add(app, h('section', { class: 'card center' }, canvas, now, peak, startBtn,
   h('p', { class: 'small muted' }, '※ スマホの加速度センサーによる簡易的な目安です。正式な震度は気象庁の発表を確認してください。'),
   last ? h('p', { class: 'small' }, `前回の記録: ${last.gal.toFixed(1)} gal（${fmtDateTime(last.t)}）`) : null));

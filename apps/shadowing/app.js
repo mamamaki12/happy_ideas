@@ -1,4 +1,4 @@
-import { h, render, $, store, startMic, stopStream, toast } from '../../shared/lib.js';
+import { h, add, render, $, store, startMic, stopStream, toast } from '../../shared/lib.js';
 import { speak, stopSpeaking, synthesisSupported } from '../../shared/speech.js';
 
 // お手本を音声合成で読み上げ → 自分の声を録音 → 交互に聞き比べる。
@@ -51,7 +51,7 @@ function drawRec() {
     audio,
     h('p', { class: 'small muted' }, recording ? 'お手本に少し遅れて、同じように声に出しましょう' : '「重ねて話す」でお手本の再生と録音が同時に始まります'));
 }
-app.append(
+add(app, 
   h('section', { class: 'card' }, h('div', { class: 'row' }, h('div', {}, h('label', { for: 'lang' }, '言語'), langIn), h('div', {}, h('label', { for: 'rate' }, '速さ ', rateLabel), rateIn))),
   h('section', { class: 'card' }, h('h2', {}, '練習する文'), sentenceBox, h('div', { style: { marginTop: '10px' } }, textIn)),
   h('section', { class: 'card' }, recBox),

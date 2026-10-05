@@ -1,4 +1,4 @@
-import { h, render, $, store, uid, toast, yen, notify, notifyButton, daysUntil, todayStr, confirmDelete } from '../../shared/lib.js';
+import { h, add, render, $, store, uid, toast, yen, notify, notifyButton, daysUntil, todayStr, confirmDelete } from '../../shared/lib.js';
 import { nextRenewal } from './logic.js';
 
 const db = store('sub-audit');
@@ -62,5 +62,5 @@ function draw() {
   }
 }
 
-app.append(summary, form, listCard);
+add(app, summary, form, listCard);
 draw();

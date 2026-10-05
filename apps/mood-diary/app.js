@@ -1,4 +1,4 @@
-import { h, render, $, store, todayStr, fmtDate } from '../../shared/lib.js';
+import { h, add, render, $, store, todayStr, fmtDate } from '../../shared/lib.js';
 
 // 1日1タップで気分を記録。曜日ごとの平均や、最近の流れを見て自分の傾向を知る。
 const db = store('mood-diary');
@@ -24,5 +24,5 @@ function draw() {
     h('h2', { style: { marginTop: '14px' } }, '曜日ごとの平均'), h('div', { class: 'dow' }, '日月火水木金土'.split('').map((w, i) => { const a = avg(byDow[i]); return h('div', { class: 'dow-col' }, h('div', { class: 'dow-bar', style: { height: `${a ? (a / 5) * 100 : 0}%` } }), h('span', {}, w), h('small', {}, a ? a.toFixed(1) : '-')); })),
     keys.length >= 7 ? h('p', { class: 'small muted' }, (() => { const ranks = byDow.map((a, i) => [avg(a), i]).filter(([a]) => a != null).sort((x, y) => x[0] - y[0]); return ranks.length > 1 ? `${'日月火水木金土'[ranks[0][1]]}曜日は気分が下がりやすく、${'日月火水木金土'[ranks.at(-1)[1]]}曜日は上がりやすいようです。` : ''; })()) : h('p', { class: 'small muted' }, '1週間以上つけると傾向が見えてきます'));
 }
-app.append(top, stats);
+add(app, top, stats);
 draw();

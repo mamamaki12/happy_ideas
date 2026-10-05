@@ -1,4 +1,4 @@
-import { h, render, $, store, uid, fmtTime, fmtDuration, todayStr, vibrate, confirmDelete } from '../../shared/lib.js';
+import { h, add, render, $, store, uid, fmtTime, fmtDuration, todayStr, vibrate, confirmDelete } from '../../shared/lib.js';
 
 // 片手で使える育児記録。大きなボタンで授乳・ミルク・おむつ・睡眠を記録。前回からの経過時間がすぐ分かる。
 const db = store('baby-log');
@@ -11,17 +11,17 @@ const listCard = h('section', { class: 'card' });
 const milkPicker = h('div', { class: 'card hidden' }, h('p', { class: 'small' }, '🍼 ミルクの量は？'), h('div', { class: 'grid-3' }, [40, 60, 80, 100, 120, 140, 160, 180, 200].map((ml) => h('button', { onclick: () => { logs.unshift({ id: uid(), k: 'milk', t: Date.now(), ml }); save(); vibrate(40); milkPicker.classList.add('hidden'); draw(); } }, `${ml}ml`))));
 const save = () => db.set('logs', logs);
 
-function add(k) {
+function addEntry(k) {
   const e = { id: uid(), k, t: Date.now() };
   if (k === 'milk') { milkPicker.classList.toggle('hidden'); return; }
   logs.unshift(e); logs = logs.slice(0, 2000); save(); vibrate(40); draw();
 }
 const last = (ks) => logs.find((x) => ks.includes(x.k));
 function draw() {
-  render(grid, Object.entries(KINDS).map(([k, [l, c]]) => h('button', { class: 'baby-btn', style: { '--c': c }, onclick: () => add(k) }, l)));
+  render(grid, Object.entries(KINDS).map(([k, [l, c]]) => h('button', { class: 'baby-btn', style: { '--c': c }, onclick: () => addEntry(k) }, l)));
   const feed = last(['breastL', 'breastR', 'milk']); const diaper = last(['pee', 'poo']); const sl = last(['sleep', 'wake']);
   render(since,
-    h('div', { class: 'stat' }, h('b', {}, feed ? fmtDuration(Date.now() - feed.t).slice(0, -3) : '—'), h('span', {}, `授乳から（${feed ? KINDS[feed.k][0].slice(3) : ''}）`)),
+    h('div', { class: 'stat' }, h('b', {}, feed ? fmtDuration(Date.now() - feed.t).slice(0, -3) : '—'), h('span', {}, feed ? `授乳から（${KINDS[feed.k][0].slice(3)}）` : '授乳から')),
     h('div', { class: 'stat' }, h('b', {}, diaper ? fmtDuration(Date.now() - diaper.t).slice(0, -3) : '—'), h('span', {}, 'おむつから')),
     h('div', { class: 'stat' }, h('b', {}, sl ? fmtDuration(Date.now() - sl.t).slice(0, -3) : '—'), h('span', {}, sl?.k === 'sleep' ? 'ねてから' : 'おきてから')));
   const today = logs.filter((x) => todayStr(new Date(x.t)) === todayStr());
@@ -31,5 +31,5 @@ function draw() {
       h('button', { class: 'small ghost', 'aria-label': '取り消し', onclick: () => { if (confirmDelete()) { logs = logs.filter((y) => y.id !== x.id); save(); draw(); } } }, '×')))));
 }
 setInterval(draw, 30000);
-app.append(h('section', { class: 'card' }, since), h('section', { class: 'card' }, grid), milkPicker, listCard);
+add(app, h('section', { class: 'card' }, since), h('section', { class: 'card' }, grid), milkPicker, listCard);
 draw();

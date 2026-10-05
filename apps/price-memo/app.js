@@ -1,4 +1,4 @@
-import { h, render, $, store, uid, toast, yen, fmtDate, todayStr, confirmDelete } from '../../shared/lib.js';
+import { h, add, render, $, store, uid, toast, yen, fmtDate, todayStr, confirmDelete } from '../../shared/lib.js';
 
 // 商品ごとに「いつ・どこで・いくら」を記録。最安値と前回比を見せる。
 const db = store('price-memo');
@@ -80,5 +80,5 @@ function draw() {
       })));
 }
 
-app.append(form, listCard);
+add(app, form, listCard);
 draw();

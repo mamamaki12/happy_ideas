@@ -1,4 +1,4 @@
-import { h, render, $, store, vibrate, getPosition, mapUrl, share, toast, wakeLock } from '../../shared/lib.js';
+import { h, add, render, $, store, vibrate, getPosition, mapUrl, share, toast, wakeLock } from '../../shared/lib.js';
 
 // 夜道や気まずい場面で使う「偽の着信」と、現在地をすぐ送るボタン。
 const db = store('fake-call');
@@ -29,7 +29,7 @@ function answer() {
 }
 const callerIn = h('input', { id: 'cl', value: s.caller, maxlength: 20, oninput: (e) => { s.caller = e.target.value; db.set('s', s); } });
 const delayIn = h('select', { id: 'dl', onchange: (e) => { s.delay = +e.target.value; db.set('s', s); } }, [0, 5, 10, 30, 60].map((n) => h('option', { value: n, selected: n === s.delay }, n ? `${n}秒後` : 'すぐ')));
-app.append(
+add(app, 
   h('section', { class: 'card' }, h('h2', {}, '📞 偽の着信'), h('div', { class: 'row' }, h('div', {}, h('label', { for: 'cl' }, 'かけてくる人'), callerIn), h('div', {}, h('label', { for: 'dl' }, 'タイミング'), delayIn)),
     h('button', { class: 'primary big', style: { marginTop: '10px' }, onclick: () => { toast(s.delay ? `${s.delay}秒後に着信します` : '着信します'); setTimeout(incoming, s.delay * 1000); } }, '着信を予約')),
   h('section', { class: 'card' }, h('h2', {}, '📍 いまの場所を送る'),

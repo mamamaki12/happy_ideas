@@ -1,4 +1,4 @@
-import { h, render, $, store, uid, todayStr, vibrate, confirmDelete } from '../../shared/lib.js';
+import { h, add, render, $, store, uid, todayStr, vibrate, confirmDelete } from '../../shared/lib.js';
 import { weekStreak, thisWeekCount } from './logic.js';
 
 // 習慣トラッカー。「毎日」ではなく「週に◯回」の目標にできるので、1日休んでも途切れない。
@@ -26,7 +26,7 @@ function draw() {
 const nIn = h('input', { id: 'hn', required: true, maxlength: 30, placeholder: '例: 筋トレ' });
 const iIn = h('input', { id: 'hi', value: '⭐', maxlength: 4 });
 const pIn = h('select', { id: 'hp' }, [1, 2, 3, 4, 5, 6, 7].map((n) => h('option', { value: n, selected: n === 3 }, n === 7 ? '毎日' : `週${n}回`)));
-app.append(listBox, h('form', { class: 'card', onsubmit: (e) => { e.preventDefault(); habits.push({ id: uid(), name: nIn.value.trim(), icon: iIn.value || '⭐', perWeek: +pIn.value, dates: [] }); save(); nIn.value = ''; draw(); } },
+add(app, listBox, h('form', { class: 'card', onsubmit: (e) => { e.preventDefault(); habits.push({ id: uid(), name: nIn.value.trim(), icon: iIn.value || '⭐', perWeek: +pIn.value, dates: [] }); save(); nIn.value = ''; draw(); } },
   h('h2', {}, '習慣を追加'), h('div', { class: 'row' }, h('div', {}, h('label', { for: 'hn' }, '習慣'), nIn), h('div', { class: 'shrink', style: { width: '70px' } }, h('label', { for: 'hi' }, '絵文字'), iIn), h('div', {}, h('label', { for: 'hp' }, '目標'), pIn)),
   h('button', { class: 'primary', type: 'submit', style: { marginTop: '10px' } }, '追加')));
 draw();

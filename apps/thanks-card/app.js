@@ -1,4 +1,4 @@
-import { h, $, store, share, download } from '../../shared/lib.js';
+import { h, add, $, store, share, download } from '../../shared/lib.js';
 import { drawWrapped, canvasToBlob } from '../../shared/canvas-text.js';
 
 // ひとことを画像カードにして送る。LINEやメールにそのまま貼れる。
@@ -25,7 +25,7 @@ async function send() {
   const r = await share({ title: 'ありがとうカード', text: s.msg, files: [file] });
   if (r !== 'shared') download(blob, file.name);
 }
-app.append(h('section', { class: 'card' }, canvas),
+add(app, h('section', { class: 'card' }, canvas),
   h('section', { class: 'card' },
     h('div', { class: 'row' }, h('div', {}, h('label', { for: 'to' }, 'だれへ'), h('input', { id: 'to', value: s.to, maxlength: 20, oninput: upd('to') })), h('div', {}, h('label', { for: 'fr' }, 'だれから'), h('input', { id: 'fr', value: s.from, maxlength: 20, oninput: upd('from') }))),
     h('div', { class: 'field', style: { marginTop: '10px' } }, h('label', { for: 'msg' }, 'メッセージ'), h('textarea', { id: 'msg', rows: 3, maxlength: 80, value: s.msg, oninput: upd('msg') })),

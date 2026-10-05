@@ -1,4 +1,4 @@
-import { h, render, $, store, wakeLock } from '../../shared/lib.js';
+import { h, add, render, $, store, wakeLock } from '../../shared/lib.js';
 import { speak, stopSpeaking, synthesisSupported } from '../../shared/speech.js';
 import { HEROES, PLACES, ITEMS, makeStory } from './logic.js';
 
@@ -31,7 +31,7 @@ async function play() {
 }
 function stop() { playing = false; stopSpeaking(); lock.off(); playBtn.textContent = '🌙 よみきかせ'; document.body.classList.remove('night'); storyBox.querySelectorAll('.now').forEach((p) => p.classList.remove('now')); }
 
-app.append(h('section', { class: 'card' }, h('div', { class: 'row' }, select('hero', 'だれが', HEROES), select('place', 'どこで', PLACES), select('item', 'なにを', ITEMS)),
+add(app, h('section', { class: 'card' }, h('div', { class: 'row' }, select('hero', 'だれが', HEROES), select('place', 'どこで', PLACES), select('item', 'なにを', ITEMS)),
   h('div', { class: 'btn-row', style: { marginTop: '12px' } }, h('button', { onclick: () => { seed++; draw(); } }, '🎲 べつのおはなし'))),
 h('section', { class: 'card' }, storyBox, playBtn,
   synthesisSupported() ? null : h('p', { class: 'notice' }, 'このブラウザは読み上げに非対応です。文章を読んであげてください。')));

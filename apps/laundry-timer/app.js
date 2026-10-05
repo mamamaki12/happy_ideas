@@ -1,4 +1,4 @@
-import { h, render, $, store, getPosition, notify, notifyButton, fmtTime, fmtDuration, toast } from '../../shared/lib.js';
+import { h, add, render, $, store, getPosition, notify, notifyButton, fmtTime, fmtDuration, toast } from '../../shared/lib.js';
 import { dryIndex } from './logic.js';
 
 // 洗濯・乾燥の終了時刻を通知。現在地の気温・湿度から「部屋干しの乾きやすさ」も出す。
@@ -49,6 +49,6 @@ function manualDry() {
   render(dryCard, h('h2', {}, '部屋干しの乾きやすさ'), h('div', { class: 'row' }, h('div', {}, h('label', { for: 'dt' }, '室温℃'), t), h('div', {}, h('label', { for: 'dr' }, '湿度%'), r), go));
 }
 
-app.append(h('section', { class: 'card' }, h('div', { class: 'grid-2' }, PRESETS.map(([l, m]) => h('button', { onclick: () => start(l, m) }, `${l}`, h('span', { class: 'small muted' }, ` ${m}分`)))), h('div', { style: { marginTop: '10px' } }, notifyButton()),
+add(app, h('section', { class: 'card' }, h('div', { class: 'grid-2' }, PRESETS.map(([l, m]) => h('button', { onclick: () => start(l, m) }, `${l}`, h('span', { class: 'small muted' }, ` ${m}分`)))), h('div', { style: { marginTop: '10px' } }, notifyButton()),
   h('p', { class: 'small muted' }, '※ Webアプリの通知は、ページを開いている（バックグラウンド含む）間だけ確実に届きます。')), listCard, dryCard);
 draw(); loadDry();

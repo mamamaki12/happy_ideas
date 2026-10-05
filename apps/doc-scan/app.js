@@ -1,4 +1,4 @@
-import { h, render, $, toast, download } from '../../shared/lib.js';
+import { h, add, render, $, toast, download } from '../../shared/lib.js';
 import { cameraPanel } from '../../shared/camera.js';
 import { scanFilter } from './logic.js';
 
@@ -44,6 +44,6 @@ function draw() {
 }
 
 const cam = cameraPanel({ label: 'ページを撮る', maxSide: 1800, onPhoto: addPage });
-app.append(h('section', { class: 'card' }, cam.el,
+add(app, h('section', { class: 'card' }, cam.el,
   h('div', { class: 'row', style: { marginTop: '12px' } }, h('div', {}, h('label', { for: 'mode' }, '仕上がり'), modeIn), h('div', {}, h('label', { for: 'th' }, '白黒のしきい値'), thIn))), out);
 draw();

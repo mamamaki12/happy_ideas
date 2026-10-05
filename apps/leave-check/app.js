@@ -1,4 +1,4 @@
-import { h, render, $, store, uid, vibrate, fmtDateTime, toast } from '../../shared/lib.js';
+import { h, add, render, $, store, uid, vibrate, fmtDateTime, toast } from '../../shared/lib.js';
 
 // 出かける前の指差し確認。全部タップしたら「確認済み」の記録が残るので、外出先で不安になったら見返せる。
 const db = store('leave-check');
@@ -26,7 +26,7 @@ const editList = h('ul', { class: 'list' });
 function drawEdit() {
   render(editList, items.map((it) => h('li', {}, h('span', { class: 'grow' }, `${it.icon} ${it.label}`), h('button', { class: 'small ghost', 'aria-label': `${it.label}を削除`, onclick: () => { items = items.filter((x) => x.id !== it.id); checked.delete(it.id); db.set('items', items); draw(); drawEdit(); } }, '×'))));
 }
-app.append(h('section', { class: 'card' }, status, grid, h('button', { class: 'ghost small', onclick: () => { checked = new Set(); draw(); } }, 'リセット')), logCard,
+add(app, h('section', { class: 'card' }, status, grid, h('button', { class: 'ghost small', onclick: () => { checked = new Set(); draw(); } }, 'リセット')), logCard,
   h('details', { class: 'card' }, h('summary', {}, '項目を編集'), editList,
     h('form', { class: 'row', onsubmit: (e) => { e.preventDefault(); if (!newIn.value.trim()) return; items.push({ id: uid(), icon: '☑️', label: newIn.value.trim() }); db.set('items', items); newIn.value = ''; draw(); drawEdit(); } }, h('div', {}, h('label', { for: 'ni' }, '追加'), newIn), h('button', { class: 'shrink', type: 'submit' }, '追加'))));
 draw(); drawLog(); drawEdit();

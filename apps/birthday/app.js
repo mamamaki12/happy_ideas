@@ -1,4 +1,4 @@
-import { h, render, $, store, uid, notify, notifyButton, todayStr, confirmDelete } from '../../shared/lib.js';
+import { h, add, render, $, store, uid, notify, notifyButton, todayStr, confirmDelete } from '../../shared/lib.js';
 import { nextBirthday } from './logic.js';
 
 // 誕生日と、これまで贈ったものを記録。1週間前と当日に通知する。
@@ -24,7 +24,7 @@ function draw() {
 const nIn = h('input', { id: 'bn', required: true, maxlength: 20, placeholder: '名前' });
 const dIn = h('input', { id: 'bd', type: 'date', required: true });
 const yIn = h('label', { class: 'toggle', style: { display: 'flex', gap: '6px', color: 'var(--text)' } }, h('input', { type: 'checkbox', id: 'by', checked: true }), '生まれ年も覚える');
-app.append(listCard, h('form', { class: 'card', onsubmit: (e) => { e.preventDefault(); const [y, m, d] = dIn.value.split('-'); people.push({ id: uid(), name: nIn.value.trim(), md: `${m}-${d}`, year: $('#by').checked ? +y : null, gifts: [] }); save(); nIn.value = ''; draw(); } },
+add(app, listCard, h('form', { class: 'card', onsubmit: (e) => { e.preventDefault(); const [y, m, d] = dIn.value.split('-'); people.push({ id: uid(), name: nIn.value.trim(), md: `${m}-${d}`, year: $('#by').checked ? +y : null, gifts: [] }); save(); nIn.value = ''; draw(); } },
   h('h2', {}, '登録'), h('div', { class: 'row' }, h('div', {}, h('label', { for: 'bn' }, '名前'), nIn), h('div', {}, h('label', { for: 'bd' }, '誕生日'), dIn)), yIn,
   h('div', { class: 'btn-row', style: { marginTop: '10px' } }, h('button', { class: 'primary', type: 'submit' }, '登録'), notifyButton())));
 draw();

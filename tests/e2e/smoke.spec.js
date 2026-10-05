@@ -29,6 +29,9 @@ for (const slug of BUILT) {
     // 名前のないボタンがない
     const nameless = await page.evaluate(() => [...document.querySelectorAll('button')].filter((b) => !b.textContent.trim() && !b.getAttribute('aria-label')).length);
     expect(nameless, '名前のないボタン').toBe(0);
+    // null / undefined / NaN がそのまま表示されていない
+    const text = await page.locator('body').innerText();
+    expect(text, '表示に null/undefined/NaN が混ざっている').not.toMatch(/(^|[^a-zA-Z])(null|undefined|NaN)([^a-zA-Z]|$)/);
     expect(errors).toEqual([]);
   });
 }

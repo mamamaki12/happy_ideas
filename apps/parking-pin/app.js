@@ -1,4 +1,4 @@
-import { h, render, $, store, blobStore, getPosition, toast, fmtDateTime, mapUrl, confirmDelete, fmtDuration } from '../../shared/lib.js';
+import { h, add, render, $, store, blobStore, getPosition, toast, fmtDateTime, mapUrl, confirmDelete, fmtDuration } from '../../shared/lib.js';
 import { cameraPanel, blobImg } from '../../shared/camera.js';
 import { compassTo } from '../../shared/compass.js';
 
@@ -46,5 +46,5 @@ function draw() {
   compass.start();
 }
 
-app.append(main);
+add(app, main);
 draw();

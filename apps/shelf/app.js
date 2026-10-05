@@ -1,4 +1,4 @@
-import { h, render, $, store, uid, share, download, toast, confirmDelete } from '../../shared/lib.js';
+import { h, add, render, $, store, uid, share, download, toast, confirmDelete } from '../../shared/lib.js';
 import { drawWrapped, canvasToBlob } from '../../shared/canvas-text.js';
 
 // 読んだ本・観た作品・聴いた曲を棚に並べ、月ごとのまとめ画像を作って共有する。
@@ -46,7 +46,7 @@ async function makeCard() {
 const tIn = h('input', { id: 'st', required: true, maxlength: 60, placeholder: 'タイトル' });
 const typeIn = h('select', { id: 'sty' }, Object.entries(TYPES).map(([k, [ic, l]]) => h('option', { value: k }, `${ic} ${l}`)));
 const starIn = h('select', { id: 'ss' }, [5, 4, 3, 2, 1].map((n) => h('option', { value: n }, '★'.repeat(n))));
-app.append(h('form', { class: 'card', onsubmit: (e) => { e.preventDefault(); items.push({ id: uid(), title: tIn.value.trim(), type: typeIn.value, stars: +starIn.value, ym }); save(); tIn.value = ''; toast('棚に並べました'); draw(); } },
+add(app, h('form', { class: 'card', onsubmit: (e) => { e.preventDefault(); items.push({ id: uid(), title: tIn.value.trim(), type: typeIn.value, stars: +starIn.value, ym }); save(); tIn.value = ''; toast('棚に並べました'); draw(); } },
   h('div', { class: 'field' }, h('label', { for: 'st' }, '読んだ・観た・聴いたもの'), tIn),
   h('div', { class: 'row' }, h('div', {}, h('label', { for: 'sty' }, '種類'), typeIn), h('div', {}, h('label', { for: 'ss' }, '評価'), starIn), h('button', { class: 'primary shrink', type: 'submit' }, '並べる'))),
 h('section', { class: 'card' }, shelfBox));

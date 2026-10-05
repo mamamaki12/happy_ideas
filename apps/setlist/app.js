@@ -1,4 +1,4 @@
-import { h, render, $, store, uid, share, confirmDelete, todayStr } from '../../shared/lib.js';
+import { h, add, render, $, store, uid, share, confirmDelete, todayStr } from '../../shared/lib.js';
 import { scoreSetlist } from './logic.js';
 
 // セトリ予想 → ライブ後に答え合わせ。1行1曲で入力する。
@@ -33,5 +33,5 @@ function draw() {
   h('section', { class: 'card center' }, resBox));
   result();
 }
-app.append(main);
+add(app, main);
 draw();

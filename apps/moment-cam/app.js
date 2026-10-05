@@ -1,4 +1,4 @@
-import { h, render, $, store, blobStore, uid, startCamera, stopStream, notify, notifyButton, toast, fmtDateTime, todayStr, download, confirmDelete } from '../../shared/lib.js';
+import { h, add, render, $, store, blobStore, uid, startCamera, stopStream, notify, notifyButton, toast, fmtDateTime, todayStr, download, confirmDelete } from '../../shared/lib.js';
 import { blobImg } from '../../shared/camera.js';
 
 // 1日1回ランダムな時刻に「いま」を撮る。背面→前面の順に撮って1枚に合成する。端末内だけのBeReal。
@@ -88,5 +88,5 @@ function drawFeed() {
       })));
 }
 
-app.append(statusCard, shootCard, feed);
+add(app, statusCard, shootCard, feed);
 drawStatus(); drawFeed();

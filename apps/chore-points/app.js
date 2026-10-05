@@ -1,4 +1,4 @@
-import { h, render, $, store, uid, vibrate, toast, fmtDate, todayStr, confirmDelete } from '../../shared/lib.js';
+import { h, add, render, $, store, uid, vibrate, toast, fmtDate, todayStr, confirmDelete } from '../../shared/lib.js';
 
 // おてつだいをポイントにして、ごほうびと交換する。子どもが自分で押せる大きなボタン。
 const db = store('chore-points');
@@ -22,9 +22,9 @@ function draw() {
     addKid,
     h('section', { class: 'card center' }, h('p', { class: 'big-number' }, `⭐ ${pt}`), h('p', { class: 'muted' }, `${kid.name}のポイント`)),
     h('section', { class: 'card' }, h('h2', {}, 'おてつだいした！'), h('div', { class: 'grid-2' }, chores.map(([l, p]) => h('button', { class: 'chore', onclick: () => { log.unshift({ id: uid(), kid: kid.id, p, l, d: todayStr() }); save(); vibrate([40, 40, 80]); toast(`⭐ +${p}　えらい！`); draw(); } }, h('span', {}, l), h('span', { class: 'pill' }, `+${p}`))))),
-    h('section', { class: 'card' }, h('h2', {}, 'ごほうびと交換'), h('div', { class: 'grid-2' }, rewards.map(([l, p]) => h('button', { disabled: pt < p, onclick: () => { if (!confirm(`${l} と交換しますか？（${p}ポイント）`)) return; log.unshift({ id: uid(), kid: kid.id, p: -p, l, d: todayStr() }); save(); toast(`🎉 ${l} ゲット！`); draw(); } }, l, h('span', { class: 'pill' }, `${p}pt`))))),
+    h('section', { class: 'card' }, h('h2', {}, 'ごほうびと交換'), h('div', { class: 'grid-2' }, rewards.map(([l, p]) => h('button', { class: 'chore', disabled: pt < p, onclick: () => { if (!confirm(`${l} と交換しますか？（${p}ポイント）`)) return; log.unshift({ id: uid(), kid: kid.id, p: -p, l, d: todayStr() }); save(); toast(`🎉 ${l} ゲット！`); draw(); } }, l, h('span', { class: 'pill' }, `${p}pt`))))),
     h('details', { class: 'card' }, h('summary', {}, 'りれき'), h('ul', { class: 'list' }, log.filter((x) => x.kid === kid.id).slice(0, 30).map((x) => h('li', {}, h('span', { class: 'sub' }, fmtDate(x.d)), h('span', { class: 'grow' }, x.l), h('b', { style: { color: x.p > 0 ? 'var(--ok)' : 'var(--danger)' } }, x.p > 0 ? `+${x.p}` : x.p),
       h('button', { class: 'small ghost', 'aria-label': '取り消し', onclick: () => { if (confirmDelete()) { log = log.filter((y) => y.id !== x.id); save(); draw(); } } }, '×'))))));
 }
-app.append(main);
+add(app, main);
 draw();

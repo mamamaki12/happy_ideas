@@ -1,4 +1,4 @@
-import { h, render, $, store, uid, yen, todayStr, fmtDate, share, confirmDelete, toast } from '../../shared/lib.js';
+import { h, add, render, $, store, uid, yen, todayStr, fmtDate, share, confirmDelete, toast } from '../../shared/lib.js';
 
 // 推しごとの支出・参戦・イベントを記録し、年間の推し活費を集計する。
 const db = store('oshi-log');
@@ -38,7 +38,7 @@ function draw() {
 
 const newName = h('input', { id: 'nn', placeholder: '推しの名前', maxlength: 20 });
 const newColor = h('input', { id: 'nc', type: 'color', value: '#7950f2' });
-app.append(summary,
+add(app, summary,
   h('form', { class: 'card', onsubmit: (e) => { e.preventDefault(); logs.push({ id: uid(), oshi: oshiSel.value, kind: kindSel.value, amount: +amtIn.value || 0, memo: memoIn.value.trim(), date: dateIn.value || todayStr() }); save(); amtIn.value = ''; memoIn.value = ''; toast('記録しました'); draw(); } },
     h('h2', {}, '記録する'),
     h('div', { class: 'row' }, h('div', {}, h('label', { for: 'os' }, '推し'), oshiSel), h('div', {}, h('label', { for: 'ok' }, '種類'), kindSel)),

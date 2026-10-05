@@ -1,4 +1,4 @@
-import { h, render, $, store, getPosition, distance } from '../../shared/lib.js';
+import { h, add, render, $, store, getPosition, distance } from '../../shared/lib.js';
 import { compassTo } from '../../shared/compass.js';
 import { placeForm, placeList } from '../../shared/places.js';
 
@@ -30,7 +30,7 @@ const nearestBtn = h('button', { class: 'primary big', style: { marginTop: '10px
   } catch (e) { render(guide, h('p', { class: 'error' }, e.message)); guide.classList.remove('hidden'); }
 } }, '🚨 いちばん近い避難場所へ');
 render(listCard, h('h2', {}, '登録した避難場所'), listBox, nearestBtn);
-app.append(h('p', { class: 'notice' }, '自治体のハザードマップで避難場所を確認し、平常時に登録しておきましょう。位置情報（GPS）は電波がなくても使えます。'), guide, listCard,
+add(app, h('p', { class: 'notice' }, '自治体のハザードマップで避難場所を確認し、平常時に登録しておきましょう。位置情報（GPS）は電波がなくても使えます。'), guide, listCard,
   placeForm({ idPrefix: 'ev', namePlaceholder: '例: ○○小学校', onAdd: (p) => { places.push(p); save(); draw(); } }));
 draw();
 getPosition({ maximumAge: 60000 }).then((pos) => { here = { lat: pos.coords.latitude, lon: pos.coords.longitude }; draw(); }).catch(() => {});

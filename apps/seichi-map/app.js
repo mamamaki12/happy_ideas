@@ -1,4 +1,4 @@
-import { h, render, $, store, getPosition, distance, notify, notifyButton, toast, fmtDate, todayStr, vibrate } from '../../shared/lib.js';
+import { h, add, render, $, store, getPosition, distance, notify, notifyButton, toast, fmtDate, todayStr, vibrate } from '../../shared/lib.js';
 import { placeForm, placeList } from '../../shared/places.js';
 
 // 聖地（作品の舞台・ライブ会場など）を登録し、近づくと通知。訪問するとスタンプが押せる。
@@ -39,7 +39,7 @@ const watchBtn = h('button', { class: 'primary', onclick: () => {
   watchBtn.textContent = '⏹ 巡礼モードを終了';
 } }, '📡 巡礼モードを開始');
 
-app.append(h('section', { class: 'card' }, statusP, h('div', { class: 'btn-row' }, watchBtn, notifyButton()), h('p', { class: 'small muted' }, `巡礼モード中は、聖地の${RADIUS}m以内に入ると通知します（ページを開いている間のみ）。`)),
+add(app, h('section', { class: 'card' }, statusP, h('div', { class: 'btn-row' }, watchBtn, notifyButton()), h('p', { class: 'small muted' }, `巡礼モード中は、聖地の${RADIUS}m以内に入ると通知します（ページを開いている間のみ）。`)),
   h('section', { class: 'card' }, h('h2', {}, '聖地リスト'), listBox),
   placeForm({ idPrefix: 'sp', namePlaceholder: '例: 第3話の神社', onAdd: (p) => { spots.push(p); save(); draw(); toast('追加しました'); } }));
 draw();

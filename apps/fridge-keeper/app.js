@@ -1,4 +1,4 @@
-import { h, render, $, store, uid, toast, notify, notifyButton, daysUntil, todayStr, showError, confirmDelete } from '../../shared/lib.js';
+import { h, add, render, $, store, uid, toast, notify, notifyButton, daysUntil, todayStr, showError, confirmDelete } from '../../shared/lib.js';
 import { scanBarcode, barcodeSupported } from '../../shared/scanner.js';
 
 const db = store('fridge-keeper');
@@ -98,6 +98,6 @@ function checkSoon() {
   notify('期限が近い食品があります', soon.map((s) => s.name).join('、'));
 }
 
-app.append(form, listCard, statCard);
+add(app, form, listCard, statCard);
 draw();
 checkSoon();

@@ -1,4 +1,4 @@
-import { h, render, $, store, toast } from '../../shared/lib.js';
+import { h, add, render, $, store, toast } from '../../shared/lib.js';
 
 // 旅の通貨換算。レートは手入力（オフラインで使うため）。値札を見ながらテンキーで素早く換算。
 const db = store('currency');
@@ -21,7 +21,7 @@ const pad = h('div', { class: 'keypad' }, ['7', '8', '9', '4', '5', '6', '1', '2
 document.addEventListener('keydown', (e) => { if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return; if (/^[0-9.]$/.test(e.key)) key(e.key); else if (e.key === 'Backspace') key('⌫'); else if (e.key === 'Escape') key('C'); });
 const curSel = h('select', { id: 'cu', onchange: (e) => { s.cur = e.target.value; db.set('s', s); calc(); } }, Object.entries(CURS).map(([k, [f, n]]) => h('option', { value: k, selected: k === s.cur }, `${f} ${n}（${k}）`)));
 rateIn.addEventListener('change', () => { const v = +rateIn.value; if (v > 0) { s.rates[s.cur] = v; db.set('s', s); calc(); toast('レートを保存しました'); } });
-app.append(h('section', { class: 'card' }, h('div', { class: 'row' }, h('div', {}, h('label', { for: 'cu' }, '通貨'), curSel), h('button', { class: 'shrink', onclick: () => { s.dir = s.dir === 'toJpy' ? 'fromJpy' : 'toJpy'; db.set('s', s); input = ''; calc(); }, 'aria-label': '換算の向きを切り替え' }, '⇅'))),
+add(app, h('section', { class: 'card' }, h('div', { class: 'row' }, h('div', {}, h('label', { for: 'cu' }, '通貨'), curSel), h('button', { class: 'shrink', onclick: () => { s.dir = s.dir === 'toJpy' ? 'fromJpy' : 'toJpy'; db.set('s', s); input = ''; calc(); }, 'aria-label': '換算の向きを切り替え' }, '⇅'))),
   h('section', { class: 'card center' }, display, result, pad, h('button', { class: 'ghost small', onclick: () => key('C') }, 'クリア')),
   h('section', { class: 'card' }, h('div', { class: 'row' }, h('div', {}, h('label', { for: 'rt' }, `1${CURS[s.cur][1]} = ? 円`), rateIn),
     h('div', {}, h('label', { for: 'fee' }, 'カード手数料など（%）'), h('input', { id: 'fee', type: 'number', min: 0, max: 10, step: 0.1, value: s.fee, onchange: (e) => { s.fee = +e.target.value || 0; db.set('s', s); calc(); } }))),

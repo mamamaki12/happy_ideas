@@ -1,4 +1,4 @@
-import { h, render, $, store, blobStore, uid, getPosition, mapUrl, fmtDateTime, confirmDelete, toast, download } from '../../shared/lib.js';
+import { h, add, render, $, store, blobStore, uid, getPosition, mapUrl, fmtDateTime, confirmDelete, toast, download } from '../../shared/lib.js';
 import { cameraPanel, blobImg } from '../../shared/camera.js';
 
 // 旅の一行日記: 写真・場所・ひとことを時系列で残す。旅ごとに分けて、あとで見返す。
@@ -37,5 +37,5 @@ function draw() {
         h('button', { class: 'small ghost', 'aria-label': '削除', onclick: async () => { if (!confirmDelete()) return; trip.entries = trip.entries.filter((y) => y.id !== x.id); save(); await photos.del(x.id).catch(() => {}); draw(); } }, '×')), ph, x.memo ? h('p', {}, x.memo) : null);
     }))));
 }
-app.append(main);
+add(app, main);
 draw();

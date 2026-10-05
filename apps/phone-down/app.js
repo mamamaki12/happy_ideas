@@ -1,4 +1,4 @@
-import { h, render, $, store, requestOrientation, wakeLock, fmtDuration, vibrate, todayStr, notify } from '../../shared/lib.js';
+import { h, add, render, $, store, requestOrientation, wakeLock, fmtDuration, vibrate, todayStr, notify } from '../../shared/lib.js';
 
 // スマホを伏せて置いている間だけ時間が貯まる。持ち上げたら終了。
 const db = store('phone-down');
@@ -49,5 +49,5 @@ function drawHist() {
     h('div', { class: 'stat' }, h('b', {}, fmtDuration(best)), h('span', {}, '最長記録')),
     h('div', { class: 'stat' }, h('b', {}, String(history.filter((x) => x.ok).length)), h('span', {}, '達成回数'))));
 }
-app.append(h('section', { class: 'card center' }, big, msg, h('div', { class: 'field' }, h('label', { for: 'goal' }, '目標'), goalIn), startBtn), histCard);
+add(app, h('section', { class: 'card center' }, big, msg, h('div', { class: 'field' }, h('label', { for: 'goal' }, '目標'), goalIn), startBtn), histCard);
 drawHist();

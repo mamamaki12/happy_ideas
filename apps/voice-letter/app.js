@@ -1,4 +1,4 @@
-import { h, render, $, store, blobStore, startMic, stopStream, uid, share, download, fmtDateTime, fmtDuration, confirmDelete, toast } from '../../shared/lib.js';
+import { h, add, render, $, store, blobStore, startMic, stopStream, uid, share, download, fmtDateTime, fmtDuration, confirmDelete, toast } from '../../shared/lib.js';
 
 // 声で手紙を送る。録音して、そのまま共有（LINEやメールに添付）できる。
 const db = store('voice-letter');
@@ -54,5 +54,5 @@ function drawList() {
           h('button', { class: 'small ghost', 'aria-label': '削除', onclick: async () => { if (!confirmDelete()) return; letters = letters.filter((x) => x.id !== l.id); db.set('letters', letters); await clips.del(l.id).catch(() => {}); drawList(); } }, '×'));
       })));
 }
-app.append(h('section', { class: 'card center' }, h('div', { class: 'field', style: { textAlign: 'left' } }, h('label', { for: 'to' }, 'だれに？'), toIn), timer, recBtn, hint), listCard);
+add(app, h('section', { class: 'card center' }, h('div', { class: 'field', style: { textAlign: 'left' } }, h('label', { for: 'to' }, 'だれに？'), toIn), timer, recBtn, hint), listCard);
 drawList();

@@ -1,4 +1,4 @@
-import { h, $, store, notify, notifyButton, vibrate, fmtDuration, todayStr } from '../../shared/lib.js';
+import { h, add, $, store, notify, notifyButton, vibrate, fmtDuration, todayStr } from '../../shared/lib.js';
 
 // 20-20-20 ルール: 20分ごとに、20フィート（約6m）先を20秒見る。
 const db = store('eye-break');
@@ -23,6 +23,6 @@ function toggle() {
   if (phase !== 'idle') { clearInterval(iv); phase = 'idle'; btn.textContent = '▶ 開始'; big.textContent = '20:00'; msg.textContent = '停止しました'; document.body.classList.remove('resting'); return; }
   phase = 'work'; until = Date.now() + WORK; iv = setInterval(tick, 500); btn.textContent = '■ 停止'; msg.textContent = '作業中…（このタブを開いたままにしてください）'; tick();
 }
-app.append(h('section', { class: 'card center' }, big, msg, btn, statP, h('div', { style: { marginTop: '8px' } }, notifyButton())),
+add(app, h('section', { class: 'card center' }, big, msg, btn, statP, h('div', { style: { marginTop: '8px' } }, notifyButton())),
   h('section', { class: 'card' }, h('h2', {}, '20-20-20 ルールとは'), h('p', { class: 'small' }, '画面を20分見たら、20フィート（約6m）以上離れた場所を20秒見る、という目の疲れ対策です。窓の外の景色などがおすすめです。')));
 drawStat();

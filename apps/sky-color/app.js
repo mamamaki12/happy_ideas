@@ -1,4 +1,4 @@
-import { h, render, $, store, todayStr, toast, share, fmtDate } from '../../shared/lib.js';
+import { h, add, render, $, store, todayStr, toast, share, fmtDate } from '../../shared/lib.js';
 import { cameraPanel } from '../../shared/camera.js';
 
 // 空を撮ると、画像の上半分の平均色を「きょうの空の色」として保存する。写真自体は保存しない。
@@ -45,5 +45,5 @@ function draw() {
       h('div', { class: 'sky-grid' }, keys.map((k) => h('div', { class: 'sky-chip', style: { background: days[k] }, title: `${k} ${days[k]}`, role: 'img', 'aria-label': `${k} ${colorName(days[k])}` }, h('span', {}, fmtDate(k))))));
 }
 
-app.append(h('section', { class: 'card' }, cam.el), today, grid);
+add(app, h('section', { class: 'card' }, cam.el), today, grid);
 draw();

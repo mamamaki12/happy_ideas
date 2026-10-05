@@ -1,4 +1,4 @@
-import { h, render, $, store, requestOrientation, vibrate } from '../../shared/lib.js';
+import { h, add, render, $, store, requestOrientation, vibrate } from '../../shared/lib.js';
 
 // 水平器（傾きセンサー）と、画面を使った定規（端末ごとに1回だけ校正する）。
 const db = store('level-ruler');
@@ -70,5 +70,5 @@ function ruler() {
 }
 
 function draw() { cleanup(); tab === 'level' ? level() : ruler(); }
-app.append(tabs, panel);
+add(app, tabs, panel);
 drawTabs(); draw();

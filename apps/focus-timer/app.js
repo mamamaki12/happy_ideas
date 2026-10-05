@@ -1,4 +1,4 @@
-import { h, render, $, store, wakeLock, notify, notifyButton, vibrate, fmtDuration, todayStr } from '../../shared/lib.js';
+import { h, add, render, $, store, wakeLock, notify, notifyButton, vibrate, fmtDuration, todayStr } from '../../shared/lib.js';
 
 // 画面を消さないポモドーロタイマー。作業中に他のアプリへ移った回数（離脱）も数える。
 const db = store('focus-timer');
@@ -39,6 +39,6 @@ function drawStats() {
     h('p', { class: 'small muted' }, `直近7日: ${days.map((k) => `${k.slice(5)} 🍅${stats[k].n}`).join(' / ') || 'なし'}`));
 }
 const num = (k, label) => h('div', {}, h('label', { for: `c-${k}` }, label), h('input', { id: `c-${k}`, type: 'number', min: 1, max: 120, value: cfg[k], onchange: (e) => { cfg[k] = Math.max(1, +e.target.value || 1); db.set('cfg', cfg); if (phase === 'idle') big.textContent = fmtDuration(cfg.work * 60000); } }));
-app.append(h('section', { class: 'card center' }, big, phaseP, h('div', { class: 'field', style: { textAlign: 'left' } }, h('label', { for: 'task' }, 'いまやること'), taskIn), btn), statCard,
+add(app, h('section', { class: 'card center' }, big, phaseP, h('div', { class: 'field', style: { textAlign: 'left' } }, h('label', { for: 'task' }, 'いまやること'), taskIn), btn), statCard,
   h('details', { class: 'card' }, h('summary', {}, '設定'), h('div', { class: 'row', style: { marginTop: '8px' } }, num('work', '集中（分）'), num('rest', '休憩（分）')), h('div', { style: { marginTop: '10px' } }, notifyButton())));
 drawStats();

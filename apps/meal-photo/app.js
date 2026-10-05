@@ -1,4 +1,4 @@
-import { h, render, $, store, blobStore, uid, toast, todayStr, fmtTime, pad, confirmDelete } from '../../shared/lib.js';
+import { h, add, render, $, store, blobStore, uid, toast, todayStr, fmtTime, pad, confirmDelete } from '../../shared/lib.js';
 import { cameraPanel, blobImg } from '../../shared/camera.js';
 
 // 食事を撮るだけの記録。月カレンダーに1日の写真を並べて振り返る。
@@ -55,5 +55,5 @@ function draw() {
       })));
 }
 
-app.append(h('section', { class: 'card' }, h('div', { class: 'field' }, kindIn), cam.el), calCard, dayCard);
+add(app, h('section', { class: 'card' }, h('div', { class: 'field' }, kindIn), cam.el), calCard, dayCard);
 draw();

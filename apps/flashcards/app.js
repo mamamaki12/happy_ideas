@@ -1,4 +1,4 @@
-import { h, render, $, store, uid, toast, confirmDelete } from '../../shared/lib.js';
+import { h, add, render, $, store, uid, toast, confirmDelete } from '../../shared/lib.js';
 import { schedule, parseCsv } from './logic.js';
 
 // 間隔反復の暗記カード。忘れかけたころに出題する。CSV（表,裏）で一括登録できる。
@@ -40,7 +40,7 @@ function drawList() {
     h('span', { class: 'sub' }, c.interval ? `${c.interval}日` : '新規'),
     h('button', { class: 'small ghost', 'aria-label': `${c.front}を削除`, onclick: () => { if (confirmDelete(c.front)) { cards = cards.filter((x) => x.id !== c.id); save(); drawList(); if (current?.id === c.id) next(); } } }, '×')))));
 }
-app.append(study,
+add(app, study,
   h('form', { class: 'card', onsubmit: (e) => { e.preventDefault(); if (!fIn.value.trim() || !bIn.value.trim()) return; cards.push({ id: uid(), front: fIn.value.trim(), back: bIn.value.trim() }); save(); fIn.value = ''; bIn.value = ''; fIn.focus(); toast('追加しました'); if (!current) next(); drawList(); } },
     h('h2', {}, 'カードを追加'), h('div', { class: 'row' }, h('div', {}, h('label', { for: 'ff' }, '表'), fIn), h('div', {}, h('label', { for: 'fb' }, '裏'), bIn), h('button', { class: 'shrink primary', type: 'submit' }, '追加')),
     h('p', { class: 'small muted', style: { marginTop: '10px' } }, 'CSV（1列目=表, 2列目=裏）でまとめて追加:'), csvIn),

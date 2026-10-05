@@ -1,4 +1,4 @@
-import { h, render, $, store, wakeLock, startMic, stopStream, rmsOf, toast } from '../../shared/lib.js';
+import { h, add, render, $, store, wakeLock, startMic, stopStream, rmsOf, toast } from '../../shared/lib.js';
 
 // 画面全体をペンライトにする。色・点滅・音に反応するモード。
 const db = store('penlight');
@@ -37,7 +37,7 @@ const swatches = h('div', { class: 'swatches' });
 const drawSw = () => render(swatches, PRESETS.map((c) => h('button', { class: `sw${c === s.color ? ' on' : ''}`, style: { background: c }, 'aria-label': `色 ${c}`, 'aria-pressed': String(c === s.color), onclick: () => { s.color = c; db.set('s', s); drawSw(); } })),
   h('input', { type: 'color', value: s.color, 'aria-label': '好きな色', oninput: (e) => { s.color = e.target.value; db.set('s', s); } }));
 const MODES = { solid: '点灯', blink: '点滅', wave: 'ゆらゆら', rainbow: 'レインボー', sound: '音に反応' };
-app.append(h('section', { class: 'card' }, h('h2', {}, '色'), swatches),
+add(app, h('section', { class: 'card' }, h('h2', {}, '色'), swatches),
   h('section', { class: 'card' }, h('label', { for: 'pm' }, 'モード'), h('select', { id: 'pm', onchange: (e) => { s.mode = e.target.value; db.set('s', s); } }, Object.entries(MODES).map(([k, l]) => h('option', { value: k, selected: k === s.mode }, l))),
     h('button', { class: 'primary big', style: { marginTop: '12px' }, onclick: light }, '✨ 光らせる'), h('p', { class: 'small muted' }, '画面をタップすると戻ります。画面の明るさを最大にしてください。会場のルールを守って使いましょう。')),
   stage);

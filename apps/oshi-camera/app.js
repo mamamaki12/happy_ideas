@@ -1,4 +1,4 @@
-import { h, render, $, store, startCamera, stopStream, toast, share, download, todayStr } from '../../shared/lib.js';
+import { h, add, render, $, store, startCamera, stopStream, toast, share, download, todayStr } from '../../shared/lib.js';
 
 // 推しと撮れるカメラ: ライブ映像にフレーム（推し色・日付・ひとこと）を重ね、合成した画像を保存・共有する。
 const db = store('oshi-camera');
@@ -83,7 +83,7 @@ const frameIn = h('select', { id: 'of' }, Object.entries(FRAMES).map(([k, l]) =>
 const onChange = () => { s.color = colorIn.value; s.text = textIn.value; s.frame = frameIn.value; db.set('s', s); redrawOverlay(); };
 [colorIn, textIn, frameIn].forEach((el) => el.addEventListener('input', onChange));
 
-app.append(
+add(app, 
   h('section', { class: 'card' }, err, box,
     h('div', { class: 'btn-row' }, h('button', { class: 'primary big', onclick: shoot }, '📸 撮る'),
       h('button', { onclick: async () => { stopStream(stream); const cur = video.style.transform ? 'environment' : 'user'; stream = await startCamera(video, { facingMode: cur }).catch((e) => { toast(e.message); return null; }); video.style.transform = cur === 'user' ? 'scaleX(-1)' : ''; }, 'aria-label': 'カメラ切り替え' }, '🔄'))),

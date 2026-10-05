@@ -1,4 +1,4 @@
-import { h, render, $, store, uid, todayStr, fmtDate, daysUntil, drawLineChart, notify, notifyButton, confirmDelete, toast } from '../../shared/lib.js';
+import { h, add, render, $, store, uid, todayStr, fmtDate, daysUntil, drawLineChart, notify, notifyButton, confirmDelete, toast } from '../../shared/lib.js';
 
 // ペット健康手帳: 体重・ごはん・通院・ワクチンの記録。体重をグラフで見て、次のワクチン日を通知。
 const db = store('pet-log');
@@ -36,5 +36,5 @@ function draw() {
   requestAnimationFrame(() => drawLineChart(chart, weights.map((w) => w.value), { labels: weights.map((w) => fmtDate(w.date)) }));
   if (nextVac && daysUntil(nextVac) <= 7 && daysUntil(nextVac) >= 0 && db.get('n') !== todayStr()) { db.set('n', todayStr()); notify(`${pet.name}のワクチンが近づいています`, nextVac); }
 }
-app.append(main);
+add(app, main);
 draw();

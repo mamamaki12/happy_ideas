@@ -1,4 +1,4 @@
-import { h, render, $, store, toast, fmtDateTime, safeHttpUrl, confirmDelete } from '../../shared/lib.js';
+import { h, add, render, $, store, toast, fmtDateTime, safeHttpUrl, confirmDelete } from '../../shared/lib.js';
 import { scanBarcode, barcodeSupported } from '../../shared/scanner.js';
 import { classify, urlWarnings, parseWifi } from './logic.js';
 
@@ -62,7 +62,7 @@ function drawHistory() {
       h('span', { class: 'sub' }, fmtDateTime(x.t))))));
 }
 
-app.append(
+add(app, 
   h('section', { class: 'card' },
     barcodeSupported() ? null : h('p', { class: 'notice' }, 'このブラウザは BarcodeDetector API に非対応です（iPhoneのSafariなど）。標準カメラアプリのQR読み取りを使ってください。'),
     h('div', { class: 'btn-row' }, h('button', { class: 'primary big', onclick: scan, disabled: !barcodeSupported() }, '📷 読み取る'), h('button', { onclick: () => fileIn.click(), disabled: !barcodeSupported() }, '🖼 画像から')), fileIn),

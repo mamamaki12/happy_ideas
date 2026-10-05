@@ -1,4 +1,4 @@
-import { h, render, $, store, yen } from '../../shared/lib.js';
+import { h, add, render, $, store, yen } from '../../shared/lib.js';
 import { probAtLeastOne, pullsFor, expectedPulls } from './logic.js';
 
 const db = store('gacha-calc');
@@ -30,6 +30,6 @@ function calc() {
     within < 0.5 ? h('p', { class: 'notice' }, '当たる確率は半分以下です。予算を決めてから回しましょう。') : null);
 }
 
-app.append(h('section', { class: 'card' },
+add(app, h('section', { class: 'card' },
   h('div', { class: 'row' }, field('rate', '排出率（%）'), field('price', '1回の値段（円）'), field('ceiling', '天井（回、0=なし）'), field('budget', '予算（円）'))), out);
 calc();

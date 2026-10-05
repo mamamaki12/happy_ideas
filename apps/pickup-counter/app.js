@@ -1,4 +1,4 @@
-import { h, render, $, store, todayStr, fmtTime } from '../../shared/lib.js';
+import { h, add, render, $, store, todayStr, fmtTime } from '../../shared/lib.js';
 
 // 「スマホを見た回数」を数える試み。Webアプリは他アプリの使用を検知できないので、
 // ホーム画面に追加したこのページに戻るたびに「用があった？ なんとなく？」を1タップで記録する。
@@ -29,6 +29,6 @@ function draw() {
     h('div', { class: 'hours', role: 'img', 'aria-label': '時間帯別の回数' }, byHour.map((n, i) => h('div', { class: 'hr', title: `${i}時 ${n}回` }, h('div', { style: { height: `${(n / max) * 100}%` } })))),
     h('p', { class: 'small muted' }, '0時 ………… 12時 ………… 23時'));
 }
-app.append(h('p', { class: 'notice' }, '使い方: このページをホーム画面に追加し、スマホを見るたびに最初にここを開きます。ブラウザの制約で、他のアプリの使用は自動では数えられません（これ自体が検証結果です）。'),
+add(app, h('p', { class: 'notice' }, '使い方: このページをホーム画面に追加し、スマホを見るたびに最初にここを開きます。ブラウザの制約で、他のアプリの使用は自動では数えられません（これ自体が検証結果です）。'),
   h('section', { class: 'card center' }, big, h('button', { onclick: prompt }, '＋ 手動で記録')), ask, statCard);
 draw(); prompt();

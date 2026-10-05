@@ -1,4 +1,4 @@
-import { h, render, $, store, wakeLock } from '../../shared/lib.js';
+import { h, add, render, $, store, wakeLock } from '../../shared/lib.js';
 
 // 緊急時に見せる1枚のカード。血液型・持病・薬・アレルギー・連絡先。オフラインでも表示できる。
 const db = store('emergency-card');
@@ -17,5 +17,5 @@ function show() {
 }
 const form = h('form', { class: 'card', onsubmit: (e) => e.preventDefault() }, FIELDS.map(([k, l, type]) => h('div', { class: 'field' }, h('label', { for: `ec-${k}` }, l),
   type === 'textarea' ? h('textarea', { id: `ec-${k}`, rows: 2, value: d[k] || '', oninput: (e) => { d[k] = e.target.value; db.set('d', d); } }) : h('input', { id: `ec-${k}`, type, value: d[k] || '', oninput: (e) => { d[k] = e.target.value; db.set('d', d); } }))));
-app.append(h('section', { class: 'card' }, h('button', { class: 'primary big', onclick: show }, '🆘 カードを表示'),
+add(app, h('section', { class: 'card' }, h('button', { class: 'primary big', onclick: show }, '🆘 カードを表示'),
   h('p', { class: 'small muted' }, '入力内容はこの端末の中だけに保存されます（自動保存）。一度開いておけば、圏外でも表示できます。ロック画面から見られるよう、ホーム画面への追加をおすすめします。')), form, view);

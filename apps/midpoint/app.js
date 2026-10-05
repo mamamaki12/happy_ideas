@@ -1,4 +1,4 @@
-import { h, render, $, store, distance, fmtDistance, mapUrl, share } from '../../shared/lib.js';
+import { h, add, render, $, store, distance, fmtDistance, mapUrl, share } from '../../shared/lib.js';
 import { placeForm } from '../../shared/places.js';
 import { centroid } from './logic.js';
 
@@ -26,5 +26,5 @@ function draw() {
     h('div', { class: 'btn-row' }, h('a', { class: 'btn primary', href: url, target: '_blank', rel: 'noopener noreferrer' }, '🗺 地図で見る'),
       h('button', { onclick: () => share({ title: '待ち合わせ', text: 'このあたりで待ち合わせしませんか？', url }) }, '共有')));
 }
-app.append(out, listCard, placeForm({ idPrefix: 'mp', namePlaceholder: '例: Aさん（渋谷）', onAdd: (p) => { people.push(p); save(); draw(); } }));
+add(app, out, listCard, placeForm({ idPrefix: 'mp', namePlaceholder: '例: Aさん（渋谷）', onAdd: (p) => { people.push(p); save(); draw(); } }));
 draw();

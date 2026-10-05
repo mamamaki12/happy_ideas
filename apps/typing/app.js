@@ -1,4 +1,4 @@
-import { h, render, $, store } from '../../shared/lib.js';
+import { h, add, render, $, store } from '../../shared/lib.js';
 import { chunks, typeKey } from './logic.js';
 
 // 日本語の文をローマ字で打つ練習。shi/si など複数の書き方に対応。速さ（打鍵/分）と正確さを記録。
@@ -37,6 +37,6 @@ document.addEventListener('keydown', (e) => { if (e.isComposing || e.ctrlKey || 
 // スマホ: 隠し入力欄に入った文字を1文字ずつ処理
 hidden.addEventListener('input', () => { const v = hidden.value; hidden.value = ''; for (const ch of v) onKey(ch); });
 view.addEventListener('click', () => hidden.focus());
-app.append(h('section', { class: 'card' }, view, hidden, stat, h('p', { class: 'small muted center' }, 'PCはそのままキーボードで。スマホは枠をタップして英字キーボードで入力。「し」は shi / si どちらでもOK。')),
+add(app, h('section', { class: 'card' }, view, hidden, stat, h('p', { class: 'small muted center' }, 'PCはそのままキーボードで。スマホは枠をタップして英字キーボードで入力。「し」は shi / si どちらでもOK。')),
   h('button', { class: 'ghost', onclick: () => { t0 = 0; keys = 0; miss = 0; done = 0; n++; load(); } }, 'リセット / 次の文'));
 load();

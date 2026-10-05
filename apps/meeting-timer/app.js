@@ -1,4 +1,4 @@
-import { h, render, $, store, wakeLock, fmtDuration, share } from '../../shared/lib.js';
+import { h, add, render, $, store, wakeLock, fmtDuration, share } from '../../shared/lib.js';
 
 // 会議で誰が何分話したかを計る。話している人をタップするだけ。偏りが一目で分かる。
 const db = store('meeting-timer');
@@ -25,7 +25,7 @@ function draw() {
 }
 function reset() { clearInterval(iv); people.forEach((p) => { p.ms = 0; }); active = -1; start = 0; lock.off(); draw(); }
 const namesIn = h('input', { id: 'nm', value: people.map((p) => p.name).join('、'), 'aria-label': '参加者（読点区切り）' });
-app.append(h('section', { class: 'card' }, total, grid, h('div', { class: 'btn-row', style: { marginTop: '12px' } },
+add(app, h('section', { class: 'card' }, total, grid, h('div', { class: 'btn-row', style: { marginTop: '12px' } },
   h('button', { onclick: () => { if (active >= 0) tap(active); } }, '⏸ 沈黙'), h('button', { onclick: () => share({ title: '発言時間', text: people.map((p, i) => `${p.name}: ${fmtDuration(elapsed(i))}`).join('\n') }) }, '共有'), h('button', { class: 'ghost', onclick: reset }, 'リセット'))),
 h('section', { class: 'card' }, h('label', { for: 'nm' }, '参加者（「、」区切り・最大8人）'), namesIn, h('button', { class: 'small', style: { marginTop: '8px' }, onclick: () => { const ns = namesIn.value.split(/[、,]/).map((s) => s.trim()).filter(Boolean).slice(0, 8); if (!ns.length) return; db.set('people', ns); people = ns.map((n) => ({ name: n, ms: 0 })); reset(); } }, '反映')));
 draw();

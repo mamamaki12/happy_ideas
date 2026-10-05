@@ -1,4 +1,4 @@
-import { h, render, $, store, requestMotion, vibrate, toast } from '../../shared/lib.js';
+import { h, add, render, $, store, requestMotion, vibrate, toast } from '../../shared/lib.js';
 
 // 選択肢を入れてルーレットを回す。スマホを振っても回る。
 const db = store('decider');
@@ -58,5 +58,5 @@ function drawList() {
 }
 
 const shakeBtn = h('button', { class: 'small', onclick: async () => { if (await requestMotion()) { addEventListener('devicemotion', onMotion); shakeBtn.textContent = '📳 振ると回ります'; shakeBtn.disabled = true; } else toast('センサーが使えません'); } }, '📳 振って回す');
-app.append(h('section', { class: 'card center' }, canvas, result, h('div', { class: 'btn-row' }, h('button', { class: 'primary big', onclick: spin }, 'まわす'), shakeBtn)), h('section', { class: 'card' }, h('h2', {}, '選択肢'), listBox));
+add(app, h('section', { class: 'card center' }, canvas, result, h('div', { class: 'btn-row' }, h('button', { class: 'primary big', onclick: spin }, 'まわす'), shakeBtn)), h('section', { class: 'card' }, h('h2', {}, '選択肢'), listBox));
 drawWheel(); drawList();

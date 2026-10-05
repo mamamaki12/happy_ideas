@@ -1,4 +1,4 @@
-import { h, render, $, store, uid, toast, notify, notifyButton, todayStr, confirmDelete } from '../../shared/lib.js';
+import { h, add, render, $, store, uid, toast, notify, notifyButton, todayStr, confirmDelete } from '../../shared/lib.js';
 import { WEEKDAYS, isCollectionDay, nextCollection, describe } from './logic.js';
 
 const db = store('trash-day');
@@ -68,5 +68,5 @@ const form = h('form', { class: 'card', onsubmit: (e) => {
   h('div', { class: 'btn-row', style: { marginBottom: '12px' } }, dayBoxes),
   h('button', { class: 'primary', type: 'submit' }, '追加'));
 
-app.append(todayCard, listCard, form);
+add(app, todayCard, listCard, form);
 draw();

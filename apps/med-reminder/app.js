@@ -1,4 +1,4 @@
-import { h, render, $, store, uid, notify, notifyButton, todayStr, toast, confirmDelete, fmtTime } from '../../shared/lib.js';
+import { h, add, render, $, store, uid, notify, notifyButton, todayStr, toast, confirmDelete, fmtTime } from '../../shared/lib.js';
 import { doseStatus } from './logic.js';
 
 // 薬ごとに時刻を設定。時間になったら通知し、飲んだら1タップで記録。飲み忘れは赤く出る。
@@ -46,5 +46,5 @@ function drawMeds() {
   render(medsCard, h('summary', {}, `登録中のお薬（${meds.length}）`), h('ul', { class: 'list' }, meds.map((m) => h('li', {}, h('span', { class: 'grow' }, `${m.name} ${m.dose} ／ ${m.times.join('・')}`),
     h('button', { class: 'small ghost', 'aria-label': `${m.name}を削除`, onclick: () => { if (confirmDelete(m.name)) { meds = meds.filter((x) => x.id !== m.id); save(); draw(); drawMeds(); } } }, '×')))));
 }
-app.append(todayCard, h('div', { class: 'card' }, notifyButton(), h('p', { class: 'small muted' }, '※ 通知はこのページを開いている間に届きます。確実に知らせるにはスマホのアラームも併用してください。')), form, medsCard);
+add(app, todayCard, h('div', { class: 'card' }, notifyButton(), h('p', { class: 'small muted' }, '※ 通知はこのページを開いている間に届きます。確実に知らせるにはスマホのアラームも併用してください。')), form, medsCard);
 draw(); drawMeds();

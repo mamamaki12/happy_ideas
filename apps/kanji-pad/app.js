@@ -1,4 +1,4 @@
-import { h, render, $, store } from '../../shared/lib.js';
+import { h, add, render, $, store } from '../../shared/lib.js';
 
 // 指でなぞって書く練習帳。お手本を薄く表示し、書いた線の重なり具合で採点。書いた筆順を再生できる。
 const db = store('kanji-pad');
@@ -47,7 +47,7 @@ async function replay() {
 function drawNav() {
   render(nav, SETS[set].map((ch, i) => h('button', { class: `small${i === idx ? ' primary' : ''}`, 'aria-label': `${ch}${scores[`${set}:${ch}`] ? ` ${scores[`${set}:${ch}`]}点` : ''}`, onclick: () => { idx = i; strokes = []; redraw(); drawNav(); info.textContent = ''; } }, ch)));
 }
-app.append(h('section', { class: 'card' }, h('label', { for: 'set' }, 'れんしゅう'), h('select', { id: 'set', onchange: (e) => { set = e.target.value; db.set('set', set); idx = 0; strokes = []; redraw(); drawNav(); } }, Object.keys(SETS).map((k) => h('option', { selected: k === set }, k))), nav),
+add(app, h('section', { class: 'card' }, h('label', { for: 'set' }, 'れんしゅう'), h('select', { id: 'set', onchange: (e) => { set = e.target.value; db.set('set', set); idx = 0; strokes = []; redraw(); drawNav(); } }, Object.keys(SETS).map((k) => h('option', { selected: k === set }, k))), nav),
   h('section', { class: 'card center' }, canvas, info, h('div', { class: 'btn-row' },
     h('button', { onclick: () => { strokes.pop(); redraw(); } }, '↩ 1画もどす'), h('button', { onclick: () => { strokes = []; redraw(); info.textContent = ''; } }, '🗑 けす'),
     h('button', { onclick: replay, disabled: false }, '▶ 書き順再生'),

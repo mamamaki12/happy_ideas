@@ -1,4 +1,4 @@
-import { h, render, $, store, uid, daysUntil, notify, notifyButton, todayStr, confirmDelete } from '../../shared/lib.js';
+import { h, add, render, $, store, uid, daysUntil, notify, notifyButton, todayStr, confirmDelete } from '../../shared/lib.js';
 import { requiredStock } from './logic.js';
 
 // 家族構成から必要な備蓄量を計算し、今ある量と期限を管理する。
@@ -27,7 +27,7 @@ function draw() {
 }
 const num = (k, label) => h('div', {}, h('label', { for: `f-${k}` }, label), h('input', { id: `f-${k}`, type: 'number', min: 0, max: 20, value: fam[k], onchange: (e) => { fam[k] = Math.max(0, +e.target.value || 0); db.set('fam', fam); draw(); } }));
 const nIn = h('input', { id: 'en', placeholder: '例: 保存水 2L×6', maxlength: 30 }); const dIn = h('input', { id: 'ed', type: 'date' });
-app.append(h('section', { class: 'card' }, h('h2', {}, '家族構成'), h('div', { class: 'row' }, num('adults', '大人'), num('kids', '子ども'), num('pets', 'ペット'),
+add(app, h('section', { class: 'card' }, h('h2', {}, '家族構成'), h('div', { class: 'row' }, num('adults', '大人'), num('kids', '子ども'), num('pets', 'ペット'),
   h('div', {}, h('label', { for: 'f-days' }, '何日分'), h('select', { id: 'f-days', onchange: (e) => { fam.days = +e.target.value; db.set('fam', fam); draw(); } }, [3, 7].map((d) => h('option', { value: d, selected: d === fam.days }, `${d}日分`)))))),
 needCard, expCard,
 h('form', { class: 'card', onsubmit: (e) => { e.preventDefault(); if (!nIn.value.trim() || !dIn.value) return; expiries.push({ id: uid(), name: nIn.value.trim(), date: dIn.value }); db.set('exp', expiries); nIn.value = ''; draw(); } },

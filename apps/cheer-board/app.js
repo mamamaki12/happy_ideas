@@ -1,4 +1,4 @@
-import { h, render, $, store, wakeLock } from '../../shared/lib.js';
+import { h, add, render, $, store, wakeLock } from '../../shared/lib.js';
 
 // 大きな文字を流す電光掲示板。横向きにして掲げると、うちわの代わりになる。
 const db = store('cheer-board');
@@ -18,7 +18,7 @@ async function show() { apply(stage); stage.classList.remove('hidden'); lock.on(
 function hide() { stage.classList.add('hidden'); lock.off(); if (document.fullscreenElement) document.exitFullscreen?.(); }
 stage.addEventListener('click', hide);
 stage.addEventListener('keydown', (e) => { if (['Escape', 'Enter'].includes(e.key)) hide(); });
-app.append(h('section', { class: 'card' }, preview,
+add(app, h('section', { class: 'card' }, preview,
   h('div', { class: 'field', style: { marginTop: '12px' } }, h('label', { for: 'b-text' }, '文字'), h('input', { id: 'b-text', value: s.text, maxlength: 40, oninput: (e) => { s.text = e.target.value; db.set('s', s); apply(preview); } })),
   h('div', { class: 'row' }, field('fg', '文字色', { type: 'color' }), field('bg', '背景色', { type: 'color' }), field('speed', '速さ', { type: 'range', min: 1, max: 10 })),
   h('label', { class: 'toggle', style: { margin: '10px 0', display: 'flex', gap: '8px', color: 'var(--text)' } }, h('input', { type: 'checkbox', checked: s.scroll, onchange: (e) => { s.scroll = e.target.checked; db.set('s', s); apply(preview); } }), '流す'),

@@ -1,4 +1,4 @@
-import { h, render, $, store, requestOrientation, vibrate, wakeLock, todayStr } from '../../shared/lib.js';
+import { h, add, render, $, store, requestOrientation, vibrate, wakeLock, todayStr } from '../../shared/lib.js';
 
 // スマホの傾き（beta）から首の前傾を推定。うつむくほど首にかかる重さが増える（Hansraj 2014 の目安）。
 const LOAD = [[0, 5], [15, 12], [30, 18], [45, 22], [60, 27]];
@@ -42,7 +42,7 @@ async function start() {
 }
 
 const today = stats[todayStr()];
-app.append(h('section', { class: 'card center' }, face, big, meter, msg, startBtn,
+add(app, h('section', { class: 'card center' }, face, big, meter, msg, startBtn,
   h('p', { class: 'small muted' }, 'うつむき姿勢が10秒続くと振動でお知らせします（Android）。')),
 today ? h('section', { class: 'card' }, h('h2', {}, '今日'), h('p', {}, `うつむき率 ${Math.round((today.bad / Math.max(1, today.samples)) * 100)}%`)) : null);
 if (typeof window.DeviceOrientationEvent?.requestPermission !== 'function') start();

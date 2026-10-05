@@ -1,4 +1,4 @@
-import { h, render, $, store, blobStore, uid, toast, yen, todayStr, daysUntil, download, confirmDelete } from '../../shared/lib.js';
+import { h, add, render, $, store, blobStore, uid, toast, yen, todayStr, daysUntil, download, confirmDelete } from '../../shared/lib.js';
 import { cameraPanel, blobImg } from '../../shared/camera.js';
 
 // 持ち物台帳: 写真・購入日・価格・保証期限。CSVで書き出せる（保険請求や引越しに）。
@@ -60,5 +60,5 @@ function draw() {
         })))));
 }
 
-app.append(form, listCard);
+add(app, form, listCard);
 draw();

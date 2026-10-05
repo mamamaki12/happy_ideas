@@ -1,4 +1,4 @@
-import { h, render, $, store, uid, todayStr, yen, fmtDate, confirmDelete, toast } from '../../shared/lib.js';
+import { h, add, render, $, store, uid, todayStr, yen, fmtDate, confirmDelete, toast } from '../../shared/lib.js';
 import { budgetStatus } from './logic.js';
 
 // 旅行中の支出を、日割りの予算と比べる。使いすぎペースなら色で知らせる。
@@ -29,7 +29,7 @@ const amt = h('input', { id: 'ta', type: 'number', min: 0, inputmode: 'numeric',
 const cat = h('select', { id: 'tc' }, CATS.map((c) => h('option', {}, c)));
 const memo = h('input', { id: 'tm', maxlength: 30, placeholder: 'メモ' });
 const cfg = (k, label, type) => h('div', {}, h('label', { for: `b-${k}` }, label), h('input', { id: `b-${k}`, type, value: s[k], onchange: (e) => { s[k] = type === 'number' ? Math.max(0, +e.target.value || 0) : e.target.value; save(); draw(); } }));
-app.append(head,
+add(app, head,
   h('form', { class: 'card', onsubmit: (e) => { e.preventDefault(); s.items.push({ id: uid(), amount: +amt.value, cat: cat.value, memo: memo.value.trim(), date: todayStr() }); save(); amt.value = ''; memo.value = ''; toast('記録しました'); draw(); } },
     h('div', { class: 'row' }, h('div', {}, h('label', { for: 'ta' }, '金額'), amt), h('div', {}, h('label', { for: 'tc' }, '種類'), cat)), h('div', { class: 'row', style: { marginTop: '10px' } }, h('div', {}, h('label', { for: 'tm' }, 'メモ'), memo), h('button', { class: 'primary shrink', type: 'submit' }, '記録'))),
   listCard, h('details', { class: 'card' }, h('summary', {}, '旅行の設定'), h('div', { class: 'row', style: { marginTop: '8px' } }, cfg('total', '予算（円）', 'number'), cfg('start', '出発日', 'date'), cfg('end', '最終日', 'date')),

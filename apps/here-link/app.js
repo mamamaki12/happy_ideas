@@ -1,4 +1,4 @@
-import { h, render, $, getPosition, mapUrl, share, fmtTime, toast } from '../../shared/lib.js';
+import { h, add, render, $, getPosition, mapUrl, share, fmtTime, toast } from '../../shared/lib.js';
 
 // 現在地を地図リンクにして共有する。精度と時刻も添える。アプリを入れていない相手にも届く。
 const app = $('#app');
@@ -27,4 +27,4 @@ function draw() {
       h('a', { class: 'btn', href: url, target: '_blank', rel: 'noopener noreferrer' }, '🗺 地図で確認'),
       h('button', { onclick: () => navigator.clipboard?.writeText(url).then(() => toast('リンクをコピーしました'), () => toast('コピーできませんでした')) }, 'リンクをコピー')));
 }
-app.append(h('section', { class: 'card center' }, btn, h('p', { class: 'small muted' }, '位置はこの端末から相手に直接送られます。サーバーには保存されません。')), out);
+add(app, h('section', { class: 'card center' }, btn, h('p', { class: 'small muted' }, '位置はこの端末から相手に直接送られます。サーバーには保存されません。')), out);

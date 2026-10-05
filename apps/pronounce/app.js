@@ -1,4 +1,4 @@
-import { h, render, $, store, toast } from '../../shared/lib.js';
+import { h, add, render, $, store, toast } from '../../shared/lib.js';
 import { listen, speak, recognitionSupported } from '../../shared/speech.js';
 import { similarity } from '../../shared/text.js';
 
@@ -38,7 +38,7 @@ function drawHist() {
   render(histCard, h('h2', {}, `これまで（平均 ${avg}点・${history.length}回）`),
     h('ul', { class: 'list' }, history.slice(0, 8).map((x) => h('li', {}, h('span', { class: 'grow small' }, x.s), h('b', {}, `${x.pct}`)))));
 }
-app.append(
+add(app, 
   h('section', { class: 'card' }, h('label', { for: 'sel' }, 'お題'), h('select', { id: 'sel', onchange: (e) => pick(+e.target.value) }, SENTENCES.map((t, i) => h('option', { value: i }, t)))),
   h('section', { class: 'card center' }, targetBox, h('button', { class: 'small', onclick: () => speak(target, { lang: 'en-US', rate: 0.85 }) }, '🔊 お手本を聞く'),
     recognitionSupported() ? micBtn : h('p', { class: 'notice' }, 'このブラウザは音声認識に非対応です（Chrome推奨）'), heard, scoreBox),

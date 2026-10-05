@@ -1,4 +1,4 @@
-import { h, render, $, store, wakeLock, vibrate } from '../../shared/lib.js';
+import { h, add, render, $, store, wakeLock, vibrate } from '../../shared/lib.js';
 import { speak, stopSpeaking } from '../../shared/speech.js';
 
 // 声で案内するストレッチ。画面を見なくていいので、デスクワークの合間や寝る前に。
@@ -37,6 +37,6 @@ function stop(cancel = true) { running = false; if (cancel) stopSpeaking(); lock
 const statsP = h('p', { class: 'center small muted' });
 function drawStats() { statsP.textContent = `これまで ${streak.length} 日実施`; }
 
-app.append(h('section', { class: 'card' }, h('label', { for: 'rt' }, 'メニュー'), h('select', { id: 'rt', onchange: (e) => { key = e.target.value; db.set('key', key); drawSteps(); } }, Object.entries(ROUTINES).map(([k, r]) => h('option', { value: k, selected: k === key }, r.name)))),
+add(app, h('section', { class: 'card' }, h('label', { for: 'rt' }, 'メニュー'), h('select', { id: 'rt', onchange: (e) => { key = e.target.value; db.set('key', key); drawSteps(); } }, Object.entries(ROUTINES).map(([k, r]) => h('option', { value: k, selected: k === key }, r.name)))),
   h('section', { class: 'card center' }, ring, now, btn, statsP), h('section', { class: 'card' }, stepsBox));
 drawSteps(); drawStats();

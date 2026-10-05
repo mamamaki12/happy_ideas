@@ -1,4 +1,4 @@
-import { h, render, $, store, yen, share } from '../../shared/lib.js';
+import { h, add, render, $, store, yen, share } from '../../shared/lib.js';
 import { splitBill } from './logic.js';
 
 const db = store('split-bill');
@@ -33,7 +33,7 @@ function calc() {
     h('button', { class: 'primary big', disabled: !(+state.total > 0), onclick: () => share({ title: '割り勘', text }) }, '結果を共有'));
 }
 
-app.append(
+add(app, 
   h('section', { class: 'card' }, h('div', { class: 'row' }, h('div', {}, h('label', { for: 'total' }, '合計金額（円）'), totalIn), h('div', {}, h('label', { for: 'round' }, '端数'), roundIn))),
   h('section', { class: 'card' }, h('h2', {}, 'メンバーと傾斜'), peopleBox),
   result);

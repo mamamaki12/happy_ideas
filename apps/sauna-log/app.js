@@ -1,4 +1,4 @@
-import { h, render, $, store, wakeLock, vibrate, fmtDuration, todayStr, fmtDate, uid } from '../../shared/lib.js';
+import { h, add, render, $, store, wakeLock, vibrate, fmtDuration, todayStr, fmtDate, uid } from '../../shared/lib.js';
 
 // サ活記録: サウナ → 水風呂 → 休憩 を1タップずつ計測。セット数と「ととのい度」を残す。
 const db = store('sauna-log');
@@ -44,5 +44,5 @@ function drawHist() {
   render(histCard, h('h2', {}, `記録（今月 ${month.length}回）`), logs.length === 0 ? h('p', { class: 'empty' }, 'まだ記録がありません') :
     h('ul', { class: 'list' }, logs.slice(0, 20).map((x) => h('li', {}, h('div', { class: 'grow' }, h('b', {}, x.place || 'サウナ'), h('div', { class: 'sub' }, `${fmtDate(x.date)} ・ ${x.sets}セット ・ サウナ計 ${Math.round(x.sauna / 60000)}分`)), h('span', {}, '♨'.repeat(x.score))))));
 }
-app.append(h('section', { class: 'card' }, h('label', { for: 'pl' }, '施設'), placeIn), h('section', { class: 'card center' }, big, label, btns, endBox, h('p', { class: 'small muted' }, '目安時間（サウナ8分・水風呂1分・休憩8分）を過ぎると振動します。体調に合わせて無理をしないでください。')), histCard);
+add(app, h('section', { class: 'card' }, h('label', { for: 'pl' }, '施設'), placeIn), h('section', { class: 'card center' }, big, label, btns, endBox, h('p', { class: 'small muted' }, '目安時間（サウナ8分・水風呂1分・休憩8分）を過ぎると振動します。体調に合わせて無理をしないでください。')), histCard);
 drawBtns(); drawHist();

@@ -1,4 +1,4 @@
-import { h, $, startCamera, stopStream, wakeLock, toast } from '../../shared/lib.js';
+import { h, add, $, startCamera, stopStream, wakeLock, toast } from '../../shared/lib.js';
 import { SOS } from './logic.js';
 
 // 画面フラッシュ・ライト（対応端末）・ブザーでSOS信号を出す。
@@ -32,7 +32,7 @@ async function start() {
 function stop() { running = false; flash.classList.add('hidden'); flash.classList.remove('on'); setTorch(false); stopStream(stream); stream = null; track = null; osc?.o.stop(); actx?.close(); actx = null; osc = null; lock.off(); }
 flash.addEventListener('click', stop);
 flash.addEventListener('keydown', (e) => { if (e.key === 'Escape' || e.key === 'Enter') stop(); });
-app.append(h('section', { class: 'card center' }, h('button', { class: 'sos-btn', onclick: start }, 'SOS'),
+add(app, h('section', { class: 'card center' }, h('button', { class: 'sos-btn', onclick: start }, 'SOS'),
   h('div', { class: 'btn-row', style: { justifyContent: 'center', margin: '12px 0' } }, h('label', { class: 'pill', for: 'ut' }, useTorch, ' ライト'), h('label', { class: 'pill', for: 'us' }, useSound, ' ブザー')),
   h('p', { class: 'small muted' }, 'モールス信号「・・・ ー ー ー ・・・」を繰り返します。画面をタップすると止まります。'),
   h('p', { class: 'small muted' }, '※ ライトの操作は Android の Chrome などに限られます（iPhoneは画面フラッシュのみ）。')), flash);

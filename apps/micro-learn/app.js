@@ -1,4 +1,4 @@
-import { h, render, $, store, todayStr, share } from '../../shared/lib.js';
+import { h, add, render, $, store, todayStr, share } from '../../shared/lib.js';
 import { CARDS } from './cards.js';
 
 // SNSを開く代わりに、1分で読める知識カードを1枚。読んだら今日はおしまい、という「終わりのある」体験。
@@ -26,5 +26,5 @@ function show() {
 }
 function drawStat() { statP.textContent = `今日 ${todayCount()}/${DAILY} 枚 ・ これまで ${Object.keys(read).length}/${CARDS.length} 枚`; }
 function drawSaved() { render(savedCard, h('summary', {}, `保存したカード（${saved.length}）`), h('ul', { class: 'list' }, saved.map((i) => h('li', {}, h('div', {}, h('b', {}, CARDS[i].title), h('div', { class: 'sub' }, CARDS[i].body)))))); }
-app.append(cardBox, statP, savedCard);
+add(app, cardBox, statP, savedCard);
 show(); drawSaved();
