@@ -1,6 +1,6 @@
 // Service Worker: 一度開いたページをオフラインでも開けるようにする（ネットワーク優先・失敗時キャッシュ）。
 // 通知の表示（registration.showNotification）にも使う。
-const CACHE = 'happy-ideas-v1';
+const CACHE = 'happy-ideas-v2';
 
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (e) => {
@@ -13,8 +13,8 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   const req = e.request;
   const url = new URL(req.url);
-  // 同一オリジンの GET だけ扱う（外部APIはキャッシュしない）
-  if (req.method !== 'GET' || url.origin !== self.location.origin) return;
+  // 同一オリジンの GET だけ扱う（外部APIはキャッシュしない）。/api/ は毎回最新が必要なので扱わない
+  if (req.method !== 'GET' || url.origin !== self.location.origin || url.pathname.includes('/api/')) return;
   e.respondWith((async () => {
     try {
       const res = await fetch(req);

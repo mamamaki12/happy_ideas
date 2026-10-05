@@ -15,6 +15,18 @@ const fmtD = (s) => { if (!s) return ''; const d = new Date(`${s}T00:00:00`); re
 const setTheme = (c) => { document.documentElement.style.setProperty('--rally', darkenFor(c)); // 白文字が読める濃さにする
  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', c); };
 
+// ───────────────── 集計API（任意。サーバーがなければ何もしない） ─────────────────
+const API = new URL('../../api/rally', location.href).href;
+const hex = (n) => [...crypto.getRandomValues(new Uint8Array(n))].map((b) => b.toString(16).padStart(2, '0')).join('');
+async function sha256(s) { return [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)))].map((b) => b.toString(16).padStart(2, '0')).join(''); }
+const post = (url, body) => fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body), credentials: 'omit', keepalive: true });
+/** 参加者の端末から匿名で送る（失敗しても無視） */
+function report(r, type, idx) {
+  if (r.s !== 1) return;
+  const device = db.get('device') || (db.set('device', hex(16)), db.get('device'));
+  post(`${API}/${encodeURIComponent(r.id)}/event`, { device, type, idx }).catch(() => {});
+}
+
 // ───────────────── 参加者 ─────────────────
 const I18N = {
   ja: {
@@ -47,6 +59,7 @@ function play(r, { preview = false } = {}) {
   let compass = null; let clock = 0;
   const main = h('div');
   const saveStamps = () => { if (!preview) db.set(key, stamps); };
+  if (!preview && !db.get(`started:${r.id}`)) { db.set(`started:${r.id}`, 1); report(r, 'start'); }
 
   function draw(msg) {
     compass?.stop(); clearInterval(clock);
@@ -77,6 +90,7 @@ function play(r, { preview = false } = {}) {
       const res = tryStamp(r, stamps, { lat: pos.coords.latitude, lon: pos.coords.longitude, acc: pos.coords.accuracy, t: Date.now() });
       if (res.ok) {
         stamps[res.index] = { t: Date.now(), lat: pos.coords.latitude, lon: pos.coords.longitude }; saveStamps();
+        if (!preview) { report(r, 'stamp', res.index); if (Object.keys(stamps).length === total) report(r, 'complete'); }
         vibrate([80, 60, 200]); toast(T().gotToast(r.p[res.index].n));
         draw(); const el = main.querySelectorAll('.stamp')[res.index]; el?.classList.add('just');
       } else draw(res.code === 'far' ? T().far(r.p[res.nearest].n, res.meters) : T()[res.code]);
@@ -150,9 +164,32 @@ function editor() {
     save(); name.value = ''; hint.value = ''; coord.value = ''; drawList(); name.focus();
   };
 
+  async function enableStats(r) {
+    d.key ||= hex(24); save();
+    try {
+      const res = await post(API, { id: r.id, keyHash: await sha256(d.key), points: r.p.length });
+      return res.ok;
+    } catch { return false; }
+  }
+  async function showStats(box) {
+    try {
+      const res = await fetch(`${API}/${encodeURIComponent(d.id)}/stats`, { headers: { 'x-rally-key': d.key }, credentials: 'omit' });
+      if (!res.ok) throw new Error();
+      const st = await res.json();
+      render(box, h('div', { class: 'grid-3' },
+        h('div', { class: 'stat' }, h('b', {}, String(st.starts)), h('span', {}, '参加')),
+        h('div', { class: 'stat' }, h('b', {}, String(st.completes)), h('span', {}, '完走')),
+        h('div', { class: 'stat' }, h('b', {}, st.starts ? `${Math.round((st.completes / st.starts) * 100)}%` : '—'), h('span', {}, '完走率'))),
+      h('ul', { class: 'list' }, d.p.map((p, i) => h('li', {}, h('span', { class: 'grow' }, `${i + 1}. ${p.n}`), h('b', {}, `${st.stamps[i] ?? 0}人`)))));
+    } catch { render(box, h('p', { class: 'error' }, '参加状況を取得できませんでした')); }
+  }
+
   async function publish() {
-    const r = sanitizeRally({ ...d, t: d.t || 'スタンプラリー' });
+    let r = sanitizeRally({ ...d, t: d.t || 'スタンプラリー' });
     if (!r) return toast('チェックポイントを1か所以上追加してください');
+    // 集計サーバー（Cloudflare Pages + D1）があれば使う。なければ集計なしで公開
+    const statsOn = await enableStats(r);
+    r = { ...r, s: statsOn ? 1 : 0 }; d.statsOn = statsOn; save();
     const code = await packRally(r);
     const url = new URL(location.href); url.search = ''; url.hash = `z=${code}`;
     const u = url.href;
@@ -162,7 +199,8 @@ function editor() {
         h('button', { onclick: () => showQr(u, { title: r.t, note: '参加者にこのQRを読み取ってもらいます' }) }, '🔳 QRを表示'),
         h('button', { onclick: () => poster(r, u) }, '🖨 ポスター（A4）'),
         h('button', { onclick: () => signs(r) }, '🪧 チェックポイント看板')),
-      h('button', { class: 'ghost small', style: { marginTop: '8px' }, onclick: () => { app.replaceChildren(); play(r, { preview: true }); window.scrollTo(0, 0); } }, '👀 参加者の画面を試す'));
+      h('button', { class: 'ghost small', style: { marginTop: '8px' }, onclick: () => { app.replaceChildren(); play(r, { preview: true }); window.scrollTo(0, 0); } }, '👀 参加者の画面を試す'),
+      statsOn ? h('p', { class: 'small' }, '📊 参加状況の集計がオンです（匿名の人数だけを数えます）。') : h('p', { class: 'small muted' }, '※ このサイトには集計サーバーがないため、参加人数は数えられません。'));
   }
 
   add(app,
@@ -182,6 +220,7 @@ function editor() {
     h('section', { class: 'card' }, h('h2', {}, '③ 公開'), h('button', { class: 'rally-btn big', onclick: publish }, '参加用のURLとQRを作る'), publishBox,
       h('p', { class: 'small muted' }, 'ラリーの内容はすべてURLの中に入ります。サーバーに保存しないので、費用はかかりません。内容を変えたら、URLとQRを作り直してください。'),
       h('p', { class: 'small' }, h('a', { href: '../privacy.html' }, 'プライバシーポリシー'))),
+    d.statsOn ? (() => { const box = h('div'); return h('section', { class: 'card' }, h('h2', {}, '📊 参加状況'), box, h('button', { class: 'small', onclick: () => showStats(box) }, '最新にする')); })() : null,
     h('details', { class: 'card' }, h('summary', {}, '新しいラリーを作る（今の下書きを消す）'), h('button', { class: 'small danger', style: { marginTop: '8px' }, onclick: () => { if (confirmDelete('今の下書き')) { db.remove('draft'); location.reload(); } } }, '下書きを消す')));
   drawList();
 }

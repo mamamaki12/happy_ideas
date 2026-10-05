@@ -44,6 +44,7 @@ export function sanitizeRally(r) {
   return {
     v: 2, id: s(r.id, 16) || 'rally', t: s(r.t, 40) || 'スタンプラリー', d: s(r.d, 200), g: s(r.g, 120),
     from: date(r.from), to: date(r.to), c: /^#[0-9a-f]{6}$/i.test(r.c) ? r.c : '#e8590c', p: points,
+    s: r.s === 1 ? 1 : 0, // 1 = 同じサイトの集計API（/api/rally）に匿名で参加状況を送る
   };
 }
 

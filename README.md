@@ -37,6 +37,17 @@ npm run serve        # http://localhost:4173 で開く
 
 iPhone で通知を試すときは、Safari の共有ボタンから「ホーム画面に追加」してから開いてください。
 
+### 参加人数の集計も使う場合（Cloudflare Pages）
+
+ラリーメーカーの「参加状況」（参加・完走の人数）は、小さなサーバー（Cloudflare Pages Functions + D1）があるときだけ動きます。GitHub Pages では自動的にオフになり、それ以外の機能はそのまま使えます。
+
+1. Cloudflare Pages でこのリポジトリをつなぎ、ビルドコマンド `npm run site`、出力ディレクトリ `_site`
+2. `npx wrangler d1 create happy-ideas` → `wrangler.toml` に database_id を記入
+3. `npx wrangler d1 execute happy-ideas --remote --file=server/schema.sql`
+4. Pages の設定で D1 バインディング `DB` を追加
+
+集計APIのコードは [`functions/api/rally/`](functions/api/rally/)、テストは `tests/unit/rally-api.test.js`（本物のSQLiteで実行）。
+
 ## チェック
 
 ```bash

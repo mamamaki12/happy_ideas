@@ -1,0 +1,13 @@
+# Cloudflare Pages で公開する場合の設定（任意）。ラリーメーカーの参加集計に使う。
+# 1. npx wrangler d1 create happy-ideas → 出力された database_id を下に記入
+# 2. npx wrangler d1 execute happy-ideas --remote --file=server/schema.sql
+# 3. Cloudflare Pages のプロジェクト設定で D1 バインディング DB を追加
+# 4. ビルドコマンド: npm run site ／ 出力ディレクトリ: _site
+name = "happy-ideas"
+pages_build_output_dir = "_site"  # npm run site で作る（functions/ はリポジトリ直下のものが使われる）
+compatibility_date = "2026-09-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "happy-ideas"
+database_id = "ここに database_id を記入"

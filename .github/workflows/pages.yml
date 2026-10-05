@@ -32,9 +32,7 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: npx playwright test
       - name: 公開するファイルだけを集める
-        run: |
-          mkdir -p _site
-          cp -r index.html gallery.js gallery.css manifest.webmanifest sw.js _headers .nojekyll apps shared ideas products docs _site/
+        run: sh scripts/make-site.sh
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

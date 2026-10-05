@@ -10,7 +10,8 @@
     "test": "npm run build && npm run unit && playwright test",
     "unit": "node --test 'tests/unit/*.test.js'",
     "security": "node scripts/security-check.mjs",
-    "check": "npm run build && npm run security && npm run unit && playwright test"
+    "check": "npm run build && npm run security && npm run unit && playwright test",
+    "site": "node scripts/build.mjs && sh scripts/make-site.sh"
   },
   "devDependencies": {
     "@playwright/test": "1.56.1",
