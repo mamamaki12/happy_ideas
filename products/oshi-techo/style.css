@@ -55,3 +55,10 @@ main { padding-bottom: 110px; }
 /* 設定 */
 .mini-color { width: 44px; flex: 0 0 auto; }
 .mini-emoji { width: 56px; flex: 0 0 auto; text-align: center; }
+
+/* 期限アラート */
+.alerts { display: grid; gap: 8px; margin-bottom: 12px; }
+.alert { display: flex; gap: 8px; align-items: center; padding: 10px 12px; border-radius: 12px; text-decoration: none; color: var(--text); font-size: .92rem; background: color-mix(in srgb, var(--warn) 16%, var(--surface)); border: 1px solid color-mix(in srgb, var(--warn) 40%, transparent); }
+.alert.overdue, .alert.pay { background: color-mix(in srgb, var(--danger) 12%, var(--surface)); border-color: color-mix(in srgb, var(--danger) 45%, transparent); }
+.pay-label { display: flex; align-items: center; gap: 4px; color: var(--muted); margin: 0; }
+.pay-label input { width: auto; padding: 4px 6px; font-size: 14px; }

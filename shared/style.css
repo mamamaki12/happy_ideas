@@ -192,3 +192,10 @@ details summary { cursor: pointer; color: var(--muted); font-size: .9rem; }
 .app-footer p { margin: 8px 0; }
 ::placeholder { color: var(--muted); opacity: .6; }
 .shrink > input[type="color"] { width: 56px; }
+
+/* ── QRダイアログ ── */
+.qr-dialog { position: fixed; inset: 0; z-index: 250; background: rgb(0 0 0 / 55%); display: grid; place-items: center; padding: 16px; }
+.qr-box { background: #fff; color: #111; border-radius: 18px; padding: 18px; width: min(100%, 380px); text-align: center; }
+.qr-box h2 { margin: 0 0 8px; font-size: 1.05rem; }
+.qr-canvas { width: 100%; height: auto; image-rendering: pixelated; display: block; }
+.qr-box .muted { color: #555; }

@@ -1,5 +1,6 @@
 import { h, add, render, $, store, uid, share, toast, safeHttpUrl, confirmDelete } from '../../shared/lib.js';
 import { encodeData, decodeData, str } from '../../shared/urldata.js';
+import { showQr } from '../../shared/qr-ui.js';
 
 // ほしいものリストを URL で渡す。受け取った人は「これを贈ります」と返事でき、プレゼントのかぶりを防ぐ。
 const db = store('wishlist');
@@ -39,7 +40,8 @@ function edit() {
         if (!d.items.length) return toast('ほしいものを追加してください');
         const url = new URL(location.href); url.hash = `w=${encodeData({ owner: d.owner || '名前なし', items: d.items.map(({ name, url: link, note }) => ({ name, url: link, note })) })}`;
         share({ title: 'ほしいものリスト', text: `${d.owner || ''}のほしいものリストです🎁`, url: url.href });
-      } }, 'リストのURLを共有')),
+      } }, 'リストのURLを共有'),
+      h('button', { style: { marginTop: '8px', width: '100%' }, onclick: () => { if (!d.items.length) return toast('ほしいものを追加してください'); const url = new URL(location.href); url.hash = `w=${encodeData({ owner: d.owner || '名前なし', items: d.items.map(({ name, url: link, note }) => ({ name, url: link, note })) })}`; showQr(url.href, { title: 'ほしいものリスト' }); } }, '🔳 QRで見せる')),
     h('form', { class: 'card', onsubmit: (e) => { e.preventDefault(); const link = u.value.trim(); if (link && !safeHttpUrl(link)) return toast('URLは http(s) で入れてください'); d.items.push({ id: uid(), name: n.value.trim(), url: link, note: no.value.trim() }); save(); n.value = ''; u.value = ''; no.value = ''; drawList(); } },
       h('h2', {}, '追加'), h('div', { class: 'field' }, h('label', { for: 'wn' }, '名前'), n), h('div', { class: 'field' }, h('label', { for: 'wu' }, '商品ページ'), u), h('div', { class: 'field' }, h('label', { for: 'wno' }, 'メモ'), no), h('button', { class: 'shrink', type: 'submit' }, '追加')));
   drawList();

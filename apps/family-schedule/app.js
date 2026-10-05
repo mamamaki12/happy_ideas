@@ -1,6 +1,7 @@
 import { h, add, render, $, store, uid, share, download, todayStr, toast, confirmDelete } from '../../shared/lib.js';
 import { encodeData, decodeData, str } from '../../shared/urldata.js';
 import { toIcs } from './logic.js';
+import { showQr } from '../../shared/qr-ui.js';
 
 // 家族の予定（参観日・ゴミ当番・送迎など）を URL で送る。受け取った人はアプリなしで見られ、カレンダーに追加できる。
 const db = store('family-schedule');
@@ -25,7 +26,8 @@ else {
   const f = { date: h('input', { id: 'fd', type: 'date', required: true, value: todayStr() }), time: h('input', { id: 'ft', type: 'time' }), title: h('input', { id: 'fti', required: true, maxlength: 60, placeholder: '例: 参観日' }), who: h('input', { id: 'fw', maxlength: 20, placeholder: '例: パパ' }) };
   add(app, h('section', { class: 'card' }, h('label', { for: 'st' }, '予定表の名前'), h('input', { id: 'st', value: d.title, maxlength: 40, oninput: (e) => { d.title = e.target.value; save(); } })),
     h('section', { class: 'card' }, box, h('div', { class: 'btn-row', style: { marginTop: '10px' } },
-      h('button', { class: 'primary', onclick: () => { if (!d.events.length) return toast('予定を追加してください'); const url = new URL(location.href); url.hash = `s=${encodeData({ title: d.title, events: d.events.map(({ date, time, title, who }) => ({ date, time, title, who })) })}`; share({ title: d.title, text: `${d.title}を送ります（アプリ不要で見られます）`, url: url.href }); } }, '📤 URLで送る'), icsBtn(d.title, d.events))),
+      h('button', { class: 'primary', onclick: () => { if (!d.events.length) return toast('予定を追加してください'); const url = new URL(location.href); url.hash = `s=${encodeData({ title: d.title, events: d.events.map(({ date, time, title, who }) => ({ date, time, title, who })) })}`; share({ title: d.title, text: `${d.title}を送ります（アプリ不要で見られます）`, url: url.href }); } }, '📤 URLで送る'),
+      h('button', { onclick: () => { if (!d.events.length) return toast('予定を追加してください'); const url = new URL(location.href); url.hash = `s=${encodeData({ title: d.title, events: d.events.map(({ date, time, title, who }) => ({ date, time, title, who })) })}`; showQr(url.href, { title: d.title, note: '家族のスマホで読み取ると予定表が開きます' }); } }, '🔳 QR'), icsBtn(d.title, d.events))),
     h('form', { class: 'card', onsubmit: (e) => { e.preventDefault(); d.events.push({ id: uid(), date: f.date.value, time: f.time.value, title: f.title.value.trim(), who: f.who.value.trim() }); save(); f.title.value = ''; draw(); } },
       h('h2', {}, '予定を追加'), h('div', { class: 'row' }, h('div', {}, h('label', { for: 'fd' }, '日付'), f.date), h('div', {}, h('label', { for: 'ft' }, '時刻（任意）'), f.time)),
       h('div', { class: 'row', style: { marginTop: '10px' } }, h('div', {}, h('label', { for: 'fti' }, '内容'), f.title), h('div', {}, h('label', { for: 'fw' }, '担当'), f.who)), h('button', { class: 'primary', type: 'submit', style: { marginTop: '10px' } }, '追加')));

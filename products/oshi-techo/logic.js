@@ -44,5 +44,33 @@ export function validateBackup(obj) {
     id: s(e.id, 64), oshi: s(e.oshi, 64), type: e.type === 'event' ? 'event' : 'spend', kind: SPEND_KINDS.includes(e.kind) ? e.kind : '📝 その他',
     amount: Number.isFinite(e.amount) && e.amount >= 0 ? Math.min(e.amount, 1e8) : 0, title: s(e.title, 60), venue: s(e.venue, 40), memo: s(e.memo, 200), date: date(e.date),
   })).filter((e) => e.id && e.date && ids.has(e.oshi));
-  return { oshis, entries, budget: Number.isFinite(obj.budget) && obj.budget >= 0 ? obj.budget : 30000 };
+  const st = ['applied', 'won', 'paid', 'lost'];
+  const tickets = (Array.isArray(obj.tickets) ? obj.tickets : []).slice(0, 5000).map((t) => ({
+    id: s(t.id, 64), oshi: s(t.oshi, 64), title: s(t.title, 60) || 'チケット', site: s(t.site, 30), venue: s(t.venue, 40),
+    eventDate: date(t.eventDate) || '', resultOn: date(t.resultOn) || '', payBy: date(t.payBy) || '',
+    price: Number.isFinite(t.price) && t.price >= 0 ? Math.min(t.price, 1e7) : 0, status: st.includes(t.status) ? t.status : 'applied',
+  })).filter((t) => t.id && ids.has(t.oshi));
+  return { oshis, entries, tickets, budget: Number.isFinite(obj.budget) && obj.budget >= 0 ? obj.budget : 30000 };
+}
+
+// ── チケットの当落管理 ──
+// status: applied（申込済み・結果待ち） / won（当選・未入金） / paid（入金済み） / lost（落選）
+export const TICKET_STATUS = { applied: '結果待ち', won: '当選・未入金', paid: '入金済み', lost: '落選' };
+
+/** 今日やるべきこと（期限が近い順）。days は今日=0 */
+export function ticketAlerts(tickets, today) {
+  const out = [];
+  for (const t of tickets) {
+    if (t.status === 'won' && t.payBy) { const d = daysBetween(today, t.payBy); if (d <= 3) out.push({ t, kind: d < 0 ? 'overdue' : 'pay', days: d, text: d < 0 ? `入金期限を${-d}日過ぎています` : d === 0 ? '今日が入金期限です' : `入金期限まであと${d}日` }); }
+    if (t.status === 'applied' && t.resultOn) { const d = daysBetween(today, t.resultOn); if (d >= 0 && d <= 1) out.push({ t, kind: 'result', days: d, text: d === 0 ? '今日は当落発表です' : '明日は当落発表です' }); }
+  }
+  const rank = { overdue: 0, pay: 1, result: 2 };
+  return out.sort((a, b) => rank[a.kind] - rank[b.kind] || a.days - b.days);
+}
+
+/** 当選率など */
+export function ticketStats(tickets) {
+  const decided = tickets.filter((t) => ['won', 'paid', 'lost'].includes(t.status));
+  const won = decided.filter((t) => t.status !== 'lost').length;
+  return { applied: tickets.length, decided: decided.length, won, rate: decided.length ? won / decided.length : null };
 }

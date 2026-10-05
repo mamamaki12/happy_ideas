@@ -1,6 +1,7 @@
 import { h, add, render, $, store, uid, getPosition, distance, fmtDistance, share, toast, confirmDelete } from '../../shared/lib.js';
 import { encodeData, decodeData, str } from '../../shared/urldata.js';
 import { compassTo } from '../../shared/compass.js';
+import { showQr } from '../../shared/qr-ui.js';
 
 // ゴミ箱・トイレ・水飲み場などを記録して、URLで配る。受け取った人は一番近い場所へコンパスで案内される（日英表示）。
 const db = store('spot-share');
@@ -43,6 +44,7 @@ add(app, guide, h('section', { class: 'card' }, listBox),
     if (!spots.length) return toast('登録がありません');
     const url = new URL(location.href); url.hash = `p=${encodeData({ s: spots.slice(0, 150).map((s) => ({ k: s.kind, a: s.lat, o: s.lon, n: s.note })) })}`;
     share({ title: 'Spot map', text: 'ゴミ箱・トイレなどの場所リスト / Trash bins & restrooms nearby', url: url.href });
-  } }, '📤 URLで配る / Share'), h('p', { class: 'small muted' }, 'お店や観光案内所がURL（QRコード）を貼っておけば、旅行者はアプリなしで近くのゴミ箱やトイレを探せます。')));
+  } }, '📤 URLで配る / Share'),
+  h('button', { class: 'big', style: { marginTop: '8px' }, onclick: () => { if (!spots.length) return toast('登録がありません'); const url = new URL(location.href); url.hash = `p=${encodeData({ s: spots.slice(0, 150).map((s) => ({ k: s.kind, a: s.lat, o: s.lon, n: s.note })) })}`; showQr(url.href, { title: 'Trash bins & restrooms', note: 'Scan with your phone camera / カメラで読み取ってください' }); } }, '🔳 QRを表示（店頭掲示用）'), h('p', { class: 'small muted' }, 'お店や観光案内所がURL（QRコード）を貼っておけば、旅行者はアプリなしで近くのゴミ箱やトイレを探せます。')));
 draw();
 getPosition({ maximumAge: 300000 }).then((p) => { here = { lat: p.coords.latitude, lon: p.coords.longitude }; draw(); }).catch(() => {});

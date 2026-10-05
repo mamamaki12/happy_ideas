@@ -92,3 +92,31 @@ test('XSS: 推しの名前やメモにHTMLを入れても実行されない', as
   expect(await page.evaluate(() => window.__x)).toBeUndefined();
   expect(await page.locator('img[src="x"]').count()).toBe(0);
 });
+
+test('当落管理: 申込 → 当選（入金期限）→ ホームに警告 → 入金で支出と予定に自動追加', async ({ page }) => {
+  const errors = trackErrors(page);
+  await onboard(page);
+  await page.getByRole('link', { name: '当落' }).click();
+  await page.getByRole('button', { name: '＋ 申し込んだチケットを記録' }).click();
+  await page.getByLabel('公演・申込名').fill('大阪公演 FC先行');
+  await page.getByLabel('金額（1枚・手数料込み）').fill('11000');
+  await page.getByLabel('会場').fill('京セラドーム');
+  const day = (n) => page.evaluate((k) => { const d = new Date(); d.setDate(d.getDate() + k); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }, n);
+  await page.getByLabel('公演日').fill(await day(30));
+  await page.getByRole('button', { name: '保存' }).click();
+  await expect(page.getByRole('heading', { name: '⏳ 結果待ち' })).toBeVisible();
+  await page.getByLabel('大阪公演 FC先行の入金期限').fill(await day(1));
+  await page.getByRole('button', { name: '🎉 当選' }).click();
+  await expect(page.getByText('あと1日')).toBeVisible();
+  await page.getByRole('link', { name: 'ホーム' }).click();
+  await expect(page.locator('.alert')).toContainText('入金期限まであと1日');
+  await page.locator('.alert').click();
+  await page.getByRole('button', { name: '💳 入金した' }).click();
+  await expect(page.getByRole('heading', { name: '✅ 入金済み' })).toBeVisible();
+  await page.getByRole('link', { name: 'ホーム' }).click();
+  await expect(page.locator('.month-total')).toHaveText('11,000円');
+  await expect(page.locator('.hero-days')).toHaveText('あと30日');
+  await page.getByRole('link', { name: '設定' }).click();
+  await expect(page.getByRole('heading', { name: 'バックアップ' })).toBeVisible();
+  expect(errors).toEqual([]);
+});

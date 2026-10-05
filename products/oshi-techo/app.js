@@ -1,6 +1,6 @@
 import { h, add, render, $, store, uid, yen, todayStr, fmtDate, daysUntil, toast, share, download, startCamera, stopStream, notify, notifyButton, confirmDelete } from '../../shared/lib.js';
 import { drawWrapped, canvasToBlob } from '../../shared/canvas-text.js';
-import { SPEND_KINDS, nextEvent, spendTotal, yearSummary, validateBackup, daysBetween } from './logic.js';
+import { SPEND_KINDS, nextEvent, spendTotal, yearSummary, validateBackup, daysBetween, TICKET_STATUS, ticketAlerts, ticketStats } from './logic.js';
 
 // 推し活手帳: 推しごとの支出・参戦予定・写真をひとつに。データは端末の中だけ。
 const db = store('oshi-techo');
@@ -9,12 +9,13 @@ const S = {
   entries: db.get('entries', []),
   budget: db.get('budget', 30000),
   cur: db.get('cur', null),
+  tickets: db.get('tickets', []),
 };
-const save = () => { db.set('oshis', S.oshis); db.set('entries', S.entries); db.set('budget', S.budget); db.set('cur', S.cur); };
+const save = () => { db.set('oshis', S.oshis); db.set('entries', S.entries); db.set('budget', S.budget); db.set('cur', S.cur); db.set('tickets', S.tickets); };
 const app = $('#app');
 const view = h('div', { class: 'view' });
 const nav = h('nav', { class: 'tabbar', 'aria-label': 'メニュー' });
-const TABS = [['home', '🏠', 'ホーム'], ['log', '📒', '記録'], ['camera', '📸', 'カメラ'], ['wrapped', '🎉', 'まとめ'], ['settings', '⚙', '設定']];
+const TABS = [['home', '🏠', 'ホーム'], ['tickets', '🎫', '当落'], ['log', '📒', '記録'], ['camera', '📸', 'カメラ'], ['wrapped', '🎉', 'まとめ']];
 const curOshi = () => S.oshis.find((o) => o.id === S.cur) || S.oshis[0];
 const oshiById = (id) => S.oshis.find((o) => o.id === id) || S.oshis[0];
 
@@ -83,7 +84,9 @@ function home() {
   const pct = Math.min(100, (month / Math.max(1, S.budget)) * 100);
   const sinceDays = o.since ? daysBetween(o.since, t) : null;
   const recent = [...S.entries].filter((e) => e.date <= t).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 5);
+  const alerts = ticketAlerts(S.tickets, t);
   render(view,
+    alerts.length ? h('section', { class: 'alerts', 'aria-label': 'やること' }, alerts.map((a) => h('a', { class: `alert ${a.kind}`, href: '#tickets' }, h('b', {}, a.kind === 'result' ? '📣' : '⚠'), h('span', {}, `${a.t.title}: ${a.text}`)))) : null,
     S.oshis.length > 1 ? h('div', { class: 'oshi-switch', role: 'tablist', 'aria-label': '推しを切り替え' }, S.oshis.map((x) => h('button', { role: 'tab', 'aria-selected': String(x.id === o.id), style: { '--c': x.color }, onclick: () => { S.cur = x.id; save(); theme(); draw(); } }, `${x.emoji} ${x.name}`))) : null,
     h('section', { class: 'hero' },
       h('p', { class: 'hero-name' }, `${o.emoji} ${o.name}`),
@@ -100,6 +103,72 @@ function home() {
   // 前日・当日の予定を1日1回通知
   const soon = S.entries.filter((e) => e.type === 'event' && [0, 1].includes(daysUntil(e.date)));
   for (const e of soon) { const k = `n:${e.id}:${t}`; if (!db.get(k)) { db.set(k, 1); notify(daysUntil(e.date) ? `明日は ${e.title}！` : `今日は ${e.title}！`, daysUntil(e.date) ? '持ち物とチケットを確認しよう' : '楽しんでね'); } }
+  for (const a of alerts) { const k = `t:${a.t.id}:${a.kind}:${t}`; if (!db.get(k)) { db.set(k, 1); notify(`🎫 ${a.t.title}`, a.text); } }
+}
+
+// ── 当落管理 ──
+function tickets() {
+  const t = todayStr(); const st = ticketStats(S.tickets);
+  const groups = [['won', '💳 当選（入金してね）'], ['applied', '⏳ 結果待ち'], ['paid', '✅ 入金済み'], ['lost', '😢 落選']];
+  const row = (x) => {
+    const o = oshiById(x.oshi);
+    const sub = [x.eventDate ? `公演 ${fmtDate(x.eventDate)}` : '', x.status === 'applied' && x.resultOn ? `発表 ${fmtDate(x.resultOn)}` : '', x.status === 'won' && x.payBy ? `入金期限 ${fmtDate(x.payBy)}` : '', x.price ? yen(x.price) : '', x.site].filter(Boolean).join(' ・ ');
+    const set = (status) => {
+      x.status = status;
+      if (status === 'paid') {
+        // 入金したら、支出と予定に自動で追加
+        if (x.price) S.entries.push({ id: uid(), oshi: x.oshi, type: 'spend', kind: '🎫 チケット', amount: x.price, title: x.title, venue: '', date: t, memo: '' });
+        if (x.eventDate && !S.entries.some((e) => e.ticket === x.id)) S.entries.push({ id: uid(), oshi: x.oshi, type: 'event', kind: '', amount: 0, title: x.title, venue: x.venue || '', date: x.eventDate, memo: '', ticket: x.id });
+        toast('入金済みにしました。支出と予定にも追加しました');
+      }
+      save(); draw();
+    };
+    const pay = x.status === 'won' && x.payBy ? daysBetween(t, x.payBy) : null;
+    return h('li', { style: { flexWrap: 'wrap' } }, h('span', { class: 'dot', style: { background: o.color } }),
+      h('div', { class: 'grow' }, h('b', {}, x.title), h('div', { class: 'sub' }, sub)),
+      pay != null ? h('span', { class: `pill ${pay <= 1 ? 'danger' : 'warn'}` }, pay < 0 ? '期限切れ' : `あと${pay}日`) : null,
+      h('div', { class: 'btn-row', style: { width: '100%', marginTop: '6px' } },
+        x.status === 'applied' ? [h('label', { class: 'small pay-label' }, '入金期限 ', h('input', { type: 'date', value: x.payBy || '', 'aria-label': `${x.title}の入金期限`, onchange: (e) => { x.payBy = e.target.value; save(); } })),
+          h('button', { class: 'small oshi-btn', onclick: () => set('won') }, '🎉 当選'), h('button', { class: 'small', onclick: () => set('lost') }, '落選')] : null,
+        x.status === 'won' ? h('button', { class: 'small oshi-btn', onclick: () => set('paid') }, '💳 入金した') : null,
+        h('button', { class: 'small ghost', 'aria-label': `${x.title}を削除`, onclick: () => { if (confirmDelete(x.title)) { S.tickets = S.tickets.filter((y) => y.id !== x.id); save(); draw(); } } }, '削除')));
+  };
+  render(view,
+    h('section', { class: 'card' }, h('div', { class: 'grid-3' },
+      h('div', { class: 'stat' }, h('b', {}, String(st.applied)), h('span', {}, '申込')),
+      h('div', { class: 'stat' }, h('b', {}, String(st.won)), h('span', {}, '当選')),
+      h('div', { class: 'stat' }, h('b', {}, st.rate == null ? '—' : `${Math.round(st.rate * 100)}%`), h('span', {}, '当選率')))),
+    h('button', { class: 'oshi-btn big', style: { marginBottom: '14px' }, onclick: ticketSheet }, '＋ 申し込んだチケットを記録'),
+    groups.map(([k, label]) => { const list = S.tickets.filter((x) => x.status === k).sort((a, b) => (a.payBy || a.resultOn || a.eventDate || '').localeCompare(b.payBy || b.resultOn || b.eventDate || '')); return list.length ? h('section', { class: 'card' }, h('h2', {}, label), h('ul', { class: 'list' }, list.map(row))) : null; }),
+    S.tickets.length ? null : h('p', { class: 'empty card' }, '先行抽選に申し込んだら、ここに記録しておきましょう。当落発表と入金期限をお知らせします。'));
+}
+function ticketSheet() {
+  const f = {
+    oshi: h('select', { id: 'tk-oshi' }, S.oshis.map((x) => h('option', { value: x.id, selected: x.id === curOshi().id }, `${x.emoji} ${x.name}`))),
+    title: h('input', { id: 'tk-title', required: true, maxlength: 60, placeholder: '例: ツアー大阪 2日目 FC先行' }),
+    site: h('input', { id: 'tk-site', maxlength: 30, placeholder: '例: FC先行・ぴあ' }),
+    venue: h('input', { id: 'tk-venue', maxlength: 40, placeholder: '例: 京セラドーム' }),
+    eventDate: h('input', { id: 'tk-event', type: 'date' }),
+    resultOn: h('input', { id: 'tk-result', type: 'date' }),
+    payBy: h('input', { id: 'tk-pay', type: 'date' }),
+    price: h('input', { id: 'tk-price', type: 'number', min: 0, inputmode: 'numeric', placeholder: '円' }),
+  };
+  const dlg = h('div', { class: 'sheet-wrap', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'チケットを記録' });
+  const close = () => dlg.remove();
+  dlg.addEventListener('click', (e) => { if (e.target === dlg) close(); });
+  dlg.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+  const fld = (k, l) => h('div', { class: 'field' }, h('label', { for: f[k].id }, l), f[k]);
+  add(dlg, h('form', { class: 'sheet', onsubmit: (e) => {
+    e.preventDefault();
+    S.tickets.push({ id: uid(), oshi: f.oshi.value, title: f.title.value.trim(), site: f.site.value.trim(), venue: f.venue.value.trim(), eventDate: f.eventDate.value, resultOn: f.resultOn.value, payBy: f.payBy.value, price: +f.price.value || 0, status: 'applied' });
+    save(); close(); toast('記録しました。当落発表の前日にお知らせします'); draw();
+  } }, h('div', { class: 'sheet-grip', 'aria-hidden': 'true' }), h('h2', {}, '🎫 チケットを記録'),
+  S.oshis.length > 1 ? fld('oshi', '推し') : null, fld('title', '公演・申込名'),
+  h('div', { class: 'row' }, h('div', {}, fld('site', '申込先')), h('div', {}, fld('price', '金額（1枚・手数料込み）'))),
+  fld('venue', '会場'),
+  h('div', { class: 'row' }, h('div', {}, fld('eventDate', '公演日')), h('div', {}, fld('resultOn', '当落発表日')), h('div', {}, fld('payBy', '入金期限（わかれば）'))),
+  h('div', { class: 'btn-row', style: { marginTop: '12px' } }, h('button', { type: 'button', onclick: close }, 'やめる'), h('button', { class: 'oshi-btn', type: 'submit' }, '保存'))));
+  document.body.append(dlg); f.title.focus();
 }
 
 function entryRow(e) {
@@ -203,7 +272,7 @@ function settings() {
   const fileIn = h('input', { type: 'file', accept: 'application/json,.json', class: 'hidden', 'aria-label': 'バックアップを読み込む', onchange: async (e) => {
     const f = e.target.files?.[0]; e.target.value = ''; if (!f) return;
     if (f.size > 10_000_000) return toast('ファイルが大きすぎます');
-    try { const d = validateBackup(JSON.parse(await f.text())); if (!confirm(`推し${d.oshis.length}人・記録${d.entries.length}件を読み込みます。今のデータは置き換わります。よろしいですか？`)) return; S.oshis = d.oshis; S.entries = d.entries; S.budget = d.budget; S.cur = d.oshis[0]?.id; save(); theme(); toast('読み込みました'); go('home'); }
+    try { const d = validateBackup(JSON.parse(await f.text())); if (!confirm(`推し${d.oshis.length}人・記録${d.entries.length}件を読み込みます。今のデータは置き換わります。よろしいですか？`)) return; S.oshis = d.oshis; S.entries = d.entries; S.tickets = d.tickets; S.budget = d.budget; S.cur = d.oshis[0]?.id; save(); theme(); toast('読み込みました'); go('home'); }
     catch (err) { toast(err.message || '読み込めませんでした', 4000); }
   } });
   render(view,
@@ -212,7 +281,7 @@ function settings() {
     h('section', { class: 'card' }, h('h2', {}, '予算と通知'), h('label', { for: 'bg' }, '1か月の推し活予算（円）'), h('input', { id: 'bg', type: 'number', min: 0, value: S.budget, onchange: (e) => { S.budget = Math.max(0, +e.target.value || 0); save(); } }), h('div', { style: { marginTop: '10px' } }, notifyButton()),
       h('p', { class: 'small muted' }, '予定の前日・当日に、アプリを開いたときにお知らせします。')),
     h('section', { class: 'card' }, h('h2', {}, 'バックアップ'), h('p', { class: 'small muted' }, 'データはこの端末の中だけにあります。機種変更の前に書き出してください。'),
-      h('div', { class: 'btn-row' }, h('button', { onclick: () => download(new Blob([JSON.stringify({ app: 'oshi-techo', version: 1, exportedAt: new Date().toISOString(), oshis: S.oshis, entries: S.entries, budget: S.budget })], { type: 'application/json' }), `oshi-techo-${todayStr()}.json`) }, '📤 書き出す'), h('button', { onclick: () => fileIn.click() }, '📥 読み込む')), fileIn),
+      h('div', { class: 'btn-row' }, h('button', { onclick: () => download(new Blob([JSON.stringify({ app: 'oshi-techo', version: 1, exportedAt: new Date().toISOString(), oshis: S.oshis, entries: S.entries, tickets: S.tickets, budget: S.budget })], { type: 'application/json' }), `oshi-techo-${todayStr()}.json`) }, '📤 書き出す'), h('button', { onclick: () => fileIn.click() }, '📥 読み込む')), fileIn),
     h('p', { class: 'center small' }, h('a', { href: '../../index.html' }, 'Happy Ideas のアイデア一覧へ')));
   drawList();
 }
@@ -223,7 +292,7 @@ function draw() {
   nav.classList.remove('hidden'); theme();
   const r = route();
   render(nav, TABS.map(([k, ic, l]) => h('a', { href: `#${k}`, 'aria-current': r === k ? 'page' : null }, h('span', { 'aria-hidden': 'true' }, ic), h('small', {}, l))));
-  ({ home, log, camera, wrapped, settings }[r] || home)();
+  ({ home, tickets, log, camera, wrapped, settings }[r] || home)();
   window.scrollTo(0, 0);
 }
 add(app, view, nav);

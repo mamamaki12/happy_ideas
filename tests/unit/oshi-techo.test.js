@@ -40,3 +40,21 @@ test('oshi-techo: バックアップの検証（不正値の除去）', () => {
   assert.equal(d.entries[0].kind, '📝 その他'); assert.equal(d.entries[0].amount, 0); assert.equal(d.entries[1].amount, 1e8);
   assert.equal(d.budget, 30000);
 });
+
+import { ticketAlerts, ticketStats } from '../../products/oshi-techo/logic.js';
+test('oshi-techo: 当落・入金期限のアラート', () => {
+  const ts = [
+    { id: 'a', title: 'A', status: 'won', payBy: '2026-10-06' },
+    { id: 'b', title: 'B', status: 'won', payBy: '2026-10-01' },
+    { id: 'c', title: 'C', status: 'applied', resultOn: '2026-10-05' },
+    { id: 'd', title: 'D', status: 'applied', resultOn: '2026-10-20' },
+    { id: 'e', title: 'E', status: 'paid', payBy: '2026-10-05' },
+    { id: 'f', title: 'F', status: 'lost' },
+  ];
+  const al = ticketAlerts(ts, '2026-10-05');
+  assert.deepEqual(al.map((x) => [x.t.id, x.kind]), [['b', 'overdue'], ['a', 'pay'], ['c', 'result']]);
+  assert.equal(al[1].text, '入金期限まであと1日');
+  const st = ticketStats(ts);
+  assert.deepEqual([st.applied, st.decided, st.won], [6, 4, 3]); assert.equal(st.rate, 0.75);
+  assert.equal(ticketStats([]).rate, null);
+});
