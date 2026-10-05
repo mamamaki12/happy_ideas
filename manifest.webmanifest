@@ -1,0 +1,13 @@
+{
+  "name": "Happy Ideas — Webアプリの種",
+  "short_name": "Happy Ideas",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f7f6f2",
+  "theme_color": "#e8590c",
+  "lang": "ja",
+  "icons": [
+    { "src": "shared/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
