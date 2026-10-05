@@ -3,6 +3,7 @@
 # 2. npx wrangler d1 execute happy-ideas --remote --file=server/schema.sql
 # 3. Cloudflare Pages のプロジェクト設定で D1 バインディング DB を追加
 # 4. ビルドコマンド: npm run site ／ 出力ディレクトリ: _site
+# 5. （AIアプリを使う場合）秘密の環境変数 ANTHROPIC_API_KEY を設定（ここには書かない）。詳しくは docs/ai-apps.md
 name = "happy-ideas"
 pages_build_output_dir = "_site"  # npm run site で作る（functions/ はリポジトリ直下のものが使われる）
 compatibility_date = "2026-09-01"

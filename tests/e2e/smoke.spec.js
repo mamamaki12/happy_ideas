@@ -1,16 +1,17 @@
 // すべての試作アプリ: 開ける・エラーが出ない・横スクロールしない・基本的なアクセシビリティ
 import { test, expect } from '@playwright/test';
 import { BUILT } from '../../ideas/built.js';
+import { IDEAS } from '../../ideas/ideas.js';
 import { openApp, trackErrors } from './helpers.js';
 
-test('ギャラリーに100件のアイデアが表示され、試作へのリンクが動く', async ({ page }) => {
+test('ギャラリーに110件のアイデアが表示され、試作へのリンクが動く', async ({ page }) => {
   const errors = trackErrors(page);
   await page.goto('/index.html');
-  await expect(page.locator('.idea')).toHaveCount(100);
+  await expect(page.locator('.idea')).toHaveCount(IDEAS.length);
   await expect(page.locator('.idea.built')).toHaveCount(BUILT.length);
   await page.getByLabel('キーワードで探す').fill('推し');
   expect(await page.locator('.idea').count()).toBeGreaterThan(0);
-  expect(await page.locator('.idea').count()).toBeLessThan(100);
+  expect(await page.locator('.idea').count()).toBeLessThan(IDEAS.length);
   expect(errors).toEqual([]);
 });
 
@@ -32,6 +33,7 @@ for (const slug of BUILT) {
     // null / undefined / NaN がそのまま表示されていない
     const text = await page.locator('body').innerText();
     expect(text, '表示に null/undefined/NaN が混ざっている').not.toMatch(/(^|[^a-zA-Z])(null|undefined|NaN)([^a-zA-Z]|$)/);
+    expect(text, '表示に [object ...] が混ざっている（配列や要素を文字にしてしまった）').not.toContain('[object ');
     expect(errors).toEqual([]);
   });
 }

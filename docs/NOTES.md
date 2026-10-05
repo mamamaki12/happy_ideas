@@ -79,3 +79,17 @@
 - `docs/recommendations.md` の1位「推し活手帳」（推し活ノート＋推しカメラ＋カウントダウン）を1つのアプリに統合
 - HTTPS で公開して実機（iPhone / Android）確認（`docs/feasibility.md` の「実機で確かめること」）
 - Push 通知サーバーの最小構成を試し、判定Bのリマインダー系を製品レベルにする
+
+## 2026-10-06 追加: Claude API を使うアプリ10個
+
+- [x] アイデア10個（#101〜#110）と試作 → `apps/ai-*`、説明 → `docs/ai-apps.md`
+- [x] 中継サーバー: `functions/api/ai/[task].js` → `server/ai/proxy.js`（仕事の定義は `server/ai/tasks.js`、出力の検査は `server/ai/schema.js`）
+- [x] 共通部品: `shared/ai.js`（状態確認・デモ切り替え・送信・読み込み表示）、`shared/ai-demo.js`（デモの例）
+- [x] テスト: 単体13件（偽の Anthropic API と本物の SQLite）、E2E 17件（デモ表示・通信を差し替えた「サーバーあり」）
+- [x] 静的チェックに「ブラウザから Anthropic API を直接呼ばない・キーを直書きしない」を追加
+
+### 見つけて直した不具合
+- `TASKS['__proto__']` が Object.prototype を返し、知らない仕事名が通ってしまう → `Object.hasOwn` で確認（単体テストで発見）
+- レシート家計簿の月の一覧で、配列を `replaceChildren` に渡して `[object HTMLUListElement]` と表示されていた → 共通の `render()` に。スモークテストに `[object` の検出を追加
+- 英会話の入力欄にラベルがなかった、メニューで日本語表示のとき料理名が2回出ていた
+

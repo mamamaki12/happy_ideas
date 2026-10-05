@@ -11,7 +11,7 @@ const prefs = store('gallery');
 const state = { q: '', cat: prefs.get('cat', 'all'), api: prefs.get('api', 'all'), grade: prefs.get('grade', 'all'), builtOnly: prefs.get('builtOnly', false) };
 
 // 代表的な機能だけをフィルタに出す
-const API_FILTERS = ['camera', 'geolocation', 'notification', 'microphone', 'orientation', 'motion', 'speech-recognition', 'speech-synthesis', 'share', 'wake-lock', 'barcode', 'web-audio'];
+const API_FILTERS = ['camera', 'geolocation', 'notification', 'microphone', 'orientation', 'motion', 'speech-recognition', 'speech-synthesis', 'share', 'wake-lock', 'barcode', 'web-audio', 'claude'];
 
 function chips(container, entries, key) {
   render(container, entries.map(([v, label]) => h('button', {
@@ -64,7 +64,8 @@ function miniCard(slug) {
 const recent = prefs.get('recent', []).filter((s) => built.has(s));
 render($('#featured'),
   recent.length ? [h('h2', { class: 'strip-h' }, '最近ひらいた'), h('div', { class: 'strip' }, recent.map(miniCard))] : null,
-  h('h2', { class: 'strip-h' }, 'まず試してほしい'), h('div', { class: 'strip' }, FEATURED.map(miniCard)));
+  h('h2', { class: 'strip-h' }, 'まず試してほしい'), h('div', { class: 'strip' }, FEATURED.map(miniCard)),
+  h('h2', { class: 'strip-h' }, 'AIで試す（Claude API）'), h('div', { class: 'strip' }, IDEAS.filter((i) => i.ai).map((i) => miniCard(i.slug))));
 
 render($('#stats'),
   h('div', { class: 'stat' }, h('b', {}, String(IDEAS.length)), h('span', {}, 'アイデア')),

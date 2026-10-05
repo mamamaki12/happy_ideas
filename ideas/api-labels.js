@@ -30,5 +30,6 @@ export const API_LABEL = {
   "pointer": "タッチ・ペン",
   "keyboard": "キーボード",
   "webgpu": "WebGPU",
-  "prompt-api": "ブラウザ内AI"
+  "prompt-api": "ブラウザ内AI",
+  "claude": "Claude API"
 };

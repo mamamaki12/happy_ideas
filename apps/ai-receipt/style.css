@@ -1,0 +1,6 @@
+.rc-items input, .rc-items select { min-width: 0; }
+.rc-price { width: 92px; flex: none; text-align: right; }
+.rc-items select { width: 90px; flex: none; }
+.rc-cat { width: 4em; flex: none; }
+.ok-text { color: var(--ok); }
+.warn-text { color: var(--warn); }

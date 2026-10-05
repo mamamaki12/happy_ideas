@@ -31,3 +31,12 @@ CREATE TABLE IF NOT EXISTS reminders (
   sent INTEGER NOT NULL DEFAULT 0
 );
 CREATE INDEX IF NOT EXISTS reminders_due ON reminders (sent, at);
+
+-- Claude API を使うアプリの回数制限（任意）。入力内容は保存しない。
+-- k は「日付＋IP」のハッシュ（日ごとに変わるので、同じ人を日をまたいで追えない）。'*' は全体の合計。
+CREATE TABLE IF NOT EXISTS ai_usage (
+  k TEXT NOT NULL,
+  day TEXT NOT NULL,
+  n INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (k, day)
+);

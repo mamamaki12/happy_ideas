@@ -4,6 +4,7 @@
 // - すべての HTML に CSP（script-src 'self'、object-src 'none'）があること
 // - target="_blank" には rel="noopener" を必須
 // - 外部スクリプトの読み込みを禁止
+// - APIキーの直書き、ブラウザから Anthropic API を直接呼ぶコードを禁止（キーは server/ と functions/ の環境変数だけ）
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -52,6 +53,10 @@ for (const f of files) {
       if (/target:\s*'_blank'/.test(line) && !/rel:\s*'[^']*noopener/.test(line)) problems.push(`${rel}:${i + 1}: target=_blank に rel=noopener がない`);
     });
     if (/import\s[^;]*from\s+['"]https?:/.test(src)) problems.push(`${rel}: 外部モジュールの import`);
+  }
+  if (/sk-ant-[A-Za-z0-9_-]{8,}/.test(src)) problems.push(`${rel}: APIキーらしき文字列（sk-ant-…）`);
+  if (!/^(server|functions)\//.test(rel.replaceAll('\\', '/')) && /api\.anthropic\.com|x-api-key|anthropic-dangerous-direct-browser-access/i.test(src)) {
+    problems.push(`${rel}: ブラウザ側のコードから Anthropic API を直接呼んでいる（中継サーバー経由にする）`);
   }
 }
 

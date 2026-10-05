@@ -13,6 +13,7 @@ export const CATEGORIES = {
   travel: '旅行・おでかけ',
   family: 'ペット・子育て・家族',
   money: 'お金・節約',
+  ai: 'AI（Claude API）',
 };
 
 export const IDEAS = [
@@ -133,4 +134,16 @@ export const IDEAS = [
   { id: 98, slug: 'unit-price', cat: 'money', name: '単価くらべ電卓', summary: '「398円で3個」と「598円で5個」のどちらが得かを一瞬で比べる。', need: '物価高・値上げ1.5万品目', apis: [] },
   { id: 99, slug: 'point-expiry', cat: 'money', name: 'ポイント期限帳', summary: '各社のポイント残高と失効日を管理し、失効前に通知する。', need: 'ポイ活', apis: ['notification', 'storage'] },
   { id: 100, slug: 'trip-budget', cat: 'money', name: '旅行の予算トラッカー', summary: '旅行中の支出を1日の予算と比べて、使いすぎを防ぐ。', need: '旅行・節約', apis: ['storage'] },
+
+  // ── AI（Claude API）: 中継サーバー（functions/api/ai）経由で Claude を呼ぶ。サーバー未設定ならデモ表示 ──
+  { id: 101, slug: 'ai-print', cat: 'ai', ai: true, name: 'プリント整理AI', summary: '学校・園のお知らせプリントを撮ると、予定・持ち物・提出物と締め切りに分けてくれる。予定はカレンダーに追加できる。', need: '小学生の保護者の56.8%が「プリントが多い」（アドビ調査）', apis: ['camera', 'claude', 'storage'] },
+  { id: 102, slug: 'ai-scam-check', cat: 'ai', ai: true, name: 'あやしいメッセージ判定', summary: '届いたSMS・メールを貼るかスクショを選ぶと、詐欺の可能性・手口・理由・次にすることを教えてくれる。', need: '直近1か月で45.2%が詐欺メッセージを受信、特殊詐欺被害は半年で1,816億円', apis: ['clipboard', 'camera', 'claude', 'storage'] },
+  { id: 103, slug: 'ai-fridge-recipe', cat: 'ai', ai: true, name: '冷蔵庫の写真で献立', summary: '冷蔵庫の中を撮ると、ある食材で作れる料理を3つ提案。傷みやすい食材を優先し、避けたい食材は使わない。', need: '物価高・食品ロス・苦労キャンセル', apis: ['camera', 'claude', 'share', 'storage'] },
+  { id: 104, slug: 'ai-soft-rewrite', cat: 'ai', ai: true, name: 'やわらか言い換え', summary: '断る・催促する・謝るなど言いにくいことの下書きを、相手に合わせて角が立たない文に3通り書き直す。', need: '生成AIの用途上位「文章作成」（総務省 情報通信白書）', apis: ['claude', 'clipboard', 'storage'] },
+  { id: 105, slug: 'ai-doc-explain', cat: 'ai', ai: true, name: '書類かみくだき', summary: '役所・病院・契約の書類を撮ると、やること・期限・むずかしい言葉をやさしく説明し、読み上げる。', need: '高齢化・単身高齢94万世帯・苦労キャンセル', apis: ['camera', 'claude', 'speech-synthesis'] },
+  { id: 106, slug: 'ai-menu', cat: 'ai', ai: true, name: 'メニューまるわかり', summary: 'メニューを撮ると、選んだ言語で料理の説明とアレルゲンの目安を表示。店員さんに見せる画面つき。', need: '訪日客4,268万人・海外旅行・食物アレルギー', apis: ['camera', 'claude', 'speech-synthesis'] },
+  { id: 107, slug: 'ai-why', cat: 'ai', ai: true, name: 'なぜなぜ博士', summary: '子どもの「なんで？」に年齢に合わせた言葉で答えて読み上げる。声で質問でき、家でできる実験も提案。', need: '子育て・学習サポート（生成AIの用途上位）', apis: ['speech-recognition', 'speech-synthesis', 'claude', 'storage'] },
+  { id: 108, slug: 'ai-talk', cat: 'ai', ai: true, name: '英会話ロールプレイ', summary: 'カフェ・道案内・面接などの場面で、声か文字で英会話を練習。AIが相手役とやさしい添削をする。', need: '語学のAI会話練習が標準化（既存アプリの会話は浅いとの不満）', apis: ['speech-recognition', 'speech-synthesis', 'claude'] },
+  { id: 109, slug: 'ai-receipt', cat: 'ai', ai: true, name: 'AIレシート家計簿', summary: 'レシートを撮ると店名・品目・金額・分類まで読み取り、確認して家計簿に追加。月ごとの分類別集計とCSV。', need: '物価高・家計管理・苦労キャンセル', apis: ['camera', 'claude', 'storage'] },
+  { id: 110, slug: 'ai-oshi-letter', cat: 'ai', ai: true, name: '推しへの手紙アシスト', summary: '箇条書きのメモから、ファンレター・感想ポスト・お祝いメッセージを整える。自分の言葉を残し、事実は作らない。', need: '推し活4兆円・約2,000万人', apis: ['claude', 'clipboard', 'share', 'storage'] },
 ];

@@ -158,7 +158,7 @@ button.big { min-height: 64px; font-size: 1.15rem; width: 100%; border-radius: v
 details summary { cursor: pointer; color: var(--muted); font-size: .9rem; }
 .tabs { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; }
 .tabs button { flex: 0 0 auto; }
-.tabs button[aria-selected="true"] { background: var(--text); color: var(--bg); border-color: var(--text); }
+.tabs button[aria-selected="true"], .tabs button[aria-checked="true"] { background: var(--text); color: var(--bg); border-color: var(--text); }
 
 /* ── トースト ── */
 .toast-wrap { position: fixed; left: 0; right: 0; bottom: 20px; display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none; z-index: 100; padding: 0 16px; }
@@ -204,3 +204,31 @@ details summary { cursor: pointer; color: var(--muted); font-size: .9rem; }
 .install-hint { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; margin-bottom: 12px; border-radius: 12px; background: var(--accent-soft); border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent); }
 .ih-icon { font-size: 1.4rem; }
 .install-hint .small { margin-top: 2px; }
+
+/* ── Claude API を使うアプリ（#101〜#110） ── */
+.visually-hidden { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.ai-notice { margin: 0 0 14px; padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+.ai-notice p { margin: 0; }
+.ai-notice .field { margin-top: 8px; }
+.ai-notice.demo { border-style: dashed; background: var(--surface-2); font-size: .88rem; }
+.ai-photo { display: grid; gap: 10px; }
+.ai-photo-btn { display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 64px; border: 2px dashed var(--border); border-radius: var(--radius); background: var(--surface-2); font-weight: 700; cursor: pointer; }
+.ai-photo-btn:hover { border-color: var(--accent); }
+.ai-photo input:focus-visible + .ai-photo-preview, .ai-photo:focus-within .ai-photo-btn { outline: 3px solid var(--accent); outline-offset: 2px; }
+.ai-photo-preview img { display: block; max-height: 220px; margin: 0 auto; border-radius: 10px; object-fit: contain; }
+.ai-loading { display: flex; align-items: center; gap: 10px; padding: 18px 4px; color: var(--muted); }
+.ai-dots { display: inline-flex; gap: 4px; }
+.ai-dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: ai-dot 1s infinite ease-in-out; }
+.ai-dots i:nth-child(2) { animation-delay: .15s; }
+.ai-dots i:nth-child(3) { animation-delay: .3s; }
+@keyframes ai-dot { 0%, 80%, 100% { opacity: .25; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-4px); } }
+@media (prefers-reduced-motion: reduce) { .ai-dots i { animation: none; opacity: .7; } }
+.ai-demo-badge { margin: 0 0 10px; }
+.ai-out { display: grid; gap: 12px; margin-top: 14px; }
+.ai-out:empty { display: none; }
+.ai-out h3 { margin: 4px 0 0; font-size: 1rem; }
+.ai-out ul, .ai-out ol { margin: 0; padding-left: 1.3em; display: grid; gap: 4px; }
+.ai-text { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; }
+.ai-block { padding: 12px 14px; border-radius: 12px; background: var(--surface-2); display: grid; gap: 6px; }
+.ai-meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.ai-disclaimer { font-size: .78rem; color: var(--muted); margin: 0; }

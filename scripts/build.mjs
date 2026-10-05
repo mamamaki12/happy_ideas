@@ -25,7 +25,7 @@ const API_LABEL = {
   'wake-lock': '画面スリープ防止', microphone: 'マイク', 'web-audio': 'Web Audio', visibility: 'ページ表示状態',
   torch: 'ライト', 'media-recorder': '録音・録画', canvas: 'Canvas', fullscreen: '全画面', server: 'サーバー必須',
   webrtc: 'WebRTC', battery: 'バッテリー', 'service-worker': 'オフライン', file: 'ファイル読み込み', pointer: 'タッチ・ペン',
-  keyboard: 'キーボード', webgpu: 'WebGPU', 'prompt-api': 'ブラウザ内AI',
+  keyboard: 'キーボード', webgpu: 'WebGPU', 'prompt-api': 'ブラウザ内AI', claude: 'Claude API',
 };
 
 const escapeHtml = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -75,7 +75,7 @@ ${existsSync(join(appsDir, idea.slug, 'style.css')) ? '<link rel="stylesheet" hr
     <summary>このアプリについて（#${idea.id}）</summary>
     <p><b>ニーズ:</b> ${escapeHtml(idea.need)}</p>
     ${FEASIBILITY[idea.slug] ? `<p><b>実現性 ${FEASIBILITY[idea.slug][0]}（${escapeHtml(GRADES[FEASIBILITY[idea.slug][0]])}）:</b> ${escapeHtml(FEASIBILITY[idea.slug][1])}</p>` : ''}
-    <p>データはこの端末の中だけに保存され、外部には送られません。</p>
+    <p>${idea.ai ? '入力した文章や写真は、AIサーバーが設定されているときだけ、答えを作るために Anthropic の Claude API へ送られます（このサイトでは保存しません）。履歴などはこの端末の中だけに保存されます。' : 'データはこの端末の中だけに保存され、外部には送られません。'}</p>
     <button type="button" class="small danger" data-clear-data="${escapeHtml(idea.slug)}">このアプリのデータを消す</button>
   </details>
 </footer>
