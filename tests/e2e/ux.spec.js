@@ -11,7 +11,7 @@ test('ギャラリー: おすすめと最近ひらいたが出る', async ({ pag
   await expect(page.getByRole('heading', { name: '最近ひらいた' })).toBeVisible();
   await page.getByText('機能・実現性で絞り込む').click();
   await page.getByRole('button', { name: /^C: / }).click();
-  await expect(page.locator('.idea')).toHaveCount(5);
+  await expect(page.locator('.idea')).toHaveCount(7);
   expect(errors).toEqual([]);
 });
 

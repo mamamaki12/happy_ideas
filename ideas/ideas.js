@@ -46,7 +46,7 @@ export const IDEAS = [
   { id: 25, slug: 'stretch-coach', cat: 'health', name: '声かけストレッチ', summary: '音声で「次は首を回します」と案内するので、画面を見ずに体を動かせる。', need: 'リモートワーク', apis: ['speech-synthesis', 'wake-lock'] },
   { id: 26, slug: 'pulse-cam', cat: 'health', name: '指先カメラ心拍計', summary: '指先をカメラに当て、明るさの変化から心拍数を推定する（医療用ではない）。', need: 'ヘルスケア（技術検証）', apis: ['camera', 'torch'] },
   { id: 27, slug: 'sleep-sound', cat: 'health', name: '寝言・いびきレコーダー', summary: '夜間に一定以上の音がしたときだけ録音し、朝に聞き返す。', need: '睡眠', apis: ['microphone', 'media-recorder', 'wake-lock'] },
-  { id: 28, slug: null, cat: 'health', name: '体調サイクルメモ', summary: '体調やサイクルを端末内だけに記録する。データは外部に送らない。', need: '女性の健康・プライバシー', apis: ['storage'] },
+  { id: 28, slug: 'cycle-memo', cat: 'health', name: '体調サイクルメモ', summary: '体調やサイクルを端末内だけに記録する。データは外部に送らない。', need: '女性の健康・プライバシー', apis: ['storage'] },
   { id: 29, slug: 'pickup-counter', cat: 'health', name: 'スマホ見た回数カウンター', summary: 'このページに戻った回数と用件の有無を記録し、「なんとなく見た」回数を可視化する。', need: 'デジタルデトックス・Product Hunt「Fewer」', apis: ['visibility', 'storage'] },
   { id: 30, slug: 'phone-down', cat: 'health', name: 'スマホ伏せチャレンジ', summary: 'スマホを伏せている間だけ時間が貯まる。持ち上げると失敗になる。', need: 'デジタルデトックス', apis: ['orientation', 'wake-lock'] },
 
@@ -62,7 +62,7 @@ export const IDEAS = [
   { id: 39, slug: 'shelf', cat: 'oshi', name: 'わたしの棚', summary: '読んだ本・観た作品・聴いた曲を棚に並べ、画像カードで共有する。', need: 'Z世代アプリ「Shelf」', apis: ['canvas', 'share', 'storage'] },
   { id: 40, slug: 'pitch-meter', cat: 'oshi', name: '音程チェッカー', summary: '歌声の音程をリアルタイムで表示する。カラオケ練習に。', need: 'エンタメ', apis: ['microphone', 'web-audio'] },
   { id: 41, slug: 'rhythm-tap', cat: 'oshi', name: 'リズムタップ', summary: '一定テンポでタップして、リズム感（ずれ）を測る。', need: 'エンタメ・暇つぶし', apis: ['web-audio', 'vibration'] },
-  { id: 42, slug: null, cat: 'oshi', name: 'ショートドラマ視聴メモ', summary: '観ているショートドラマの話数と課金額を記録する。', need: 'ショートドラマ市場の急伸', apis: ['storage'] },
+  { id: 42, slug: 'drama-log', cat: 'oshi', name: 'ショートドラマ視聴メモ', summary: '観ているショートドラマの話数と課金額を記録する。', need: 'ショートドラマ市場の急伸', apis: ['storage'] },
 
   // ── つながり ──
   { id: 43, slug: 'moment-cam', cat: 'social', name: 'いまの瞬間カメラ', summary: 'ランダムな時刻に通知が来て、前後カメラで"いま"を撮る。端末内だけのBeReal。', need: 'Z世代・BeReal', apis: ['camera', 'notification', 'canvas'] },
@@ -76,7 +76,7 @@ export const IDEAS = [
   { id: 51, slug: 'checkin', cat: 'family', name: '毎日げんきボタン', summary: '1日1回ボタンを押すだけで、家族に「元気です」を送る。押し忘れも見える。', need: '高齢単身94万世帯・見守り', apis: ['share', 'notification', 'storage'] },
   { id: 52, slug: 'voice-letter', cat: 'social', name: '声の手紙', summary: '声を録音してファイルで送る。文字が苦手な祖父母にも。', need: '高齢化・つながり', apis: ['microphone', 'media-recorder', 'share'] },
   { id: 53, slug: 'birthday', cat: 'social', name: '誕生日ノート', summary: '誕生日と贈ったものを記録し、1週間前に通知する。', need: 'つながり', apis: ['notification', 'storage'] },
-  { id: 54, slug: null, cat: 'social', name: 'ほしいものリスト交換', summary: 'ほしいものリストをURLで交換し、重複したプレゼントを防ぐ。', need: 'ギフト', apis: ['share'] },
+  { id: 54, slug: 'wishlist', cat: 'social', name: 'ほしいものリスト交換', summary: 'ほしいものリストをURLで交換し、重複したプレゼントを防ぐ。', need: 'ギフト', apis: ['share'] },
   { id: 55, slug: 'sky-color', cat: 'social', name: 'きょうの空の色', summary: '空を撮ると平均色を抽出し、色見本カレンダーになる。', need: 'ムード消費・デトックス', apis: ['camera', 'canvas', 'storage'] },
 
   // ── 防災・安全 ──
@@ -87,9 +87,9 @@ export const IDEAS = [
   { id: 60, slug: 'quake-meter', cat: 'safety', name: '揺れ計', summary: '加速度センサーで揺れの大きさを記録・表示する。', need: '防災', apis: ['motion'] },
   { id: 61, slug: 'fake-call', cat: 'safety', name: '夜道おまもり', summary: '偽の着信画面と、現在地をすぐ共有できるボタン。', need: '安全', apis: ['vibration', 'geolocation', 'share'] },
   { id: 62, slug: 'power-outage', cat: 'safety', name: '停電モード', summary: 'バッテリー残量から節電の目安を出し、暗い画面で必要な情報だけ表示する。', need: '防災', apis: ['battery'] },
-  { id: 63, slug: null, cat: 'safety', name: '家族の集合プラン', summary: '災害時の集合場所と連絡手段を家族で決め、共有カードにする。', need: '防災', apis: ['share', 'canvas'] },
+  { id: 63, slug: 'family-plan', cat: 'safety', name: '家族の集合プラン', summary: '災害時の集合場所と連絡手段を家族で決め、共有カードにする。', need: '防災', apis: ['share', 'canvas'] },
   { id: 64, slug: null, cat: 'safety', name: 'ヒヤリハット地図', summary: '通学路の危険箇所を写真と位置で記録し、地域で共有する。', need: '子育て・地域', apis: ['camera', 'geolocation', 'server'] },
-  { id: 65, slug: null, cat: 'safety', name: '大雨タイムライン', summary: '雨量予報から「いつ何をするか」の避難タイムラインを作る。', need: '防災・事前計画', apis: ['fetch', 'notification'] },
+  { id: 65, slug: 'rain-timeline', cat: 'safety', name: '大雨タイムライン', summary: '雨量予報から「いつ何をするか」の避難タイムラインを作る。', need: '防災・事前計画', apis: ['fetch', 'notification'] },
 
   // ── 学習・仕事 ──
   { id: 66, slug: 'flashcards', cat: 'learn', name: '暗記カード（間隔反復）', summary: '忘れる直前に出題する暗記カード。CSVで読み込める。', need: '学習・スキマ時間', apis: ['storage', 'file'] },
@@ -103,7 +103,7 @@ export const IDEAS = [
   { id: 74, slug: 'typing', cat: 'learn', name: 'ローマ字タイピング', summary: '日本語の文をローマ字で打つタイピング練習。打鍵速度を記録する。', need: '学習', apis: ['keyboard'] },
   { id: 75, slug: 'habit', cat: 'learn', name: '習慣トラッカー', summary: '習慣ごとに連続日数を表示する。「完璧でなくていい」週○回の目標にも対応。', need: '習慣化・AIの習慣設計', apis: ['storage'] },
   { id: 76, slug: 'micro-learn', cat: 'learn', name: '1分まなび', summary: 'SNSを開く代わりに1分で読めるミニ知識カードを出す。', need: 'Product Hunt「NerdSip」・デトックス', apis: ['storage'] },
-  { id: 77, slug: null, cat: 'learn', name: 'ブラウザ内AI要約', summary: 'WebGPUやPrompt APIを使い、端末内で文章を要約する（データを外部に送らない）。', need: '端末内AI・プライバシー', apis: ['webgpu', 'prompt-api'] },
+  { id: 77, slug: 'local-summary', cat: 'learn', name: 'ブラウザ内AI要約', summary: 'WebGPUやPrompt APIを使い、端末内で文章を要約する（データを外部に送らない）。', need: '端末内AI・プライバシー', apis: ['webgpu', 'prompt-api'] },
 
   // ── 旅行・おでかけ ──
   { id: 78, slug: 'phrase-board', cat: 'travel', name: '指さし会話帳', summary: 'よく使うフレーズを日英中韓で表示し、読み上げる。', need: 'インバウンド4,268万人・翻訳がヒット予測1位', apis: ['speech-synthesis'] },
@@ -115,17 +115,17 @@ export const IDEAS = [
   { id: 84, slug: 'sauna-log', cat: 'travel', name: 'サ活記録', summary: 'サウナ・水風呂・休憩の時間をタイマーで計り、セットを記録する。', need: 'ソロ活', apis: ['wake-lock', 'vibration', 'storage'] },
   { id: 85, slug: 'sun-times', cat: 'travel', name: 'マジックアワー計算', summary: '現在地の日の出・日の入りとゴールデンアワーを計算する（オフライン）。', need: '写真・旅行', apis: ['geolocation'] },
   { id: 86, slug: 'altimeter', cat: 'travel', name: '高度・速度計', summary: 'GPSの高度・速度・方位を表示する。登山やドライブに。', need: 'アウトドア', apis: ['geolocation'] },
-  { id: 87, slug: null, cat: 'travel', name: 'ソロ活スポット帳', summary: '「ひとりで行けた」お店や場所を記録し、ひとり向け度を評価する。', need: 'ソロ活（Z世代の4割超）', apis: ['geolocation', 'storage'] },
-  { id: 88, slug: null, cat: 'travel', name: '騒音マップ', summary: '歩きながら音量を測り、静かな場所を地図に残す。', need: '集中・カフェ探し', apis: ['microphone', 'geolocation'] },
+  { id: 87, slug: 'solo-spots', cat: 'travel', name: 'ソロ活スポット帳', summary: '「ひとりで行けた」お店や場所を記録し、ひとり向け度を評価する。', need: 'ソロ活（Z世代の4割超）', apis: ['geolocation', 'storage'] },
+  { id: 88, slug: 'noise-map', cat: 'travel', name: '騒音マップ', summary: '歩きながら音量を測り、静かな場所を地図に残す。', need: '集中・カフェ探し', apis: ['microphone', 'geolocation'] },
 
   // ── ペット・子育て・家族 ──
   { id: 89, slug: 'pet-log', cat: 'family', name: 'ペット健康手帳', summary: '体重・ごはん・通院・ワクチンを記録し、体重をグラフで見る。', need: 'ペットケア市場（CAGR約10%）', apis: ['storage', 'canvas'] },
-  { id: 90, slug: null, cat: 'family', name: 'ペット散歩記録', summary: '散歩ルートと、排泄などの出来事を記録する。', need: 'ペット・GPS', apis: ['geolocation'] },
+  { id: 90, slug: 'pet-walk', cat: 'family', name: 'ペット散歩記録', summary: '散歩ルートと、排泄などの出来事を記録する。', need: 'ペット・GPS', apis: ['geolocation'] },
   { id: 91, slug: 'baby-log', cat: 'family', name: '片手で育児記録', summary: '授乳・おむつ・睡眠を、大きなボタンで片手のまま記録する。', need: '共働き・子育て', apis: ['storage', 'vibration'] },
   { id: 92, slug: 'chore-points', cat: 'family', name: 'おてつだいポイント', summary: '子どものお手伝いをポイント化し、ごほうびと交換する。', need: '子育て', apis: ['storage'] },
   { id: 93, slug: 'growth-chart', cat: 'family', name: '成長きろく', summary: '身長・体重を記録し、成長をグラフで見る。', need: '子育て', apis: ['storage', 'canvas'] },
   { id: 94, slug: 'bedtime-story', cat: 'family', name: 'おやすみ読み聞かせ', summary: '登場人物を選ぶと短いお話を組み立てて、ゆっくり読み上げる。', need: '子育て・苦労キャンセル', apis: ['speech-synthesis'] },
-  { id: 95, slug: null, cat: 'family', name: '家族の予定QR共有', summary: '予定をQR/URLにして家族へ送る。アプリを入れなくても見られる。', need: '共有アプリ未利用62%（必要性を感じない）', apis: ['share'] },
+  { id: 95, slug: 'family-schedule', cat: 'family', name: '家族の予定QR共有', summary: '予定をQR/URLにして家族へ送る。アプリを入れなくても見られる。', need: '共有アプリ未利用62%（必要性を感じない）', apis: ['share'] },
   { id: 96, slug: 'care-log', cat: 'family', name: '介護ノート', summary: '体温・食事・排泄・服薬を記録し、ケアマネ向けの要約を作る。', need: '高齢化', apis: ['storage', 'share'] },
 
   // ── お金・節約 ──

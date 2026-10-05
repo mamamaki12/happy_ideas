@@ -15,6 +15,7 @@ const appsDir = join(root, 'apps');
 const EXTRA_CONNECT = {
   'heat-guard': ['https://api.open-meteo.com'],
   'laundry-timer': ['https://api.open-meteo.com'],
+  'rain-timeline': ['https://api.open-meteo.com'],
 };
 
 const API_LABEL = {
