@@ -55,3 +55,7 @@
 .flagship b { font-size: 1.1rem; }
 .flagship span:last-child { width: 100%; font-size: .85rem; opacity: .92; }
 .flag-badge { background: rgb(255 255 255 / 25%); border-radius: 999px; padding: 1px 10px; font-size: .75rem; font-weight: 700; }
+
+.flagships { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); margin-top: 16px; }
+.flagships .flagship { margin-top: 0; background: linear-gradient(135deg, #e8590c, #f59f00); box-shadow: 0 8px 24px rgb(232 89 12 / 25%); }
+.flagships .flagship.alt { background: linear-gradient(135deg, #ff5fa2, #7950f2); box-shadow: 0 8px 24px rgb(255 95 162 / 25%); }
