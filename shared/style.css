@@ -190,3 +190,5 @@ details summary { cursor: pointer; color: var(--muted); font-size: .9rem; }
 .app-footer { max-width: 720px; margin: -72px auto 0; padding: 0 16px 40px; font-size: .85rem; color: var(--muted); }
 .app-footer details { border-top: 1px solid var(--border); padding-top: 12px; }
 .app-footer p { margin: 8px 0; }
+::placeholder { color: var(--muted); opacity: .6; }
+.shrink > input[type="color"] { width: 56px; }

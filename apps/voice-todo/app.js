@@ -34,7 +34,7 @@ function draw() {
     h('span', { class: `grow${t.done ? ' muted' : ''}`, style: t.done ? { textDecoration: 'line-through' } : {} }, t.text),
     h('button', { class: 'small ghost', 'aria-label': `${t.text}を削除`, onclick: () => { todos = todos.filter((x) => x.id !== t.id); save(); draw(); } }, '×'));
   render(listCard, h('h2', {}, `やること（${open.length}）`),
-    open.length ? h('ul', { class: 'list' }, open.map(item)) : h('p', { class: 'empty' }, 'ぜんぶ終わりました 🎉'),
+    open.length ? h('ul', { class: 'list' }, open.map(item)) : h('p', { class: 'empty' }, todos.length ? 'ぜんぶ終わりました 🎉' : 'マイクを押して「牛乳を買う」のように話してみましょう'),
     done.length ? h('details', {}, h('summary', {}, `完了 ${done.length}件`), h('ul', { class: 'list' }, done.map(item)),
       h('button', { class: 'small ghost', onclick: () => { if (confirmDelete('完了した項目')) { todos = open; save(); draw(); } } }, '完了を片付ける')) : null);
 }

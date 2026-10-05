@@ -5,7 +5,7 @@ const db = store('sauna-log');
 let logs = db.get('logs', []);
 const app = $('#app');
 const lock = wakeLock();
-const PHASES = [['sauna', '🔥 サウナ', 8 * 60], ['water', '🧊 水風呂', 60], ['rest', '🪑 休憩', 8 * 60]];
+const PHASES = [['sauna', '🔥\nサウナ', 8 * 60], ['water', '🧊\n水風呂', 60], ['rest', '🪑\n休憩', 8 * 60]];
 let session = null; let phase = -1; let since = 0; let iv = 0;
 const big = h('p', { class: 'big-number' }, '--:--');
 const label = h('p', { class: 'center', 'aria-live': 'polite' }, '施設名を入れて「サウナに入る」を押しましょう');
@@ -18,7 +18,7 @@ function go(i) {
   if (phase >= 0) session.cur[PHASES[phase][0]] = Date.now() - since;
   if (i === 0 && session.cur.sauna && phase !== 0) { session.sets.push(session.cur); session.cur = {}; }
   phase = i; since = Date.now(); vibrate(40); drawBtns();
-  label.textContent = `${session.sets.length + 1}セット目 ・ ${PHASES[i][1]}`;
+  label.textContent = `${session.sets.length + 1}セット目 ・ ${PHASES[i][1].replace('\n', ' ')}`;
 }
 function tick() {
   if (phase < 0) return;

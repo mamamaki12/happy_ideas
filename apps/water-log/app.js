@@ -18,10 +18,10 @@ function draw() {
   big.textContent = `${total} ml`;
   const last = today.at(-1)?.t;
   since.textContent = last ? `最後に飲んでから ${Math.round((Date.now() - last) / 60000)} 分 ・ 目標 ${goal} ml` : `目標 ${goal} ml`;
-  render(listBox, today.slice().reverse().map((x, i) => h('li', {}, h('span', { class: 'grow' }, fmtTime(x.t)), h('b', {}, `${x.ml} ml`),
+  render(listBox, today.length ? null : h('li', { class: 'empty' }, 'まだ記録がありません'), today.slice().reverse().map((x, i) => h('li', {}, h('span', { class: 'grow' }, fmtTime(x.t)), h('b', {}, `${x.ml} ml`),
     h('button', { class: 'small ghost', 'aria-label': '取り消し', onclick: () => { today.splice(today.length - 1 - i, 1); db.set('log', log); draw(); } }, '×'))));
   const days = Object.keys(log).sort().slice(-7);
-  render(weekBox, days.map((d) => { const t = log[d].reduce((s, x) => s + x.ml, 0); return h('div', { class: 'wk' }, h('div', { class: 'wk-bar', style: { height: `${Math.min(100, (t / goal) * 100)}%` }, title: `${t}ml` }), h('span', {}, d.slice(8))); }));
+  render(weekBox, days.length ? null : h('p', { class: 'empty', style: { width: '100%' } }, '記録すると1週間のグラフが出ます'), days.map((d) => { const t = log[d].reduce((s, x) => s + x.ml, 0); return h('div', { class: 'wk' }, h('div', { class: 'wk-bar', style: { height: `${Math.min(100, (t / goal) * 100)}%` }, title: `${t}ml` }), h('span', {}, d.slice(8))); }));
 }
 const weekBox = h('div', { class: 'week', role: 'img', 'aria-label': '直近7日の記録' });
 function addEntry(ml) { (log[todayStr()] ||= []).push({ t: Date.now(), ml }); db.set('log', log); vibrate(25); draw(); }
