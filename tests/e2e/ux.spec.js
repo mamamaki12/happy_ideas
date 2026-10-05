@@ -93,3 +93,15 @@ test('select の初期値（保存した設定）が反映される', async ({ p
   await page.reload();
   await expect(page.getByLabel('相手')).toHaveValue('ko');
 });
+
+test.describe('iPhone の Safari', () => {
+  test.use({ userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1' });
+  test('推し活手帳: ホーム画面に追加の案内が出て、閉じると二度と出ない', async ({ page }) => {
+    await page.goto('/products/oshi-techo/');
+    await expect(page.getByText('推し活手帳をホーム画面に追加')).toBeVisible();
+    await expect(page.getByText(/共有ボタン/)).toBeVisible();
+    await page.getByRole('button', { name: '閉じる' }).click();
+    await page.reload();
+    await expect(page.getByText('推し活手帳をホーム画面に追加')).toHaveCount(0);
+  });
+});

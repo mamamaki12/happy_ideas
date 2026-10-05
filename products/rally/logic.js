@@ -65,14 +65,14 @@ export function distance(a, b) {
  * スタンプを押せるか判定する。
  * - GPS の精度が悪すぎる（150m超）ときは押せない
  * - 直前のスタンプから時速200km以上で移動していたら、位置偽装の疑いとして押せない
- * @returns {{ok: true, index: number} | {ok: false, reason: string, nearest?: number, dist?: number}}
+ * @returns {{ok: true, index: number} | {ok: false, code: 'accuracy'|'speed'|'done'|'far', nearest?: number, meters?: number}}
  */
 export function tryStamp(rally, stamps, pos) {
-  if (!(pos.acc <= 150)) return { ok: false, reason: 'GPSの精度が低いため押せません。空が見える場所でもう一度お試しください' };
+  if (!(pos.acc <= 150)) return { ok: false, code: 'accuracy' };
   const last = Object.values(stamps).sort((x, y) => y.t - x.t)[0];
   if (last && Number.isFinite(last.lat)) {
     const sec = (pos.t - last.t) / 1000;
-    if (sec > 0 && distance(last, pos) / sec > 55) return { ok: false, reason: '移動が速すぎます。少し時間をおいてお試しください' };
+    if (sec > 0 && distance(last, pos) / sec > 55) return { ok: false, code: 'speed' };
   }
   let nearest = -1; let best = Infinity;
   rally.p.forEach((p, i) => {
@@ -80,7 +80,7 @@ export function tryStamp(rally, stamps, pos) {
     const d = distance(pos, { lat: p.a, lon: p.o });
     if (d < best) { best = d; nearest = i; }
   });
-  if (nearest < 0) return { ok: false, reason: 'すべてのスタンプを集めました' };
+  if (nearest < 0) return { ok: false, code: 'done' };
   const allow = rally.p[nearest].r + Math.min(pos.acc, 50);
-  return best <= allow ? { ok: true, index: nearest } : { ok: false, reason: `いちばん近い「${rally.p[nearest].n}」まであと約${Math.round(best - rally.p[nearest].r)}m`, nearest, dist: best };
+  return best <= allow ? { ok: true, index: nearest } : { ok: false, code: 'far', nearest, meters: Math.max(1, Math.round(best - rally.p[nearest].r)) };
 }

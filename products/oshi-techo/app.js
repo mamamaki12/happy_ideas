@@ -1,6 +1,7 @@
 import { h, add, render, $, store, uid, yen, todayStr, fmtDate, daysUntil, toast, share, download, startCamera, stopStream, notify, notifyButton, confirmDelete } from '../../shared/lib.js';
 import { drawWrapped, canvasToBlob } from '../../shared/canvas-text.js';
 import { inkFor, darkenFor } from '../../shared/color.js';
+import { installHint } from '../../shared/install-hint.js';
 import { SPEND_KINDS, nextEvent, spendTotal, yearSummary, validateBackup, daysBetween, TICKET_STATUS, ticketAlerts, ticketStats } from './logic.js';
 
 // 推し活手帳: 推しごとの支出・参戦予定・写真をひとつに。データは端末の中だけ。
@@ -302,4 +303,5 @@ function draw() {
   window.scrollTo(0, 0);
 }
 add(app, view, nav);
+installHint(app, { appName: '推し活手帳', ns: 'oshi-techo', reason: 'ライブ前日や入金期限のお知らせを受け取れるようになります（iPhoneはホーム画面に追加したときだけ通知が届きます）。' });
 draw();

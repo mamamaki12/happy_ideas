@@ -28,3 +28,4 @@
 @keyframes flow { to { background-position: 300% 0; } }
 @keyframes bounce { 50% { transform: translateY(-8px); } }
 @media (prefers-reduced-motion: reduce) { .complete, .complete-badge { animation-duration: 8s; } }
+.lang-row { display: flex; justify-content: flex-end; margin: -4px 0 4px; }

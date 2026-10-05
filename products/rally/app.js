@@ -16,7 +16,29 @@ const setTheme = (c) => { document.documentElement.style.setProperty('--rally', 
  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', c); };
 
 // ───────────────── 参加者 ─────────────────
+const I18N = {
+  ja: {
+    preview: '👀 プレビュー中（スタンプは保存されません）', period: (a, b) => `開催期間: ${a || '〜'} 〜 ${b}`, count: '個', stamps: 'スタンプの数',
+    before: (d) => `まだ始まっていません（${d}から）`, after: 'このラリーは終了しました', press: '📍 スタンプを押す', checking: '位置を確認中…', guide: '🧭 次のポイントへ案内',
+    got: '獲得！', hint: 'ヒント', gotToast: (n) => `㊞ ${n} のスタンプを獲得！`,
+    accuracy: 'GPSの精度が低いため押せません。空が見える場所でもう一度お試しください', speed: '移動が速すぎます。少し時間をおいてお試しください', done: 'すべてのスタンプを集めました',
+    far: (n, m) => `いちばん近い「${n}」まであと約${m}m`, all: (n) => `${n}か所すべて達成`, at: '達成', staff: '受付スタッフの方へ: 時計が動いていて、背景が流れていれば本物の画面です（スクリーンショットではありません）',
+    share: '🖼 記念画像をシェア', back: '編集に戻る', certText: (t) => `「${t}」をコンプリートしました！`, certSub: (n) => `${n}か所のスタンプを集めました`, lang: 'English',
+  },
+  en: {
+    preview: '👀 Preview (stamps are not saved)', period: (a, b) => `Period: ${a || '…'} – ${b}`, count: '', stamps: 'Stamps collected',
+    before: (d) => `Not started yet (from ${d})`, after: 'This rally has ended', press: '📍 Get stamp', checking: 'Checking location…', guide: '🧭 Guide me to the next spot',
+    got: 'Got it!', hint: 'Hint', gotToast: (n) => `㊞ Stamp collected at ${n}!`,
+    accuracy: 'GPS accuracy is too low. Please try again where you can see the sky', speed: 'You are moving too fast. Please wait a moment and try again', done: 'You have collected all stamps',
+    far: (n, m) => `The nearest spot "${n}" is about ${m} m away`, all: (n) => `All ${n} spots completed`, at: 'Completed', staff: 'For staff: if the clock is ticking and the background is moving, this is a live screen (not a screenshot)',
+    share: '🖼 Share your badge', back: 'Back to editor', certText: (t) => `I completed "${t}"!`, certSub: (n) => `Collected ${n} stamps`, lang: '日本語',
+  },
+};
+let lang = db.get('lang', (navigator.language || 'ja').startsWith('ja') ? 'ja' : 'en');
+
 function play(r, { preview = false } = {}) {
+  const T = () => I18N[lang];
+  document.documentElement.lang = lang;
   setTheme(r.c);
   const key = `st:${r.id}`;
   const stamps = preview ? {} : db.get(key, {});
@@ -31,32 +53,33 @@ function play(r, { preview = false } = {}) {
     const n = Object.keys(stamps).length;
     if (n === total) return complete();
     const intro = h('section', { class: 'card rally-intro' },
-      preview ? h('p', { class: 'notice' }, '👀 プレビュー中（スタンプは保存されません）') : null,
+      h('div', { class: 'lang-row' }, h('button', { class: 'small', onclick: () => { lang = lang === 'ja' ? 'en' : 'ja'; db.set('lang', lang); document.documentElement.lang = lang; draw(); } }, `🌐 ${T().lang}`)),
+      preview ? h('p', { class: 'notice' }, T().preview) : null,
       h('h2', {}, r.t), r.d ? h('p', {}, r.d) : null,
-      (r.from || r.to) ? h('p', { class: 'small muted' }, `開催期間: ${fmtD(r.from) || '〜'} 〜 ${fmtD(r.to) || ''}`) : null,
+      (r.from || r.to) ? h('p', { class: 'small muted' }, T().period(lang === 'ja' ? fmtD(r.from) : r.from, lang === 'ja' ? fmtD(r.to) : r.to)) : null,
       r.g ? h('p', { class: 'goal' }, `🎁 ${r.g}`) : null,
-      h('div', { class: 'progress', role: 'progressbar', 'aria-valuemin': 0, 'aria-valuemax': total, 'aria-valuenow': n, 'aria-label': 'スタンプの数' }, h('div', { style: { width: `${(n / total) * 100}%` } })),
-      h('p', { class: 'center' }, h('b', { class: 'count' }, `${n} / ${total}`), ' 個'));
-    const stampBtn = h('button', { class: 'rally-btn big', disabled: period !== 'open', onclick: () => press(stampBtn) }, '📍 スタンプを押す');
+      h('div', { class: 'progress', role: 'progressbar', 'aria-valuemin': 0, 'aria-valuemax': total, 'aria-valuenow': n, 'aria-label': T().stamps }, h('div', { style: { width: `${(n / total) * 100}%` } })),
+      h('p', { class: 'center' }, h('b', { class: 'count' }, `${n} / ${total}`), T().count ? ` ${T().count}` : null));
+    const stampBtn = h('button', { class: 'rally-btn big', disabled: period !== 'open', onclick: () => press(stampBtn) }, T().press);
     const guideBox = h('div');
     render(main, intro,
-      period === 'before' ? h('p', { class: 'notice' }, `まだ始まっていません（${fmtD(r.from)}から）`) : period === 'after' ? h('p', { class: 'notice' }, 'このラリーは終了しました') : null,
+      period === 'before' ? h('p', { class: 'notice' }, T().before(lang === 'ja' ? fmtD(r.from) : r.from)) : period === 'after' ? h('p', { class: 'notice' }, T().after) : null,
       h('section', { class: 'card center' }, stampBtn, msg ? h('p', { class: 'small', 'aria-live': 'polite' }, msg) : null,
-        h('button', { class: 'small', onclick: () => guide(guideBox) }, '🧭 次のポイントへ案内'), guideBox),
+        h('button', { class: 'small', onclick: () => guide(guideBox) }, T().guide), guideBox),
       h('section', { class: 'card' }, h('div', { class: 'stamp-grid' }, r.p.map((p, i) => h('div', { class: `stamp${stamps[i] ? ' got' : ''}` },
-        h('div', { class: 'ink', 'aria-hidden': 'true' }, stamps[i] ? '㊞' : String(i + 1)), h('b', {}, p.n), stamps[i] ? h('small', {}, '獲得！') : p.h ? h('small', { class: 'hint' }, `ヒント: ${p.h}`) : null)))));
+        h('div', { class: 'ink', 'aria-hidden': 'true' }, stamps[i] ? '㊞' : String(i + 1)), h('b', {}, p.n), stamps[i] ? h('small', {}, T().got) : p.h ? h('small', { class: 'hint' }, `${T().hint}: ${p.h}`) : null)))));
   }
   async function press(btn) {
     compass?.stop(); compass = null; // 案内中の watchPosition と取り合わないように止める
-    btn.disabled = true; btn.textContent = '位置を確認中…';
+    btn.disabled = true; btn.textContent = T().checking;
     try {
       const pos = await getPosition({ maximumAge: 0, timeout: 20000 });
       const res = tryStamp(r, stamps, { lat: pos.coords.latitude, lon: pos.coords.longitude, acc: pos.coords.accuracy, t: Date.now() });
       if (res.ok) {
         stamps[res.index] = { t: Date.now(), lat: pos.coords.latitude, lon: pos.coords.longitude }; saveStamps();
-        vibrate([80, 60, 200]); toast(`㊞ ${r.p[res.index].n} のスタンプを獲得！`);
+        vibrate([80, 60, 200]); toast(T().gotToast(r.p[res.index].n));
         draw(); const el = main.querySelectorAll('.stamp')[res.index]; el?.classList.add('just');
-      } else draw(res.reason);
+      } else draw(res.code === 'far' ? T().far(r.p[res.nearest].n, res.meters) : T()[res.code]);
     } catch (e) { draw(e.message); }
   }
   function guide(box) {
@@ -71,15 +94,15 @@ function play(r, { preview = false } = {}) {
   function complete() {
     const last = Math.max(...Object.values(stamps).map((x) => x.t));
     const now = h('p', { class: 'live-clock', 'aria-live': 'off' });
-    const tick = () => { now.textContent = new Date().toLocaleTimeString('ja-JP'); };
+    const tick = () => { now.textContent = new Date().toLocaleTimeString(lang === 'ja' ? 'ja-JP' : 'en-US'); };
     tick(); clock = setInterval(tick, 1000);
     render(main, h('section', { class: 'complete' },
       h('p', { class: 'complete-badge' }, '🏅'), h('h2', {}, 'COMPLETE!'), h('p', { class: 'complete-title' }, r.t),
-      h('p', {}, `${total}か所すべて達成`), h('p', { class: 'small' }, `達成: ${new Date(last).toLocaleString('ja-JP', { dateStyle: 'medium', timeStyle: 'short' })}`),
+      h('p', {}, T().all(total)), h('p', { class: 'small' }, `${T().at}: ${new Date(last).toLocaleString(lang === 'ja' ? 'ja-JP' : 'en-US', { dateStyle: 'medium', timeStyle: 'short' })}`),
       now, r.g ? h('p', { class: 'goal' }, `🎁 ${r.g}`) : null,
-      h('p', { class: 'small staff' }, '受付スタッフの方へ: 時計が動いていて、背景が流れていれば本物の画面です（スクリーンショットではありません）')),
-    h('div', { class: 'btn-row' }, h('button', { class: 'rally-btn', onclick: certificate }, '🖼 記念画像をシェア'),
-      preview ? h('button', { onclick: () => location.reload() }, '編集に戻る') : null));
+      h('p', { class: 'small staff' }, T().staff)),
+    h('div', { class: 'btn-row' }, h('button', { class: 'rally-btn', onclick: certificate }, T().share),
+      preview ? h('button', { onclick: () => location.reload() }, T().back) : null));
     if (!preview) vibrate([100, 50, 100, 50, 300]);
   }
   async function certificate() {
@@ -89,10 +112,10 @@ function play(r, { preview = false } = {}) {
     ctx.font = '160px system-ui'; ctx.fillText('🏅', 540, 290);
     ctx.font = 'bold 84px system-ui, sans-serif'; ctx.fillText('COMPLETE!', 540, 420);
     ctx.font = 'bold 54px system-ui, sans-serif'; drawWrapped(ctx, r.t, 540, 540, 920, 66, 2);
-    ctx.font = '40px system-ui, sans-serif'; ctx.fillText(`${total}か所のスタンプを集めました`, 540, 720);
+    ctx.font = '40px system-ui, sans-serif'; ctx.fillText(T().certSub(total), 540, 720);
     ctx.font = '96px system-ui'; ctx.fillText('㊞'.repeat(Math.min(6, total)), 540, 900);
     const blob = await canvasToBlob(c); const f = new File([blob], 'rally-complete.png', { type: 'image/png' });
-    const res = await share({ title: r.t, text: `「${r.t}」をコンプリートしました！`, files: [f] }); if (res !== 'shared') download(blob, f.name);
+    const res = await share({ title: r.t, text: T().certText(r.t), files: [f] }); if (res !== 'shared') download(blob, f.name);
   }
   add(app, main); draw();
 }

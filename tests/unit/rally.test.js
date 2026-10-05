@@ -37,11 +37,12 @@ test('rally: スタンプの判定（範囲・精度・移動速度）', () => {
   assert.deepEqual(tryStamp(rally, {}, at(35.6812, 139.7671)), { ok: true, index: 0 });
   assert.equal(tryStamp(rally, {}, at(35.6812, 139.7671, 300)).ok, false); // 精度が悪い
   const far = tryStamp(rally, {}, at(35.6900, 139.7671));
-  assert.equal(far.ok, false); assert.match(far.reason, /パン屋/);
+  assert.equal(far.ok, false); assert.equal(far.code, 'far'); assert.equal(far.nearest, 1); assert.ok(far.meters > 500 && far.meters < 600);
   // 1秒前に時計台で押したのに、もうパン屋（約420m先）にいる → 偽装の疑い
   const st = { 0: { t: 1e6 - 1000, lat: 35.6812, lon: 139.7671 } };
-  assert.match(tryStamp(rally, st, at(35.6850, 139.7671)).reason, /速すぎ/);
+  assert.equal(tryStamp(rally, st, at(35.6850, 139.7671)).code, 'speed');
   // 5分後ならOK
   assert.deepEqual(tryStamp(rally, st, at(35.6850, 139.7671, 10, 1e6 + 300000)), { ok: true, index: 1 });
-  assert.match(tryStamp(rally, { 0: {}, 1: {} }, at(0, 0)).reason, /すべて/);
+  assert.equal(tryStamp(rally, { 0: {}, 1: {} }, at(0, 0)).code, 'done');
+  assert.equal(tryStamp(rally, {}, at(35.6812, 139.7671, 300)).code, 'accuracy');
 });

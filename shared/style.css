@@ -199,3 +199,8 @@ details summary { cursor: pointer; color: var(--muted); font-size: .9rem; }
 .qr-box h2 { margin: 0 0 8px; font-size: 1.05rem; }
 .qr-canvas { width: 100%; height: auto; image-rendering: pixelated; display: block; }
 .qr-box .muted { color: #555; }
+
+/* ── ホーム画面に追加の案内 ── */
+.install-hint { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; margin-bottom: 12px; border-radius: 12px; background: var(--accent-soft); border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent); }
+.ih-icon { font-size: 1.4rem; }
+.install-hint .small { margin-top: 2px; }

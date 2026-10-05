@@ -76,3 +76,14 @@ test('壊れたURLはエラー・期間前は押せない', async ({ page }) => 
   await expect(page.getByText(/まだ始まっていません/)).toBeVisible();
   await expect(page.getByRole('button', { name: '📍 スタンプを押す' })).toBeDisabled();
 });
+
+test('参加者画面を英語に切り替えられる（訪日客向け）', async ({ page }) => {
+  await makeRally(page);
+  await page.getByRole('button', { name: '👀 参加者の画面を試す' }).click();
+  await page.getByRole('button', { name: '🌐 English' }).click();
+  await expect(page.getByRole('button', { name: '📍 Get stamp' })).toBeVisible();
+  await expect(page.getByText('Hint: 駅の東口')).toBeVisible();
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+  await page.getByRole('button', { name: '🌐 日本語' }).click();
+  await expect(page.getByRole('button', { name: '📍 スタンプを押す' })).toBeVisible();
+});
