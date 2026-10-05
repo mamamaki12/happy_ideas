@@ -165,20 +165,7 @@ export function getPosition(opts = {}) {
 export function geoErrorText(e) {
   return { 1: '位置情報の利用が許可されていません', 2: '位置を取得できませんでした', 3: '位置情報の取得がタイムアウトしました' }[e?.code] || '位置情報エラー';
 }
-const R = 6371000;
-const rad = (d) => (d * Math.PI) / 180;
-/** 2点間の距離（メートル） */
-export function distance(a, b) {
-  const dLat = rad(b.lat - a.lat); const dLon = rad(b.lon - a.lon);
-  const x = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLon / 2) ** 2;
-  return 2 * R * Math.asin(Math.sqrt(x));
-}
-/** a から b への方位角（度、北=0 時計回り） */
-export function bearing(a, b) {
-  const y = Math.sin(rad(b.lon - a.lon)) * Math.cos(rad(b.lat));
-  const x = Math.cos(rad(a.lat)) * Math.sin(rad(b.lat)) - Math.sin(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.cos(rad(b.lon - a.lon));
-  return ((Math.atan2(y, x) * 180) / Math.PI + 360) % 360;
-}
+export { distance, bearing } from './geo.js';
 export const fmtDistance = (m) => (m < 1000 ? `${Math.round(m)} m` : `${(m / 1000).toFixed(m < 10000 ? 2 : 1)} km`);
 export const mapUrl = (lat, lon) => `https://www.openstreetmap.org/?mlat=${lat.toFixed(6)}&mlon=${lon.toFixed(6)}#map=17/${lat.toFixed(6)}/${lon.toFixed(6)}`;
 

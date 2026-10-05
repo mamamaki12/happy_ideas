@@ -1,2 +1,2 @@
 // 自動生成（scripts/build.mjs）。手で編集しない。
-export const BUILT = ["fridge-keeper","price-memo","receipt-snap","sub-audit","parking-pin","trash-day","split-bill","qr-reader","belongings","meal-photo","pulse-cam","oshi-camera","gacha-calc","moment-cam","sky-color","doc-scan","gaman-bank","unit-price"];
+export const BUILT = ["fridge-keeper","price-memo","receipt-snap","sub-audit","parking-pin","trash-day","level-ruler","split-bill","qr-reader","belongings","meal-photo","laundry-timer","heat-guard","neck-angle","walk-tracker","pulse-cam","phone-down","oshi-camera","seichi-map","gacha-calc","moment-cam","midpoint","here-link","decider","sky-color","evac-compass","quake-meter","doc-scan","stamp-rally","sun-times","altimeter","gaman-bank","unit-price"];
