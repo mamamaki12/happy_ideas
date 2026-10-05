@@ -22,5 +22,15 @@
   <p class="lead">レシートを撮影して金額だけ入力。写真付きで月ごとに集計する。</p>
   <noscript><p class="error">このアプリは JavaScript が必要です。</p></noscript>
 </main>
+<footer class="app-footer">
+  <details>
+    <summary>このアプリについて（#3）</summary>
+    <p><b>ニーズ:</b> 苦労キャンセル・家計管理</p>
+    <p><b>実現性 A（Webだけで製品にできる）:</b> カメラ撮影とIndexedDBへの写真保存は iPhone でも動く。金額の自動読み取り（OCR）は Tesseract.js などで追加できるが重い。</p>
+    <p>データはこの端末の中だけに保存され、外部には送られません。</p>
+    <button type="button" class="small danger" data-clear-data="receipt-snap">このアプリのデータを消す</button>
+  </details>
+</footer>
+<script type="module" src="../../shared/page.js"></script>
 </body>
 </html>

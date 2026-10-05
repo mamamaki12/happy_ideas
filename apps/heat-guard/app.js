@@ -32,7 +32,7 @@ function show(w, { temp, rh }, hours = [], target = out) {
     h('p', { class: 'big-number' }, `${w.toFixed(1)}`),
     h('p', { class: 'center muted small' }, `暑さ指数（WBGT推定）・気温 ${temp}℃ / 湿度 ${rh}%`),
     h('p', {}, lv.advice));
-  if (w >= 28 && db.get('alerted') !== todayStr()) { db.set('alerted', todayStr()); notify(`暑さ指数 ${w.toFixed(0)}（${lv.label}）`, lv.advice); }
+  if (hours.length && w >= 28 && db.get('alerted') !== todayStr()) { db.set('alerted', todayStr()); notify(`暑さ指数 ${w.toFixed(0)}（${lv.label}）`, lv.advice); }
   if (hours.length) {
     const now = new Date().getHours();
     const future = hours.filter((x) => +x.time.slice(0, 2) >= now);

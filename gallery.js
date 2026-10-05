@@ -5,6 +5,8 @@ import { API_LABEL } from './ideas/api-labels.js';
 import { FEASIBILITY, GRADES } from './ideas/feasibility.js';
 
 const built = new Set(BUILT);
+// まず触ってほしい試作（docs/recommendations.md の上位）
+const FEATURED = ['oshi-log', 'heat-guard', 'phrase-board', 'stamp-rally', 'checkin', 'price-memo', 'oshi-camera', 'pitch-meter'];
 const prefs = store('gallery');
 const state = { q: '', cat: prefs.get('cat', 'all'), api: prefs.get('api', 'all'), grade: prefs.get('grade', 'all'), builtOnly: prefs.get('builtOnly', false) };
 
@@ -20,7 +22,7 @@ function chips(container, entries, key) {
 
 function card(i) {
   const isBuilt = built.has(i.slug);
-  const title = isBuilt ? h('a', { href: `apps/${i.slug}/` }, i.name) : i.name;
+  const title = isBuilt ? h('a', { href: `apps/${i.slug}/`, onclick: () => remember(i.slug) }, i.name) : i.name;
   return h('li', { class: `idea${isBuilt ? ' built' : ''}` },
     h('div', { class: 'top' },
       h('span', { class: 'num' }, `#${String(i.id).padStart(3, '0')} · ${CATEGORIES[i.cat]}`),
@@ -53,6 +55,16 @@ function update() {
   render($('#grid'), list.length ? list.map(card) : h('li', { class: 'empty' }, '条件に合うアイデアがありません'));
   $('#count').textContent = `${list.length} 件を表示中`;
 }
+
+function remember(slug) { prefs.set('recent', [slug, ...prefs.get('recent', []).filter((x) => x !== slug)].slice(0, 6)); }
+function miniCard(slug) {
+  const i = IDEAS.find((x) => x.slug === slug); if (!i || !built.has(slug)) return null;
+  return h('a', { class: 'mini', href: `apps/${slug}/`, onclick: () => remember(slug) }, h('b', {}, i.name), h('span', {}, i.summary));
+}
+const recent = prefs.get('recent', []).filter((s) => built.has(s));
+render($('#featured'),
+  recent.length ? [h('h2', { class: 'strip-h' }, '最近ひらいた'), h('div', { class: 'strip' }, recent.map(miniCard))] : null,
+  h('h2', { class: 'strip-h' }, 'まず試してほしい'), h('div', { class: 'strip' }, FEATURED.map(miniCard)));
 
 render($('#stats'),
   h('div', { class: 'stat' }, h('b', {}, String(IDEAS.length)), h('span', {}, 'アイデア')),

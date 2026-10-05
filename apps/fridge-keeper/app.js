@@ -1,7 +1,7 @@
 import { h, render, $, store, uid, toast, notify, notifyButton, daysUntil, todayStr, showError, confirmDelete } from '../../shared/lib.js';
 import { scanBarcode, barcodeSupported } from '../../shared/scanner.js';
 
-const db = store('fridge');
+const db = store('fridge-keeper');
 let items = db.get('items', []);
 const names = db.get('barcodeNames', {}); // バーコード → 前回登録した名前
 const stats = db.get('stats', { eaten: 0, wasted: 0 });

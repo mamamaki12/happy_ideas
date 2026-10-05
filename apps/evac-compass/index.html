@@ -21,5 +21,15 @@
   <p class="lead">登録した避難場所の方角と距離を、圏外でもコンパスで示す。</p>
   <noscript><p class="error">このアプリは JavaScript が必要です。</p></noscript>
 </main>
+<footer class="app-footer">
+  <details>
+    <summary>このアプリについて（#57）</summary>
+    <p><b>ニーズ:</b> 防災・高齢者にも使える操作</p>
+    <p><b>実現性 B（Webで動くが制約あり）:</b> GPSは圏外でも動き、オフラインでも案内できる。方角の精度は端末の磁気センサー次第。</p>
+    <p>データはこの端末の中だけに保存され、外部には送られません。</p>
+    <button type="button" class="small danger" data-clear-data="evac-compass">このアプリのデータを消す</button>
+  </details>
+</footer>
+<script type="module" src="../../shared/page.js"></script>
 </body>
 </html>

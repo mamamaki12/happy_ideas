@@ -42,3 +42,11 @@
 .feas { font-size: .78rem; }
 .grade { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 6px; font-weight: 800; font-size: .75rem; color: #fff; }
 .g-A { background: var(--ok); } .g-B { background: var(--warn); } .g-C { background: var(--muted); }
+.strip-h { font-size: 1.05rem; margin: 18px 0 8px; }
+.strip { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; scroll-snap-type: x mandatory; }
+.mini { flex: 0 0 200px; scroll-snap-align: start; display: flex; flex-direction: column; gap: 4px; padding: 12px; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow); text-decoration: none; color: var(--text); }
+.mini span { font-size: .8rem; color: var(--muted); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.mini:hover { border-color: var(--accent); }
+.more-filters summary { padding: 4px 0; }
+.more-filters[open] { display: grid; gap: 8px; }
+#grades, #apis { flex-wrap: wrap; overflow: visible; }

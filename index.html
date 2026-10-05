@@ -24,12 +24,17 @@
   </div>
 </header>
 <main class="gallery-main">
-  <div class="filters" role="search">
+  <section id="featured" aria-label="おすすめ"></section>
+  <h2 class="strip-h" id="all-h">100個のアイデア</h2>
+  <div class="filters" role="search" aria-labelledby="all-h">
     <input id="q" type="search" placeholder="キーワードで探す（例: 推し、カメラ、節約）" aria-label="キーワードで探す">
     <div class="chip-row" id="cats" role="group" aria-label="カテゴリ"></div>
-    <div class="chip-row" id="apis" role="group" aria-label="使うWeb機能"></div>
-    <div class="chip-row" id="grades" role="group" aria-label="実現性の判定"></div>
-    <label class="toggle"><input type="checkbox" id="builtOnly"> 試作があるものだけ</label>
+    <details class="more-filters">
+      <summary>機能・実現性で絞り込む</summary>
+      <div class="chip-row" id="apis" role="group" aria-label="使うWeb機能"></div>
+      <div class="chip-row" id="grades" role="group" aria-label="実現性の判定"></div>
+      <label class="toggle"><input type="checkbox" id="builtOnly"> 試作があるものだけ</label>
+    </details>
   </div>
   <p id="count" class="muted small" aria-live="polite"></p>
   <ul class="idea-grid" id="grid"></ul>

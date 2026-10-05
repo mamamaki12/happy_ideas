@@ -8,11 +8,12 @@ const KINDS = { breastL: ['🤱 授乳(左)', '#f783ac'], breastR: ['🤱 授乳
 const grid = h('div', { class: 'baby-grid' });
 const since = h('div', { class: 'grid-3', 'aria-live': 'polite' });
 const listCard = h('section', { class: 'card' });
+const milkPicker = h('div', { class: 'card hidden' }, h('p', { class: 'small' }, '🍼 ミルクの量は？'), h('div', { class: 'grid-3' }, [40, 60, 80, 100, 120, 140, 160, 180, 200].map((ml) => h('button', { onclick: () => { logs.unshift({ id: uid(), k: 'milk', t: Date.now(), ml }); save(); vibrate(40); milkPicker.classList.add('hidden'); draw(); } }, `${ml}ml`))));
 const save = () => db.set('logs', logs);
 
 function add(k) {
   const e = { id: uid(), k, t: Date.now() };
-  if (k === 'milk') { const ml = prompt('ミルクの量（ml）', String(db.get('lastMl', 120))); if (ml === null) return; e.ml = Math.max(0, +ml || 0); db.set('lastMl', e.ml); }
+  if (k === 'milk') { milkPicker.classList.toggle('hidden'); return; }
   logs.unshift(e); logs = logs.slice(0, 2000); save(); vibrate(40); draw();
 }
 const last = (ks) => logs.find((x) => ks.includes(x.k));
@@ -30,5 +31,5 @@ function draw() {
       h('button', { class: 'small ghost', 'aria-label': '取り消し', onclick: () => { if (confirmDelete()) { logs = logs.filter((y) => y.id !== x.id); save(); draw(); } } }, '×')))));
 }
 setInterval(draw, 30000);
-app.append(h('section', { class: 'card' }, since), h('section', { class: 'card' }, grid), listCard);
+app.append(h('section', { class: 'card' }, since), h('section', { class: 'card' }, grid), milkPicker, listCard);
 draw();

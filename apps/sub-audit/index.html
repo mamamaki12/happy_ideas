@@ -21,5 +21,15 @@
   <p class="lead">契約中のサブスクを並べて年額に換算し、更新日前に通知する。</p>
   <noscript><p class="error">このアプリは JavaScript が必要です。</p></noscript>
 </main>
+<footer class="app-footer">
+  <details>
+    <summary>このアプリについて（#4）</summary>
+    <p><b>ニーズ:</b> サブスク疲れ（42%が未使用に課金）</p>
+    <p><b>実現性 B（Webで動くが制約あり）:</b> 計算と一覧は問題なし。「更新日の前日に通知」を確実にやるには Push サーバーが必要。</p>
+    <p>データはこの端末の中だけに保存され、外部には送られません。</p>
+    <button type="button" class="small danger" data-clear-data="sub-audit">このアプリのデータを消す</button>
+  </details>
+</footer>
+<script type="module" src="../../shared/page.js"></script>
 </body>
 </html>

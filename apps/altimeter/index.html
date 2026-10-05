@@ -21,5 +21,15 @@
   <p class="lead">GPSの高度・速度・方位を表示する。登山やドライブに。</p>
   <noscript><p class="error">このアプリは JavaScript が必要です。</p></noscript>
 </main>
+<footer class="app-footer">
+  <details>
+    <summary>このアプリについて（#86）</summary>
+    <p><b>ニーズ:</b> アウトドア</p>
+    <p><b>実現性 B（Webで動くが制約あり）:</b> 高度は端末・ブラウザによって取得できない（null になる）。速度も止まっているときは取れない。</p>
+    <p>データはこの端末の中だけに保存され、外部には送られません。</p>
+    <button type="button" class="small danger" data-clear-data="altimeter">このアプリのデータを消す</button>
+  </details>
+</footer>
+<script type="module" src="../../shared/page.js"></script>
 </body>
 </html>

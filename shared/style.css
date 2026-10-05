@@ -183,3 +183,10 @@ details summary { cursor: pointer; color: var(--muted); font-size: .9rem; }
 .compass-n { position: absolute; top: 6px; left: 50%; transform: translateX(-50%); font-weight: 800; color: var(--danger); font-size: .9rem; }
 .compass-arrow { font-size: 88px; line-height: 1; color: var(--accent); transition: transform .25s ease-out; }
 .compass-dist { margin: 4px 0; }
+
+.card:empty { display: none; }
+
+/* ── 試作ページのフッター ── */
+.app-footer { max-width: 720px; margin: -72px auto 0; padding: 0 16px 40px; font-size: .85rem; color: var(--muted); }
+.app-footer details { border-top: 1px solid var(--border); padding-top: 12px; }
+.app-footer p { margin: 8px 0; }

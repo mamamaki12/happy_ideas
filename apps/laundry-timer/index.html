@@ -21,5 +21,15 @@
   <p class="lead">洗濯・乾燥の終了時刻に通知。部屋干しの乾きやすさも気温・湿度から表示。</p>
   <noscript><p class="error">このアプリは JavaScript が必要です。</p></noscript>
 </main>
+<footer class="app-footer">
+  <details>
+    <summary>このアプリについて（#15）</summary>
+    <p><b>ニーズ:</b> 共働き・苦労キャンセル</p>
+    <p><b>実現性 B（Webで動くが制約あり）:</b> タイマー中に画面を消すと通知が届かないことがある。乾きやすさ指数は天気APIで問題なく動く。</p>
+    <p>データはこの端末の中だけに保存され、外部には送られません。</p>
+    <button type="button" class="small danger" data-clear-data="laundry-timer">このアプリのデータを消す</button>
+  </details>
+</footer>
+<script type="module" src="../../shared/page.js"></script>
 </body>
 </html>

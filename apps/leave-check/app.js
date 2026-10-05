@@ -22,8 +22,11 @@ function drawLog() {
     log.length > 1 ? h('ul', { class: 'list' }, log.slice(1, 6).map((t) => h('li', { class: 'sub' }, fmtDateTime(t)))) : null);
 }
 const newIn = h('input', { id: 'ni', placeholder: '例: エアコン', maxlength: 20 });
+const editList = h('ul', { class: 'list' });
+function drawEdit() {
+  render(editList, items.map((it) => h('li', {}, h('span', { class: 'grow' }, `${it.icon} ${it.label}`), h('button', { class: 'small ghost', 'aria-label': `${it.label}を削除`, onclick: () => { items = items.filter((x) => x.id !== it.id); checked.delete(it.id); db.set('items', items); draw(); drawEdit(); } }, '×'))));
+}
 app.append(h('section', { class: 'card' }, status, grid, h('button', { class: 'ghost small', onclick: () => { checked = new Set(); draw(); } }, 'リセット')), logCard,
-  h('details', { class: 'card' }, h('summary', {}, '項目を編集'),
-    h('ul', { class: 'list' }, items.map((it) => h('li', {}, h('span', { class: 'grow' }, `${it.icon} ${it.label}`), h('button', { class: 'small ghost', 'aria-label': `${it.label}を削除`, onclick: () => { items = items.filter((x) => x.id !== it.id); db.set('items', items); location.reload(); } }, '×')))),
-    h('form', { class: 'row', onsubmit: (e) => { e.preventDefault(); if (!newIn.value.trim()) return; items.push({ id: uid(), icon: '☑️', label: newIn.value.trim() }); db.set('items', items); location.reload(); } }, h('div', {}, h('label', { for: 'ni' }, '追加'), newIn), h('button', { class: 'shrink', type: 'submit' }, '追加'))));
-draw(); drawLog();
+  h('details', { class: 'card' }, h('summary', {}, '項目を編集'), editList,
+    h('form', { class: 'row', onsubmit: (e) => { e.preventDefault(); if (!newIn.value.trim()) return; items.push({ id: uid(), icon: '☑️', label: newIn.value.trim() }); db.set('items', items); newIn.value = ''; draw(); drawEdit(); } }, h('div', {}, h('label', { for: 'ni' }, '追加'), newIn), h('button', { class: 'shrink', type: 'submit' }, '追加'))));
+draw(); drawLog(); drawEdit();

@@ -22,5 +22,15 @@
   <p class="lead">停めた場所を位置情報と写真で保存し、方角と距離で戻り方を示す。</p>
   <noscript><p class="error">このアプリは JavaScript が必要です。</p></noscript>
 </main>
+<footer class="app-footer">
+  <details>
+    <summary>このアプリについて（#5）</summary>
+    <p><b>ニーズ:</b> 苦労キャンセル</p>
+    <p><b>実現性 A（Webだけで製品にできる）:</b> 位置情報と距離計算は全ブラウザで動く。方角の矢印は iPhone では許可ボタンが必要（webkitCompassHeading）。</p>
+    <p>データはこの端末の中だけに保存され、外部には送られません。</p>
+    <button type="button" class="small danger" data-clear-data="parking-pin">このアプリのデータを消す</button>
+  </details>
+</footer>
+<script type="module" src="../../shared/page.js"></script>
 </body>
 </html>

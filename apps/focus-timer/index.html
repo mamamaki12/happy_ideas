@@ -21,5 +21,15 @@
   <p class="lead">画面を消さないポモドーロタイマー。離脱回数も数える。</p>
   <noscript><p class="error">このアプリは JavaScript が必要です。</p></noscript>
 </main>
+<footer class="app-footer">
+  <details>
+    <summary>このアプリについて（#24）</summary>
+    <p><b>ニーズ:</b> タイパ・集中</p>
+    <p><b>実現性 A（Webだけで製品にできる）:</b> 画面スリープ防止（Wake Lock）は iPhone 16.4以降でも動く。離脱の検出（visibilitychange）も動く。</p>
+    <p>データはこの端末の中だけに保存され、外部には送られません。</p>
+    <button type="button" class="small danger" data-clear-data="focus-timer">このアプリのデータを消す</button>
+  </details>
+</footer>
+<script type="module" src="../../shared/page.js"></script>
 </body>
 </html>

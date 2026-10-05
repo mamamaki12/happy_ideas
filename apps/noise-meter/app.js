@@ -11,7 +11,7 @@ const stats = h('div', { class: 'grid-3' });
 const btn = h('button', { class: 'primary big', onclick: toggle }, '🎤 計測開始');
 const LEVELS = [[30, 'ささやき・深夜の郊外'], [40, '図書館・静かな住宅地'], [50, '静かな事務所'], [60, '普通の会話'], [70, '騒がしい事務所・掃除機'], [80, '地下鉄の車内'], [90, '大声・犬の鳴き声（近く）'], [200, '工事現場・危険な大きさ']];
 let stream = null; let ctx = null; let raf = 0; const vals = []; let max = 0; let sum = 0; let n = 0;
-let offset = +(localStorage.getItem('happy:noise:offset') || 94);
+let offset = +(localStorage.getItem('happy:noise-meter:offset') || 94);
 
 function loop(an, buf) {
   an.getFloatTimeDomainData(buf);
@@ -38,6 +38,6 @@ async function toggle() {
   lock.on(); btn.textContent = '■ 停止';
   loop(an, new Float32Array(an.fftSize));
 }
-const offIn = h('input', { id: 'off', type: 'range', min: 70, max: 120, value: offset, oninput: (e) => { offset = +e.target.value; try { localStorage.setItem('happy:noise:offset', offset); } catch { /* noop */ } } });
+const offIn = h('input', { id: 'off', type: 'range', min: 70, max: 120, value: offset, oninput: (e) => { offset = +e.target.value; try { localStorage.setItem('happy:noise-meter:offset', offset); } catch { /* noop */ } } });
 app.append(h('section', { class: 'card' }, big, meter, label, hist, stats, btn),
   h('details', { class: 'card' }, h('summary', {}, '校正（騒音計アプリや既知の音に合わせる）'), h('label', { for: 'off' }, '補正値'), offIn));

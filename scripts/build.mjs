@@ -69,6 +69,16 @@ ${existsSync(join(appsDir, idea.slug, 'style.css')) ? '<link rel="stylesheet" hr
   <p class="lead">${escapeHtml(idea.summary)}</p>
   <noscript><p class="error">このアプリは JavaScript が必要です。</p></noscript>
 </main>
+<footer class="app-footer">
+  <details>
+    <summary>このアプリについて（#${idea.id}）</summary>
+    <p><b>ニーズ:</b> ${escapeHtml(idea.need)}</p>
+    ${FEASIBILITY[idea.slug] ? `<p><b>実現性 ${FEASIBILITY[idea.slug][0]}（${escapeHtml(GRADES[FEASIBILITY[idea.slug][0]])}）:</b> ${escapeHtml(FEASIBILITY[idea.slug][1])}</p>` : ''}
+    <p>データはこの端末の中だけに保存され、外部には送られません。</p>
+    <button type="button" class="small danger" data-clear-data="${escapeHtml(idea.slug)}">このアプリのデータを消す</button>
+  </details>
+</footer>
+<script type="module" src="../../shared/page.js"></script>
 </body>
 </html>
 `;
