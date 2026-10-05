@@ -5,13 +5,15 @@ import { drawQr } from '../../shared/qr.js';
 import { showQr } from '../../shared/qr-ui.js';
 import { drawWrapped, canvasToBlob } from '../../shared/canvas-text.js';
 import { packRally, unpackRally, sanitizeRally, periodState, tryStamp } from './logic.js';
+import { darkenFor } from '../../shared/color.js';
 
 // ラリーメーカー: サーバーなしで動く位置情報スタンプラリー。主催者はURL（QR）を配るだけ、参加者はアプリ不要。
 const db = store('rally');
 const app = $('#app');
 const WD = '日月火水木金土';
 const fmtD = (s) => { if (!s) return ''; const d = new Date(`${s}T00:00:00`); return `${d.getMonth() + 1}/${d.getDate()}(${WD[d.getDay()]})`; };
-const setTheme = (c) => { document.documentElement.style.setProperty('--rally', c); document.querySelector('meta[name="theme-color"]')?.setAttribute('content', c); };
+const setTheme = (c) => { document.documentElement.style.setProperty('--rally', darkenFor(c)); // 白文字が読める濃さにする
+ document.querySelector('meta[name="theme-color"]')?.setAttribute('content', c); };
 
 // ───────────────── 参加者 ─────────────────
 function play(r, { preview = false } = {}) {

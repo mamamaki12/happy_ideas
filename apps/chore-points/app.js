@@ -17,8 +17,9 @@ const points = (kid) => log.filter((l) => l.kid === kid).reduce((s, l) => s + l.
 function draw() {
   const kid = kids.find((k) => k.id === cur) || kids[0]; const pt = points(kid.id);
   render(main,
-    h('div', { class: 'tabs', role: 'tablist' }, kids.map((k) => h('button', { role: 'tab', 'aria-selected': String(k.id === kid.id), onclick: () => { cur = k.id; save(); draw(); } }, `${k.icon} ${k.name}`)),
-      h('button', { class: 'small', 'aria-label': '子どもを追加', onclick: () => { addKid.classList.toggle('hidden'); addKid.querySelector('input').focus(); } }, '＋')),
+    h('div', { class: 'row', style: { alignItems: 'center', flexWrap: 'nowrap' } },
+      h('div', { class: 'tabs', role: 'tablist', style: { marginBottom: 0 } }, kids.map((k) => h('button', { role: 'tab', 'aria-selected': String(k.id === kid.id), onclick: () => { cur = k.id; save(); draw(); } }, `${k.icon} ${k.name}`))),
+      h('button', { class: 'small shrink', 'aria-label': '子どもを追加', onclick: () => { addKid.classList.toggle('hidden'); addKid.querySelector('input').focus(); } }, '＋')),
     addKid,
     h('section', { class: 'card center' }, h('p', { class: 'big-number' }, `⭐ ${pt}`), h('p', { class: 'muted' }, `${kid.name}のポイント`)),
     h('section', { class: 'card' }, h('h2', {}, 'おてつだいした！'), h('div', { class: 'grid-2' }, chores.map(([l, p]) => h('button', { class: 'chore', onclick: () => { log.unshift({ id: uid(), kid: kid.id, p, l, d: todayStr() }); save(); vibrate([40, 40, 80]); toast(`⭐ +${p}　えらい！`); draw(); } }, h('span', {}, l), h('span', { class: 'pill' }, `+${p}`))))),

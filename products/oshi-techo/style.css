@@ -1,10 +1,10 @@
 :root { --oshi: #ff5fa2; }
 main { padding-bottom: 110px; }
-.oshi-btn { background: var(--oshi); border-color: var(--oshi); color: #fff; text-shadow: 0 1px 2px rgb(0 0 0 / 25%); }
-.app-header h1 { color: var(--oshi); }
+.oshi-btn { background: var(--oshi); border-color: var(--oshi); color: var(--oshi-ink, #fff); }
+.app-header h1 { color: var(--oshi-strong, var(--oshi)); }
 
 /* ホームの主役カード */
-.hero { border-radius: 22px; padding: 22px 18px; margin-bottom: 14px; color: #fff; background: linear-gradient(135deg, var(--oshi), color-mix(in srgb, var(--oshi) 45%, #1a1033)); box-shadow: 0 10px 30px color-mix(in srgb, var(--oshi) 35%, transparent); text-shadow: 0 1px 3px rgb(0 0 0 / 25%); }
+.hero { border-radius: 22px; padding: 22px 18px; margin-bottom: 14px; color: #fff; background: linear-gradient(135deg, var(--oshi-strong, var(--oshi)), color-mix(in srgb, var(--oshi-strong, var(--oshi)) 45%, #1a1033)); box-shadow: 0 10px 30px color-mix(in srgb, var(--oshi) 35%, transparent); text-shadow: 0 1px 3px rgb(0 0 0 / 25%); }
 .hero-name { font-size: 1.6rem; font-weight: 800; margin: 0; }
 .hero-since { margin: 2px 0 0; opacity: .9; font-size: .9rem; }
 .hero-ev { display: flex; flex-direction: column; margin-top: 16px; background: rgb(255 255 255 / 16%); border-radius: 14px; padding: 12px 14px; }
@@ -20,13 +20,13 @@ main { padding-bottom: 110px; }
 /* 推しの切り替え */
 .oshi-switch { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 12px; padding-bottom: 2px; }
 .oshi-switch button { flex: 0 0 auto; min-height: 36px; padding: 4px 12px; font-size: .88rem; }
-.oshi-switch button[aria-selected="true"], .oshi-switch button[aria-pressed="true"] { background: var(--c, var(--oshi)); border-color: var(--c, var(--oshi)); color: #fff; }
+.oshi-switch button[aria-selected="true"], .oshi-switch button[aria-pressed="true"] { background: var(--oshi-strong, var(--oshi)); border-color: var(--oshi-strong, var(--oshi)); color: #fff; }
 
 /* 下のタブバー */
 .tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; display: grid; grid-template-columns: repeat(5, 1fr); background: color-mix(in srgb, var(--surface) 92%, transparent); backdrop-filter: blur(10px); border-top: 1px solid var(--border); padding: 6px 4px calc(6px + env(safe-area-inset-bottom)); }
 .tabbar a { display: flex; flex-direction: column; align-items: center; gap: 1px; text-decoration: none; color: var(--muted); font-size: 1.3rem; padding: 4px 0; border-radius: 12px; }
 .tabbar a small { font-size: .68rem; }
-.tabbar a[aria-current="page"] { color: var(--oshi); background: color-mix(in srgb, var(--oshi) 12%, transparent); font-weight: 700; }
+.tabbar a[aria-current="page"] { color: var(--oshi-strong, var(--oshi)); background: color-mix(in srgb, var(--oshi) 12%, transparent); font-weight: 700; }
 
 /* 記録シート */
 .sheet-wrap { position: fixed; inset: 0; z-index: 100; background: rgb(0 0 0 / 40%); display: flex; align-items: flex-end; justify-content: center; animation: fade .15s; }

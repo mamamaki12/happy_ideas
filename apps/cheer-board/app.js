@@ -2,7 +2,7 @@ import { h, add, render, $, store, wakeLock } from '../../shared/lib.js';
 
 // 大きな文字を流す電光掲示板。横向きにして掲げると、うちわの代わりになる。
 const db = store('cheer-board');
-const s = db.get('s', { text: 'こっち見て！', fg: '#ffffff', bg: '#ff5fa2', speed: 6, scroll: true });
+const s = db.get('s', { text: 'こっち見て！', fg: '#ffffff', bg: '#c2255c', speed: 6, scroll: true });
 const app = $('#app');
 const lock = wakeLock();
 const stage = h('div', { class: 'board hidden', role: 'button', tabindex: 0, 'aria-label': '応援ボード（タップで終了）' }, h('div', { class: 'board-text' }));

@@ -6,12 +6,12 @@
   --text: #1d1c1a;
   --muted: #6b675f;
   --border: #e2dfd6;
-  --accent: #e8590c;
+  --accent: #c2410c;
   --accent-ink: #ffffff;
   --accent-soft: #fff0e6;
-  --ok: #2b8a3e;
-  --warn: #c77700;
-  --danger: #c92a2a;
+  --ok: #1e6b2e;
+  --warn: #8a5300;
+  --danger: #a61e1e;
   --radius: 14px;
   --shadow: 0 1px 2px rgb(0 0 0 / 6%), 0 4px 16px rgb(0 0 0 / 5%);
   --font: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", "Yu Gothic UI", sans-serif;

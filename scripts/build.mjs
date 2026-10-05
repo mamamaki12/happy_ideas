@@ -54,7 +54,7 @@ function page(idea) {
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta http-equiv="Content-Security-Policy" content="${csp(idea.slug)}">
 <meta name="referrer" content="no-referrer">
-<meta name="theme-color" content="#e8590c">
+<meta name="theme-color" content="#c2410c">
 <meta name="description" content="${escapeHtml(idea.summary)}">
 <title>${escapeHtml(idea.name)}</title>
 <link rel="icon" href="../../shared/icon.svg" type="image/svg+xml">

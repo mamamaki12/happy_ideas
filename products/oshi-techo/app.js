@@ -1,5 +1,6 @@
 import { h, add, render, $, store, uid, yen, todayStr, fmtDate, daysUntil, toast, share, download, startCamera, stopStream, notify, notifyButton, confirmDelete } from '../../shared/lib.js';
 import { drawWrapped, canvasToBlob } from '../../shared/canvas-text.js';
+import { inkFor, darkenFor } from '../../shared/color.js';
 import { SPEND_KINDS, nextEvent, spendTotal, yearSummary, validateBackup, daysBetween, TICKET_STATUS, ticketAlerts, ticketStats } from './logic.js';
 
 // 推し活手帳: 推しごとの支出・参戦予定・写真をひとつに。データは端末の中だけ。
@@ -21,7 +22,11 @@ const oshiById = (id) => S.oshis.find((o) => o.id === id) || S.oshis[0];
 
 function theme() {
   const o = curOshi();
-  document.documentElement.style.setProperty('--oshi', o?.color || '#ff5fa2');
+  const c = o?.color || '#ff5fa2';
+  const root = document.documentElement.style;
+  root.setProperty('--oshi', c);
+  root.setProperty('--oshi-ink', inkFor(c)); // 推し色のボタン上の文字
+  root.setProperty('--oshi-strong', darkenFor(c)); // 白背景の上で読める濃さの推し色（見出しや主役カード）
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', o?.color || '#ff5fa2');
 }
 function route() { return (location.hash.slice(1) || 'home').split('?')[0]; }
@@ -288,8 +293,9 @@ function settings() {
 
 function draw() {
   if (route() !== 'camera') { stopStream(camStream); camStream = null; }
+  theme();
   if (!S.oshis.length) { nav.classList.add('hidden'); onboarding(); return; }
-  nav.classList.remove('hidden'); theme();
+  nav.classList.remove('hidden');
   const r = route();
   render(nav, TABS.map(([k, ic, l]) => h('a', { href: `#${k}`, 'aria-current': r === k ? 'page' : null }, h('span', { 'aria-hidden': 'true' }, ic), h('small', {}, l))));
   ({ home, tickets, log, camera, wrapped, settings }[r] || home)();
