@@ -343,6 +343,14 @@ function previewState() {
   return st;
 }
 function requestRender() { if (!E || E.raf) return; E.raf = requestAnimationFrame(() => { E.raf = 0; renderNow(); }); }
+/** 指で操作している間は、プレビューを小さく描いて軽くする（離したら元の細かさで描き直す） */
+let interactTimer = 0;
+function interacting() {
+  if (!E) return;
+  E.fast = true;
+  clearTimeout(interactTimer);
+  interactTimer = setTimeout(() => { if (E) { E.fast = false; requestRender(); } }, 220);
+}
 function renderNow() {
   if (!E) return;
   const orig = E.showOriginal;
@@ -354,13 +362,15 @@ function renderNow() {
   const f = st.frame; const m = Math.min(out.w, out.h); const b = (f.width / 100) * m * 2;
   let cw = out.w + b; let ch = out.h + b;
   if (f.pad !== 'none') { const [a, c] = f.pad.split(':').map(Number); if (cw / ch > a / c) ch = cw / (a / c); else cw = ch * (a / c); }
-  const fit = Math.min((stage.width - 24) * dpr / cw, (stage.height - 24) * dpr / ch, PREVIEW_MAX / Math.max(cw, ch), 1);
+  const fit = Math.min((stage.width - 24) * dpr / cw, (stage.height - 24) * dpr / ch, PREVIEW_MAX / Math.max(cw, ch), 1) * (E.fast ? 0.5 : 1);
   const pw = Math.max(1, Math.round(out.w * fit)); const ph = Math.max(1, Math.round(out.h * fit));
   const eff = effective(st);
   const showMask = E.tool === 'local' && E.showMask && E.sel ? st.locals.findIndex((l) => l.id === E.sel) : -1;
+  if (E.maskDirty) { E.mask = buildMask(E.state, E.W, E.H, E.maskCache); E.engine.setMask(E.mask); E.maskDirty = false; }
   E.engine.render(eff, pw, ph, { bypass: orig, showMask });
   E.L = compose(E.view, E.glCanvas, st, {});
-  E.view.style.width = `${E.view.width / dpr}px`; E.view.style.height = `${E.view.height / dpr}px`;
+  const k = E.fast ? 0.5 : 1; // 軽量描画中も、画面上の大きさは変えない
+  E.view.style.width = `${E.view.width / dpr / k}px`; E.view.style.height = `${E.view.height / dpr / k}px`;
   E.wrap.style.transform = `translate(${E.pan[0]}px, ${E.pan[1]}px) scale(${E.zoom})`;
   E.origBadge.hidden = !orig;
   drawHandles();
@@ -445,7 +455,7 @@ function setTool(k) {
 }
 
 // ───────────────────────── 道具ごとのパネル ─────────────────────────
-function live(fn) { return (v) => { fn(v); syncHistoryButtons(); requestRender(); }; }
+function live(fn) { return (v) => { fn(v); interacting(); syncHistoryButtons(); requestRender(); }; }
 function adjSliders(group) {
   return S.ADJ.filter((a) => a[4] === group).map(([k, label, min, max]) => slider({
     label, min, max, value: E.state.adj[k], def: S.ADJ_DEFAULT[k] ?? 0,
@@ -811,11 +821,11 @@ function setupPointer(stage) {
     pts.set(e.pointerId, [e.clientX, e.clientY]);
     if (pinch && pts.size === 2) {
       const [a, b] = [...pts.values()]; const d = Math.hypot(a[0] - b[0], a[1] - b[1]); const mid = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
-      E.zoom = Math.min(8, Math.max(1, pinch.zoom * (d / pinch.d)));
+      interacting(); E.zoom = Math.min(8, Math.max(1, pinch.zoom * (d / pinch.d)));
       E.pan = E.zoom === 1 ? [0, 0] : [pinch.pan[0] + mid[0] - pinch.mid[0], pinch.pan[1] + mid[1] - pinch.mid[1]];
       requestRender(); return;
     }
-    action?.move?.(e);
+    if (action?.move) { interacting(); action.move(e); }
   });
   const up = (e) => {
     if (!pts.has(e.pointerId)) return;
@@ -897,7 +907,7 @@ function localAction(e, c, o, p) {
     if (cur.strokes.length >= S.MAX_STROKES) { toast('これ以上塗れません。新しいブラシを追加してください'); return null; }
     const st = { erase: b.erase, size: b.size / 200, hard: b.hard / 100, flow: b.flow / 100, pts: [toSrc(c)] };
     cur.strokes.push(st);
-    const refresh = () => { E.mask = buildMask(E.state, E.W, E.H, E.maskCache); E.engine.setMask(E.mask); requestRender(); };
+    const refresh = () => { E.maskDirty = true; requestRender(); }; // マスクの作り直しは次の描画で1回だけ
     refresh(); // 最初の点を塗る（このブラシのキャンバスに足される）
     return {
       move: (ev) => {

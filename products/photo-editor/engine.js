@@ -66,7 +66,7 @@ uniform float uVignette, uVignetteMid, uGrain, uGrainSize, uFade, uBloom, uHalat
 uniform int uUseLut; uniform vec3 uHsl[8]; uniform float uHslHue[8];
 uniform vec3 uGradeSh, uGradeMid, uGradeHi; uniform float uGradeBal;
 uniform int uLocalCount; uniform vec4 uLocA[8]; uniform vec4 uLocB[8]; uniform vec4 uLocAdj0[8]; uniform vec4 uLocAdj1[8]; uniform vec4 uLocAdj2[8];
-uniform int uBypass; uniform int uShowMask;
+uniform int uBypass; uniform int uShowMask; uniform int uUseNbr; uniform int uUseHsl;
 ${GEO_FN}
 
 float luma(vec3 c) { return dot(c, vec3(0.2126, 0.7152, 0.0722)); }
@@ -128,15 +128,19 @@ void main() {
   vec3 c = orig;
 
   // ノイズ軽減（明るさが近い近傍だけを混ぜる）とシャープ用の近傍
-  vec3 sum = vec3(0.0); float wsum = 0.0; vec3 avg = vec3(0.0);
-  for (int y = -1; y <= 1; y++) for (int x = -1; x <= 1; x++) {
-    vec3 n = texture(uGeo, vUv + vec2(float(x), float(y)) * uTexel * uDetailStep).rgb;
-    avg += n;
-    float w = exp(-pow(luma(n) - luma(orig), 2.0) * 200.0);
-    sum += n * w; wsum += w;
+  // 使わないときは近傍を読まない（遅い端末で9倍の読み込みを省く）
+  vec3 avg = orig;
+  if (uUseNbr == 1) {
+    vec3 sum = vec3(0.0); float wsum = 0.0; avg = vec3(0.0);
+    for (int y = -1; y <= 1; y++) for (int x = -1; x <= 1; x++) {
+      vec3 n = texture(uGeo, vUv + vec2(float(x), float(y)) * uTexel * uDetailStep).rgb;
+      avg += n;
+      float w = exp(-pow(luma(n) - luma(orig), 2.0) * 200.0);
+      sum += n * w; wsum += w;
+    }
+    avg /= 9.0;
+    if (uNoise > 0.0) c = mix(c, sum / wsum, uNoise * 0.9);
   }
-  avg /= 9.0;
-  if (uNoise > 0.0) c = mix(c, sum / wsum, uNoise * 0.9);
 
   // 色温度・色かぶり・露光（リニアで計算）
   float gain = exp2(uExposure * 4.0);
@@ -177,7 +181,7 @@ void main() {
   // HSL（色ごとの色相・彩度・輝度）
   vec3 hsv = rgb2hsv(clamp(c, 0.0, 1.0));
   float dh = 0.0; float ds = 0.0; float dl = 0.0;
-  for (int i = 0; i < 8; i++) {
+  if (uUseHsl == 1) for (int i = 0; i < 8; i++) {
     float w = max(0.0, 1.0 - hueDist(hsv.x, uHslHue[i]) / 0.11);
     dh += uHsl[i].x * w; ds += uHsl[i].y * w; dl += uHsl[i].z * w;
   }
@@ -188,8 +192,9 @@ void main() {
   }
 
   // 自然な彩度（彩度の低い色・肌色を守りながら）と彩度
-  float g = luma(c); float sat = rgb2hsv(clamp(c, 0.0, 1.0)).y;
-  float skin = 1.0 - smoothstep(0.02, 0.09, hueDist(rgb2hsv(clamp(c, 0.0, 1.0)).x, 0.07));
+  vec3 hv = (uUseHsl == 1) ? rgb2hsv(clamp(c, 0.0, 1.0)) : hsv;
+  float g = luma(c); float sat = hv.y;
+  float skin = 1.0 - smoothstep(0.02, 0.09, hueDist(hv.x, 0.07));
   c = mix(vec3(g), c, 1.0 + uVibrance * (1.0 - sat) * (1.0 - skin * 0.5));
   g = luma(c); c = mix(vec3(g), c, 1.0 + uSaturation);
 
@@ -357,6 +362,8 @@ export class Engine {
     this.bindTex(pm, 'uLut', this.lut, 2); this.bindTex(pm, 'uMask', this.mask, 3);
     gl.uniform1i(L.uUseLut, key === '{"rgb":[[0,0],[1,1]],"r":[[0,0],[1,1]],"g":[[0,0],[1,1]],"b":[[0,0],[1,1]]}' ? 0 : 1);
     gl.uniform1i(L.uBypass, bypass ? 1 : 0); gl.uniform1i(L.uShowMask, showMask);
+    gl.uniform1i(L.uUseNbr, state.adj.sharpen > 0 || state.adj.noise > 0 ? 1 : 0);
+    gl.uniform1i(L.uUseHsl, HSL_BANDS.some(([k]) => state.hsl[k].h || state.hsl[k].s || state.hsl[k].l) ? 1 : 0);
     gl.uniform2f(L.uTexel, 1 / outW, 1 / outH); gl.uniform1f(L.uDetailStep, Math.max(1, Math.max(outW, outH) / 2000));
     gl.uniform2f(L.uOutSize, outW, outH); gl.uniform2f(L.uSrcSize, this.srcW, this.srcH);
     this.setGeo(pm, state.geo);

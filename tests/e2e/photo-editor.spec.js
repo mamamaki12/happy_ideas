@@ -10,7 +10,8 @@ const SKY = [0.05, 0.05, 0.5, 0.3]; // 表示中の写真の、空の部分（�
 async function openWith(page, file) {
   await page.goto(URL0);
   await page.locator('#open-file').setInputFiles(file || await makePhoto(page));
-  await expect(page.locator('canvas.view')).toBeVisible();
+  // CI（ソフトウェアのGPU）ではシェーダーの準備に時間がかかる
+  await expect(page.locator('canvas.view')).toBeVisible({ timeout: 20000 });
   await page.waitForFunction(() => window.__temoto.editor?.L);
   await page.waitForTimeout(150);
 }
@@ -50,6 +51,8 @@ async function imageSize(page, buf, mime) {
     return [bmp.width, bmp.height];
   }, { b64: buf.toString('base64'), mime });
 }
+
+test.describe.configure({ timeout: 60000 });
 
 test.beforeEach(async ({ page }) => {
   // 外部への通信が一切ないこと（同じサイトの静的ファイルだけ）
@@ -164,7 +167,7 @@ test('位置情報入りの写真: 警告を出し、書き出した JPEG には
   await page.goto(URL0);
   const file = withExif(await makePhoto(page));
   await page.locator('#open-file').setInputFiles(file);
-  await expect(page.locator('canvas.view')).toBeVisible();
+  await expect(page.locator('canvas.view')).toBeVisible({ timeout: 20000 });
   await tab(page, '情報');
   await expect(page.locator('.gps-warn')).toContainText('位置情報');
   await expect(page.locator('.info')).toContainText('SecretCam');
@@ -285,7 +288,7 @@ test('保存して再読み込みしても編集が残る・プリセット・�
   await expect(page.locator('.lib-badge')).toHaveText('編集済み');
   // 2枚目を追加して、コピーした編集を貼り付け
   await page.locator('#open-file').setInputFiles(await makePhoto(page, { w: 600, h: 900 }));
-  await expect(page.locator('canvas.view')).toBeVisible();
+  await expect(page.locator('canvas.view')).toBeVisible({ timeout: 20000 });
   await page.getByRole('button', { name: '‹ 写真' }).click();
   await expect(page.locator('.lib-item')).toHaveCount(2);
   await page.getByRole('button', { name: 'すべて選択' }).click();
