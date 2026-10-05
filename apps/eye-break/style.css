@@ -1,0 +1,2 @@
+body.resting { --bg: #e7f5ff; }
+@media (prefers-color-scheme: dark) { body.resting { --bg: #0b2a3f; } }
