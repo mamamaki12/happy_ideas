@@ -77,3 +77,19 @@ test('熱中症ガード: オフライン時は通知を出さない', async ({ 
   await expect(page.getByText(/予報を取得できませんでした/)).toBeVisible();
   await expect(page.locator('.toast', { hasText: '暑さ指数' })).toHaveCount(0);
 });
+
+test('保存した文章（textarea）がリロード後も表示される', async ({ page }) => {
+  await openApp(page, 'setlist');
+  await page.getByLabel('新しいライブ').fill('ツアー');
+  await page.getByRole('button', { name: '作成' }).click();
+  await page.getByLabel('🔮 予想').fill('曲A\n曲B');
+  await page.reload();
+  await expect(page.getByLabel('🔮 予想')).toHaveValue('曲A\n曲B');
+});
+
+test('select の初期値（保存した設定）が反映される', async ({ page }) => {
+  await openApp(page, 'phrase-board');
+  await page.getByLabel('相手').selectOption('ko');
+  await page.reload();
+  await expect(page.getByLabel('相手')).toHaveValue('ko');
+});

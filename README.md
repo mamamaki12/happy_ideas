@@ -1,10 +1,16 @@
 # happy_ideas
 
-Webブラウザの機能（カメラ・通知・位置情報・センサー・マイク・音声認識など）を使った**100個のアプリアイデア**と、その**動く試作**を集めたリポジトリです。
+Webブラウザの機能（カメラ・通知・位置情報・センサー・マイク・音声認識・WebRTC など）を使った**100個のアプリアイデア**と、その**動く試作100個**を集めたリポジトリです。
+
+- 試作はすべてアカウント不要・端末内保存・外部ライブラリなし
+- 実現性の判定: Webだけで製品にできる 60 ／ 制約あり 33 ／ 技術検証どまり 7
+- テスト: 単体 51件、E2E 約310件（全試作の起動・操作・XSSファズ）
 
 - 📊 市場調査: [`docs/market-research.md`](docs/market-research.md)
 - 💡 アイデア100: [`ideas/IDEAS.md`](ideas/IDEAS.md)
-- 🔬 機能ごとの実現性レポート: [`docs/feasibility.md`](docs/feasibility.md)
+- 🔬 機能ごとの実現性レポート: [`docs/feasibility.md`](docs/feasibility.md)（試作ごと: [`docs/feasibility-apps.md`](docs/feasibility-apps.md)）
+- 🏆 おすすめの次の一手: [`docs/recommendations.md`](docs/recommendations.md)
+- 🔒 セキュリティ: [`docs/security.md`](docs/security.md)
 - 📝 開発メモ: [`docs/NOTES.md`](docs/NOTES.md)
 
 ## 動かし方

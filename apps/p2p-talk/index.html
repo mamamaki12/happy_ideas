@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; media-src 'self' blob: mediastream:; connect-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#e8590c">
+<meta name="description" content="WebRTCで近くの人と音声通話・チャット。接続コードを手で交換すればサーバーなしでつながるかを検証。">
+<title>P2Pトランシーバー</title>
+<link rel="icon" href="../../shared/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../../shared/style.css">
+<link rel="stylesheet" href="style.css">
+<script type="module" src="app.js"></script>
+</head>
+<body>
+<header class="app-header">
+  <a class="back" href="../../index.html">← 一覧</a>
+  <h1>P2Pトランシーバー</h1>
+</header>
+<main id="app">
+  <p class="lead">WebRTCで近くの人と音声通話・チャット。接続コードを手で交換すればサーバーなしでつながるかを検証。</p>
+  <noscript><p class="error">このアプリは JavaScript が必要です。</p></noscript>
+</main>
+<footer class="app-footer">
+  <details>
+    <summary>このアプリについて（#50）</summary>
+    <p><b>ニーズ:</b> イベント・防災</p>
+    <p><b>実現性 B（Webで動くが制約あり）:</b> サーバーなしでも、接続コードを手で交換すれば WebRTC で音声とチャットがつながる（同じ端末の2タブで確認）。ただし中継サーバー（TURN）がないと、携帯回線同士や会社のネットワークではつながらないことがある。コードの受け渡しも手間。</p>
+    <p>データはこの端末の中だけに保存され、外部には送られません。</p>
+    <button type="button" class="small danger" data-clear-data="p2p-talk">このアプリのデータを消す</button>
+  </details>
+</footer>
+<script type="module" src="../../shared/page.js"></script>
+</body>
+</html>

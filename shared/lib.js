@@ -4,8 +4,12 @@
 /** DOM要素を作る。子要素の文字列は textContent として入るのでエスケープ不要。 */
 export function h(tag, attrs = {}, ...children) {
   const el = document.createElement(tag);
+  let value;
   for (const [k, v] of Object.entries(attrs || {})) {
     if (v == null || v === false) continue;
+    // value は属性ではなくプロパティで、子要素（select の option）を入れた後に設定する。
+    // textarea は value 属性を無視するため、属性で入れると保存した文章が表示されない
+    if (k === 'value') { value = v; continue; }
     if (k.startsWith('on') && typeof v === 'function') el.addEventListener(k.slice(2), v);
     else if (k === 'class') el.className = v;
     else if (k === 'style' && typeof v === 'object') Object.assign(el.style, v);
@@ -14,6 +18,7 @@ export function h(tag, attrs = {}, ...children) {
     else el.setAttribute(k, v === true ? '' : String(v));
   }
   append(el, children);
+  if (value !== undefined) el.value = String(value);
   return el;
 }
 function append(el, children) {

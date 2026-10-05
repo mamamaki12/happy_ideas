@@ -70,9 +70,9 @@ export const IDEAS = [
   { id: 45, slug: 'here-link', cat: 'social', name: 'いまここリンク', summary: '現在地を地図リンクにして共有する。精度も一緒に伝える。', need: '位置情報共有・見守り', apis: ['geolocation', 'share', 'clipboard'] },
   { id: 46, slug: 'decider', cat: 'social', name: 'きめるルーレット', summary: 'ランチや順番を公平に決めるルーレット。振ると回る。', need: '迷う時間の削減（タイパ）', apis: ['motion', 'vibration'] },
   { id: 47, slug: 'icebreaker', cat: 'social', name: 'お題カード', summary: '初対面や家族の会話のきっかけになるお題を引く。', need: '孤独・つながり', apis: [] },
-  { id: 48, slug: null, cat: 'social', name: '共有フォトウォール', summary: 'イベント参加者がQRから写真を投稿する共有アルバム（サーバーが必要）。', need: 'プライベート写真共有（Yope）', apis: ['camera', 'server'] },
+  { id: 48, slug: 'photo-relay', cat: 'social', name: 'その場で写真交換', summary: '近くの人とサーバーなしで写真を直接送り合う（WebRTC）。イベントの写真交換に。', need: 'プライベート写真共有（Yope）', apis: ['camera', 'webrtc'] },
   { id: 49, slug: 'thanks-card', cat: 'social', name: 'ありがとうカード', summary: 'ひとことメッセージを画像カードにして送る。', need: 'つながり', apis: ['canvas', 'share'] },
-  { id: 50, slug: null, cat: 'social', name: 'P2Pトランシーバー', summary: 'WebRTCで近くの人と音声通話する（シグナリングサーバーが必要）。', need: 'イベント・防災', apis: ['webrtc', 'microphone', 'server'] },
+  { id: 50, slug: 'p2p-talk', cat: 'social', name: 'P2Pトランシーバー', summary: 'WebRTCで近くの人と音声通話・チャット。接続コードを手で交換すればサーバーなしでつながるかを検証。', need: 'イベント・防災', apis: ['webrtc', 'microphone'] },
   { id: 51, slug: 'checkin', cat: 'family', name: '毎日げんきボタン', summary: '1日1回ボタンを押すだけで、家族に「元気です」を送る。押し忘れも見える。', need: '高齢単身94万世帯・見守り', apis: ['share', 'notification', 'storage'] },
   { id: 52, slug: 'voice-letter', cat: 'social', name: '声の手紙', summary: '声を録音してファイルで送る。文字が苦手な祖父母にも。', need: '高齢化・つながり', apis: ['microphone', 'media-recorder', 'share'] },
   { id: 53, slug: 'birthday', cat: 'social', name: '誕生日ノート', summary: '誕生日と贈ったものを記録し、1週間前に通知する。', need: 'つながり', apis: ['notification', 'storage'] },
@@ -88,7 +88,7 @@ export const IDEAS = [
   { id: 61, slug: 'fake-call', cat: 'safety', name: '夜道おまもり', summary: '偽の着信画面と、現在地をすぐ共有できるボタン。', need: '安全', apis: ['vibration', 'geolocation', 'share'] },
   { id: 62, slug: 'power-outage', cat: 'safety', name: '停電モード', summary: 'バッテリー残量から節電の目安を出し、暗い画面で必要な情報だけ表示する。', need: '防災', apis: ['battery'] },
   { id: 63, slug: 'family-plan', cat: 'safety', name: '家族の集合プラン', summary: '災害時の集合場所と連絡手段を家族で決め、共有カードにする。', need: '防災', apis: ['share', 'canvas'] },
-  { id: 64, slug: null, cat: 'safety', name: 'ヒヤリハット地図', summary: '通学路の危険箇所を写真と位置で記録し、地域で共有する。', need: '子育て・地域', apis: ['camera', 'geolocation', 'server'] },
+  { id: 64, slug: 'hazard-map', cat: 'safety', name: 'ヒヤリハット地図', summary: '通学路の危険箇所を写真と位置で記録し、ファイルやURLで地域に配る（サーバーなし版）。', need: '子育て・地域', apis: ['camera', 'geolocation', 'file'] },
   { id: 65, slug: 'rain-timeline', cat: 'safety', name: '大雨タイムライン', summary: '雨量予報から「いつ何をするか」の避難タイムラインを作る。', need: '防災・事前計画', apis: ['fetch', 'notification'] },
 
   // ── 学習・仕事 ──
@@ -108,7 +108,7 @@ export const IDEAS = [
   // ── 旅行・おでかけ ──
   { id: 78, slug: 'phrase-board', cat: 'travel', name: '指さし会話帳', summary: 'よく使うフレーズを日英中韓で表示し、読み上げる。', need: 'インバウンド4,268万人・翻訳がヒット予測1位', apis: ['speech-synthesis'] },
   { id: 79, slug: 'currency', cat: 'travel', name: '旅の通貨換算', summary: 'レートを手入力して、値札を見ながら素早く換算する。オフラインで使える。', need: '旅行の伸び+16%', apis: ['storage'] },
-  { id: 80, slug: null, cat: 'travel', name: 'ゴミ箱・トイレマップ', summary: 'ゴミ箱やトイレの場所をみんなで登録する（サーバーが必要）。', need: 'インバウンドの困りごと', apis: ['geolocation', 'server'] },
+  { id: 80, slug: 'spot-share', cat: 'travel', name: 'ゴミ箱・トイレマップ', summary: 'ゴミ箱・トイレ・水飲み場などの場所を記録し、URLで共有する（サーバーなし版）。', need: 'インバウンドの困りごと', apis: ['geolocation', 'share'] },
   { id: 81, slug: 'stamp-rally', cat: 'travel', name: '位置情報スタンプラリー', summary: '決めた地点に近づくとスタンプが押せる。イベントや商店街向け。', need: 'リアルとつなぐ・地域', apis: ['geolocation', 'vibration'] },
   { id: 82, slug: 'trip-journal', cat: 'travel', name: '旅の一行日記', summary: '写真・位置・ひとことで旅を記録し、時系列で振り返る。', need: '旅行', apis: ['camera', 'geolocation', 'indexeddb'] },
   { id: 83, slug: 'packing', cat: 'travel', name: '持ち物リスト自動作成', summary: '日数・季節・目的から持ち物リストを作る。', need: '苦労キャンセル', apis: ['storage'] },
