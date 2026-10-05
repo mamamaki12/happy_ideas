@@ -4,10 +4,11 @@ Webブラウザの機能（カメラ・通知・位置情報・センサー・�
 
 - 試作はすべてアカウント不要・外部ライブラリなし。AIアプリ以外は端末内保存だけ
 - 実現性の判定: Webだけで製品にできる 60 ／ 制約あり 43（AIアプリ10を含む） ／ 技術検証どまり 7
-- テスト: 単体 85件、E2E 483件（全試作の起動・操作・XSSファズ・アクセシビリティ・AI中継）
+- テスト: 単体 97件、E2E 497件（全試作の起動・操作・XSSファズ・アクセシビリティ・AI中継）
 
 - ㊞ **製品版: ラリーメーカー** → [`products/rally/`](products/rally/)（競合調査後の1位。サーバーなしの位置情報スタンプラリー）
 - 📔 **製品版: 推し活手帳** → [`products/oshi-techo/`](products/oshi-techo/)（2位。支出・当落・予定・写真・年間まとめ）
+- 📷 **てもとフォト（写真編集）** → [`products/photo-editor/`](products/photo-editor/)（写真を端末の外に出さずに編集。一般的な写真編集アプリとの比較は [`docs/photo-editor.md`](docs/photo-editor.md)）
 - 🤖 **Claude API を使うアプリ10個** → [`docs/ai-apps.md`](docs/ai-apps.md)（中継サーバー・回数制限・プロンプトインジェクション対策。サーバー未設定ならデモ表示）
 - ⚔ 競合調査: [`docs/competition.md`](docs/competition.md)
 - 🚀 公開と検証のプラン: [`docs/launch-plan.md`](docs/launch-plan.md)

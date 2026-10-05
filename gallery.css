@@ -59,3 +59,4 @@
 .flagships { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); margin-top: 16px; }
 .flagships .flagship { margin-top: 0; background: linear-gradient(135deg, #c2410c, #a14a00); box-shadow: 0 8px 24px rgb(232 89 12 / 25%); }
 .flagships .flagship.alt { background: linear-gradient(135deg, #c2255c, #6741d9); box-shadow: 0 8px 24px rgb(255 95 162 / 25%); }
+.flagships .flagship.photo { background: linear-gradient(135deg, #1f2a2e, #2f5d57); box-shadow: 0 8px 24px rgb(47 93 87 / 30%); }
