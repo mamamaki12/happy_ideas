@@ -39,3 +39,6 @@
 .status.on { background: var(--accent); color: var(--accent-ink); }
 .status.off { background: var(--surface-2); color: var(--muted); }
 .gallery-footer { margin-top: 32px; text-align: center; }
+.feas { font-size: .78rem; }
+.grade { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 6px; font-weight: 800; font-size: .75rem; color: #fff; }
+.g-A { background: var(--ok); } .g-B { background: var(--warn); } .g-C { background: var(--muted); }

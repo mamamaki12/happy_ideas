@@ -6,6 +6,7 @@ import { existsSync, readdirSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { IDEAS, CATEGORIES } from '../ideas/ideas.js';
+import { FEASIBILITY, GRADES } from '../ideas/feasibility.js';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const appsDir = join(root, 'apps');
@@ -112,5 +113,25 @@ writeFileSync(join(root, 'ideas/IDEAS.md'), lines.join('\n'));
 
 // API ラベルをギャラリー用に書き出す
 writeFileSync(join(root, 'ideas/api-labels.js'), `// 自動生成（scripts/build.mjs）\nexport const API_LABEL = ${JSON.stringify(API_LABEL, null, 2)};\n`);
+
+// docs/feasibility-apps.md（試作ごとの実現性の表）
+const feas = [
+  '# 試作ごとの実現性',
+  '',
+  '> 自動生成ファイルです（`node scripts/build.mjs`）。元データは [`../ideas/feasibility.js`](../ideas/feasibility.js)。機能ごとの解説は [`feasibility.md`](./feasibility.md)。',
+  '',
+  ...Object.entries(GRADES).map(([g, l]) => `- **${g}**: ${l}（${built.filter((sl) => FEASIBILITY[sl]?.[0] === g).length}個）`),
+  '',
+  '| 判定 | # | アプリ | 使った機能 | 分かったこと |',
+  '|---|---|---|---|---|',
+];
+for (const g of Object.keys(GRADES)) {
+  for (const i of IDEAS.filter((x) => built.includes(x.slug) && FEASIBILITY[x.slug]?.[0] === g)) {
+    feas.push(`| ${g} | ${i.id} | [${i.name}](../apps/${i.slug}/) | ${i.apis.map((a) => API_LABEL[a] || a).join('、')} | ${FEASIBILITY[i.slug][1]} |`);
+  }
+}
+const missing = built.filter((sl) => !FEASIBILITY[sl]);
+if (missing.length) console.warn(`warn: 実現性の判定がない試作: ${missing.join(', ')}`);
+writeFileSync(join(root, 'docs/feasibility-apps.md'), `${feas.join('\n')}\n`);
 
 console.log(`built ${built.length} apps / ${IDEAS.length} ideas`);

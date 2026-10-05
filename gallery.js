@@ -2,10 +2,11 @@ import { h, render, $, store } from './shared/lib.js';
 import { IDEAS, CATEGORIES } from './ideas/ideas.js';
 import { BUILT } from './ideas/built.js';
 import { API_LABEL } from './ideas/api-labels.js';
+import { FEASIBILITY, GRADES } from './ideas/feasibility.js';
 
 const built = new Set(BUILT);
 const prefs = store('gallery');
-const state = { q: '', cat: prefs.get('cat', 'all'), api: prefs.get('api', 'all'), builtOnly: prefs.get('builtOnly', false) };
+const state = { q: '', cat: prefs.get('cat', 'all'), api: prefs.get('api', 'all'), grade: prefs.get('grade', 'all'), builtOnly: prefs.get('builtOnly', false) };
 
 // 代表的な機能だけをフィルタに出す
 const API_FILTERS = ['camera', 'geolocation', 'notification', 'microphone', 'orientation', 'motion', 'speech-recognition', 'speech-synthesis', 'share', 'wake-lock', 'barcode', 'web-audio'];
@@ -27,6 +28,7 @@ function card(i) {
     h('h2', {}, title),
     h('p', {}, i.summary),
     h('p', { class: 'need' }, `ニーズ: ${i.need}`),
+    FEASIBILITY[i.slug] && isBuilt ? h('p', { class: 'feas', title: FEASIBILITY[i.slug][1] }, h('span', { class: `grade g-${FEASIBILITY[i.slug][0]}` }, FEASIBILITY[i.slug][0]), ` ${GRADES[FEASIBILITY[i.slug][0]]}`) : null,
     h('div', { class: 'apis' }, i.apis.map((a) => h('span', { class: 'pill' }, API_LABEL[a] || a))));
 }
 
@@ -34,6 +36,7 @@ function matches(i) {
   if (state.builtOnly && !built.has(i.slug)) return false;
   if (state.cat !== 'all' && i.cat !== state.cat) return false;
   if (state.api !== 'all' && !i.apis.includes(state.api)) return false;
+  if (state.grade !== 'all' && FEASIBILITY[i.slug]?.[0] !== state.grade) return false;
   if (state.q) {
     const hay = `${i.name} ${i.summary} ${i.need} ${CATEGORIES[i.cat]} ${i.apis.map((a) => API_LABEL[a] || a).join(' ')}`.toLowerCase();
     return state.q.toLowerCase().split(/\s+/).every((w) => hay.includes(w));
@@ -44,6 +47,7 @@ function matches(i) {
 function update() {
   chips($('#cats'), [['all', 'すべて'], ...Object.entries(CATEGORIES)], 'cat');
   chips($('#apis'), [['all', 'すべての機能'], ...API_FILTERS.map((a) => [a, API_LABEL[a]])], 'api');
+  chips($('#grades'), [['all', 'すべての判定'], ...Object.entries(GRADES).map(([g, l]) => [g, `${g}: ${l}`])], 'grade');
   $('#builtOnly').checked = state.builtOnly;
   const list = IDEAS.filter(matches).sort((a, b) => Number(built.has(b.slug)) - Number(built.has(a.slug)) || a.id - b.id);
   render($('#grid'), list.length ? list.map(card) : h('li', { class: 'empty' }, '条件に合うアイデアがありません'));
