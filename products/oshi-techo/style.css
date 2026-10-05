@@ -1,0 +1,57 @@
+:root { --oshi: #ff5fa2; }
+main { padding-bottom: 110px; }
+.oshi-btn { background: var(--oshi); border-color: var(--oshi); color: #fff; text-shadow: 0 1px 2px rgb(0 0 0 / 25%); }
+.app-header h1 { color: var(--oshi); }
+
+/* ホームの主役カード */
+.hero { border-radius: 22px; padding: 22px 18px; margin-bottom: 14px; color: #fff; background: linear-gradient(135deg, var(--oshi), color-mix(in srgb, var(--oshi) 45%, #1a1033)); box-shadow: 0 10px 30px color-mix(in srgb, var(--oshi) 35%, transparent); text-shadow: 0 1px 3px rgb(0 0 0 / 25%); }
+.hero-name { font-size: 1.6rem; font-weight: 800; margin: 0; }
+.hero-since { margin: 2px 0 0; opacity: .9; font-size: .9rem; }
+.hero-ev { display: flex; flex-direction: column; margin-top: 16px; background: rgb(255 255 255 / 16%); border-radius: 14px; padding: 12px 14px; }
+.hero-days { font-size: 2.4rem; font-weight: 900; line-height: 1.1; }
+.hero-ev small { opacity: .85; }
+.hero-add { margin-top: 14px; background: rgb(255 255 255 / 20%); color: #fff; border-color: rgb(255 255 255 / 50%); }
+.quick { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.quick button { min-height: 56px; border-radius: var(--radius); }
+.month-total { font-size: 1.3rem; }
+.card h2 { margin-bottom: 8px; }
+.dot { width: 10px; height: 10px; border-radius: 50%; flex: 0 0 auto; }
+
+/* 推しの切り替え */
+.oshi-switch { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 12px; padding-bottom: 2px; }
+.oshi-switch button { flex: 0 0 auto; min-height: 36px; padding: 4px 12px; font-size: .88rem; }
+.oshi-switch button[aria-selected="true"], .oshi-switch button[aria-pressed="true"] { background: var(--c, var(--oshi)); border-color: var(--c, var(--oshi)); color: #fff; }
+
+/* 下のタブバー */
+.tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; display: grid; grid-template-columns: repeat(5, 1fr); background: color-mix(in srgb, var(--surface) 92%, transparent); backdrop-filter: blur(10px); border-top: 1px solid var(--border); padding: 6px 4px calc(6px + env(safe-area-inset-bottom)); }
+.tabbar a { display: flex; flex-direction: column; align-items: center; gap: 1px; text-decoration: none; color: var(--muted); font-size: 1.3rem; padding: 4px 0; border-radius: 12px; }
+.tabbar a small { font-size: .68rem; }
+.tabbar a[aria-current="page"] { color: var(--oshi); background: color-mix(in srgb, var(--oshi) 12%, transparent); font-weight: 700; }
+
+/* 記録シート */
+.sheet-wrap { position: fixed; inset: 0; z-index: 100; background: rgb(0 0 0 / 40%); display: flex; align-items: flex-end; justify-content: center; animation: fade .15s; }
+.sheet { width: 100%; max-width: 560px; background: var(--surface); border-radius: 22px 22px 0 0; padding: 10px 16px calc(18px + env(safe-area-inset-bottom)); max-height: 92dvh; overflow-y: auto; animation: up .2s ease-out; }
+.sheet-grip { width: 40px; height: 5px; border-radius: 3px; background: var(--border); margin: 0 auto 10px; }
+.quick-amt { display: flex; gap: 6px; flex-wrap: wrap; }
+@keyframes up { from { transform: translateY(40px); opacity: .5; } }
+@keyframes fade { from { opacity: 0; } }
+
+/* はじめての画面 */
+.ob { text-align: center; padding-top: 10px; }
+.ob .card { text-align: left; }
+.ob-icon { font-size: 4rem; margin: 0; }
+
+/* カメラ */
+.cam-box { position: relative; aspect-ratio: 3 / 4; background: #000; border-radius: var(--radius); overflow: hidden; max-height: 60dvh; margin: 0 auto; }
+.cam-box video, .cam-overlay { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.shot { width: 100%; border-radius: 12px; display: block; }
+
+/* まとめ */
+.wrap-canvas { width: 100%; max-width: 360px; height: auto; display: block; margin: 0 auto; border-radius: 16px; }
+.months { display: flex; gap: 4px; height: 90px; align-items: flex-end; margin-top: 12px; }
+.mcol { flex: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; font-size: .65rem; color: var(--muted); }
+.mbar { width: 100%; background: var(--oshi); border-radius: 4px 4px 0 0; min-height: 2px; }
+
+/* 設定 */
+.mini-color { width: 44px; flex: 0 0 auto; }
+.mini-emoji { width: 56px; flex: 0 0 auto; text-align: center; }

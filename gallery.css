@@ -50,3 +50,8 @@
 .more-filters summary { padding: 4px 0; }
 .more-filters[open] { display: grid; gap: 8px; }
 #grades, #apis { flex-wrap: wrap; overflow: visible; }
+
+.flagship { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin-top: 16px; padding: 14px 16px; border-radius: var(--radius); background: linear-gradient(135deg, #ff5fa2, #7950f2); color: #fff; text-decoration: none; box-shadow: 0 8px 24px rgb(255 95 162 / 30%); }
+.flagship b { font-size: 1.1rem; }
+.flagship span:last-child { width: 100%; font-size: .85rem; opacity: .92; }
+.flag-badge { background: rgb(255 255 255 / 25%); border-radius: 999px; padding: 1px 10px; font-size: .75rem; font-weight: 700; }

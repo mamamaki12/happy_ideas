@@ -6,6 +6,7 @@ Webブラウザの機能（カメラ・通知・位置情報・センサー・�
 - 実現性の判定: Webだけで製品にできる 60 ／ 制約あり 33 ／ 技術検証どまり 7
 - テスト: 単体 51件、E2E 約310件（全試作の起動・操作・XSSファズ）
 
+- 📔 **製品版: 推し活手帳** → [`products/oshi-techo/`](products/oshi-techo/)（1位のアイデアを統合して仕上げたもの）
 - 📊 市場調査: [`docs/market-research.md`](docs/market-research.md)
 - 💡 アイデア100: [`ideas/IDEAS.md`](ideas/IDEAS.md)
 - 🔬 機能ごとの実現性レポート: [`docs/feasibility.md`](docs/feasibility.md)（試作ごと: [`docs/feasibility-apps.md`](docs/feasibility-apps.md)）
