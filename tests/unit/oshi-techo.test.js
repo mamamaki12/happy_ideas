@@ -58,3 +58,16 @@ test('oshi-techo: 当落・入金期限のアラート', () => {
   assert.deepEqual([st.applied, st.decided, st.won], [6, 4, 3]); assert.equal(st.rate, 0.75);
   assert.equal(ticketStats([]).rate, null);
 });
+
+import { computeReminders } from '../../products/oshi-techo/logic.js';
+test('oshi-techo: サーバー通知の予定（時刻と種類だけ）', () => {
+  const now = new Date(2026, 9, 5, 10, 0).getTime();
+  const r = computeReminders([
+    { status: 'won', payBy: '2026-10-08', title: '秘密のチケット' },
+    { status: 'applied', resultOn: '2026-10-06' },
+    { status: 'won', payBy: '2026-10-01' }, // 期限切れ → なし
+    { status: 'paid', payBy: '2026-10-09' },
+  ], [{ type: 'event', date: '2026-10-20', title: '東京公演' }, { type: 'spend', date: '2026-10-20' }], now);
+  assert.deepEqual(r.map((x) => [new Date(x.at).getDate(), new Date(x.at).getHours(), x.kind]), [[6, 9, 'result'], [7, 12, 'pay'], [8, 9, 'pay'], [19, 19, 'event']]);
+  assert.ok(r.every((x) => Object.keys(x).join() === 'at,kind')); // 名前などは含めない
+});

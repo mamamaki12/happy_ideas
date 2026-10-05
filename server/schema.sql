@@ -15,3 +15,19 @@ CREATE TABLE IF NOT EXISTS events (
   UNIQUE (rally_id, device, type, idx)  -- 同じ端末の重複を数えない
 );
 CREATE INDEX IF NOT EXISTS events_rally ON events (rally_id, type);
+
+-- 推し活手帳のサーバー通知（任意）。予定の中身（チケット名など）は保存しない。時刻と種類だけ。
+CREATE TABLE IF NOT EXISTS push_subs (
+  id TEXT PRIMARY KEY,           -- endpoint の SHA-256
+  endpoint TEXT NOT NULL,
+  p256dh TEXT NOT NULL,
+  auth TEXT NOT NULL,
+  created INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS reminders (
+  sub_id TEXT NOT NULL,
+  at INTEGER NOT NULL,           -- 送る時刻（ミリ秒）
+  kind TEXT NOT NULL CHECK (kind IN ('pay', 'result', 'event')),
+  sent INTEGER NOT NULL DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS reminders_due ON reminders (sent, at);

@@ -1,6 +1,6 @@
 // Service Worker: 一度開いたページをオフラインでも開けるようにする（ネットワーク優先・失敗時キャッシュ）。
 // 通知の表示（registration.showNotification）にも使う。
-const CACHE = 'happy-ideas-v2';
+const CACHE = 'happy-ideas-v3';
 
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (e) => {
@@ -30,10 +30,24 @@ self.addEventListener('fetch', (e) => {
   })());
 });
 
+// サーバーからの通知（推し活手帳）。中身は固定の文面だけで、予定の詳細は端末内のデータで表示する
+self.addEventListener('push', (e) => {
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; } catch { /* 不正なデータ */ }
+  const title = typeof d.title === 'string' ? d.title.slice(0, 80) : 'お知らせ';
+  const body = typeof d.body === 'string' ? d.body.slice(0, 200) : '';
+  // 開くURLは同じサイトの中だけ（外部へ飛ばされないように）
+  let url = new URL('./', self.registration.scope).href;
+  try { const u = new URL(typeof d.url === 'string' ? d.url : './', self.registration.scope); if (u.origin === self.location.origin) url = u.href; } catch { /* noop */ }
+  e.waitUntil(self.registration.showNotification(title, { body, data: { url }, icon: new URL('shared/icon.svg', self.registration.scope).href }));
+});
+
 self.addEventListener('notificationclick', (e) => {
   e.notification.close();
+  const url = e.notification.data?.url;
   e.waitUntil((async () => {
     const all = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    if (url) { const same = all.find((c) => c.url === url); if (same) return same.focus(); return self.clients.openWindow(url); }
     if (all[0]) return all[0].focus();
     return self.clients.openWindow('./');
   })());

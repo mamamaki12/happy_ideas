@@ -2,7 +2,7 @@ import { h, add, render, $, store, uid, yen, todayStr, fmtDate, daysUntil, toast
 import { drawWrapped, canvasToBlob } from '../../shared/canvas-text.js';
 import { inkFor, darkenFor } from '../../shared/color.js';
 import { installHint } from '../../shared/install-hint.js';
-import { SPEND_KINDS, nextEvent, spendTotal, yearSummary, validateBackup, daysBetween, TICKET_STATUS, ticketAlerts, ticketStats } from './logic.js';
+import { SPEND_KINDS, nextEvent, spendTotal, yearSummary, validateBackup, daysBetween, TICKET_STATUS, ticketAlerts, ticketStats, computeReminders } from './logic.js';
 
 // 推し活手帳: 推しごとの支出・参戦予定・写真をひとつに。データは端末の中だけ。
 const db = store('oshi-techo');
@@ -13,7 +13,38 @@ const S = {
   cur: db.get('cur', null),
   tickets: db.get('tickets', []),
 };
-const save = () => { db.set('oshis', S.oshis); db.set('entries', S.entries); db.set('budget', S.budget); db.set('cur', S.cur); db.set('tickets', S.tickets); };
+const save = () => { db.set('oshis', S.oshis); db.set('entries', S.entries); db.set('budget', S.budget); db.set('cur', S.cur); db.set('tickets', S.tickets); scheduleSync(); };
+
+// ── サーバー通知（任意。サーバーに送るのは「いつ・どの種類か」だけ） ──
+const PUSH_API = new URL('../../api/push/', location.href).href;
+const pushSupported = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+const urlB64ToBytes = (s) => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((s.length + 3) % 4)), (c) => c.charCodeAt(0));
+let syncTimer = 0;
+function scheduleSync() { if (db.get('pushOn', false)) { clearTimeout(syncTimer); syncTimer = setTimeout(syncReminders, 800); } }
+async function currentSubscription() { const reg = await navigator.serviceWorker.ready; return reg.pushManager.getSubscription(); }
+async function syncReminders() {
+  try {
+    const sub = await currentSubscription(); if (!sub) return false;
+    const res = await fetch(`${PUSH_API}subscribe`, { method: 'POST', headers: { 'content-type': 'application/json' }, credentials: 'omit', body: JSON.stringify({ subscription: sub.toJSON(), reminders: computeReminders(S.tickets, S.entries) }) });
+    return res.ok;
+  } catch { return false; }
+}
+async function enablePush() {
+  if (!pushSupported()) throw new Error('このブラウザはサーバーからの通知に対応していません（iPhoneはホーム画面に追加してから開いてください）');
+  const keyRes = await fetch(`${PUSH_API}key`, { credentials: 'omit' }).catch(() => null);
+  if (!keyRes?.ok) throw new Error('このサイトには通知サーバーがありません（Cloudflare Pages で公開した場合のみ使えます）');
+  const { publicKey } = await keyRes.json();
+  if ((await Notification.requestPermission()) !== 'granted') throw new Error('通知が許可されませんでした');
+  const reg = await navigator.serviceWorker.ready;
+  const sub = (await reg.pushManager.getSubscription()) || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlB64ToBytes(publicKey) });
+  db.set('pushOn', true);
+  if (!(await syncReminders())) throw new Error('通知の予定を登録できませんでした');
+  return sub;
+}
+async function disablePush() {
+  db.set('pushOn', false);
+  try { const sub = await currentSubscription(); if (sub) { await fetch(`${PUSH_API}subscribe`, { method: 'DELETE', headers: { 'content-type': 'application/json' }, credentials: 'omit', body: JSON.stringify({ endpoint: sub.endpoint }) }); await sub.unsubscribe(); } } catch { /* noop */ }
+}
 const app = $('#app');
 const view = h('div', { class: 'view' });
 const nav = h('nav', { class: 'tabbar', 'aria-label': 'メニュー' });
@@ -286,6 +317,16 @@ function settings() {
       h('div', { class: 'shrink' }, newColor), h('div', {}, newName), h('button', { class: 'shrink', type: 'submit' }, '追加'))),
     h('section', { class: 'card' }, h('h2', {}, '予算と通知'), h('label', { for: 'bg' }, '1か月の推し活予算（円）'), h('input', { id: 'bg', type: 'number', min: 0, value: S.budget, onchange: (e) => { S.budget = Math.max(0, +e.target.value || 0); save(); } }), h('div', { style: { marginTop: '10px' } }, notifyButton()),
       h('p', { class: 'small muted' }, '予定の前日・当日に、アプリを開いたときにお知らせします。')),
+    (() => {
+      const status = h('p', { class: 'small', 'aria-live': 'polite' }, db.get('pushOn', false) ? '✅ オン: アプリを閉じていても、入金期限・当落発表・ライブ前日にお知らせします' : 'オフ');
+      const btn = h('button', { class: db.get('pushOn', false) ? '' : 'oshi-btn', onclick: async () => {
+        btn.disabled = true;
+        try { if (db.get('pushOn', false)) { await disablePush(); toast('サーバー通知をオフにしました'); } else { await enablePush(); toast('サーバー通知をオンにしました'); } } catch (e) { db.set('pushOn', false); toast(e.message, 5000); }
+        draw();
+      } }, db.get('pushOn', false) ? 'オフにする' : 'オンにする');
+      return h('section', { class: 'card' }, h('h2', {}, '📲 サーバーからの通知（ベータ）'), status, btn,
+        h('p', { class: 'small muted' }, 'サーバーに送るのは「いつ・どの種類（入金/当落/予定）のお知らせか」だけです。チケット名や推しの名前は送りません。'));
+    })(),
     h('section', { class: 'card' }, h('h2', {}, 'バックアップ'), h('p', { class: 'small muted' }, 'データはこの端末の中だけにあります。機種変更の前に書き出してください。'),
       h('div', { class: 'btn-row' }, h('button', { onclick: () => download(new Blob([JSON.stringify({ app: 'oshi-techo', version: 1, exportedAt: new Date().toISOString(), oshis: S.oshis, entries: S.entries, tickets: S.tickets, budget: S.budget })], { type: 'application/json' }), `oshi-techo-${todayStr()}.json`) }, '📤 書き出す'), h('button', { onclick: () => fileIn.click() }, '📥 読み込む')), fileIn),
     h('p', { class: 'center small' }, h('a', { href: '../privacy.html' }, 'プライバシーポリシー'), ' ・ ', h('a', { href: '../../index.html' }, 'Happy Ideas のアイデア一覧へ')));

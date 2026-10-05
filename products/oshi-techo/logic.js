@@ -53,6 +53,19 @@ export function validateBackup(obj) {
   return { oshis, entries, tickets, budget: Number.isFinite(obj.budget) && obj.budget >= 0 ? obj.budget : 30000 };
 }
 
+// ── サーバー通知の予定（時刻と種類だけ。名前などは含めない） ──
+/** @returns {{at: number, kind: 'pay'|'result'|'event'}[]} 近い順に最大50件 */
+export function computeReminders(tickets, entries, now = Date.now()) {
+  const at = (date, hour, dayOffset = 0) => { const [y, m, d] = date.split('-').map(Number); return new Date(y, m - 1, d + dayOffset, hour, 0, 0).getTime(); };
+  const out = [];
+  for (const t of tickets) {
+    if (t.status === 'won' && t.payBy) out.push({ at: at(t.payBy, 12, -1), kind: 'pay' }, { at: at(t.payBy, 9), kind: 'pay' });
+    if (t.status === 'applied' && t.resultOn) out.push({ at: at(t.resultOn, 9), kind: 'result' });
+  }
+  for (const e of entries) if (e.type === 'event' && e.date) out.push({ at: at(e.date, 19, -1), kind: 'event' });
+  return out.filter((r) => r.at > now).sort((a, b) => a.at - b.at).slice(0, 50);
+}
+
 // ── チケットの当落管理 ──
 // status: applied（申込済み・結果待ち） / won（当選・未入金） / paid（入金済み） / lost（落選）
 export const TICKET_STATUS = { applied: '結果待ち', won: '当選・未入金', paid: '入金済み', lost: '落選' };

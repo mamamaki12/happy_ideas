@@ -48,6 +48,8 @@ iPhone で通知を試すときは、Safari の共有ボタンから「ホーム
 
 集計APIのコードは [`functions/api/rally/`](functions/api/rally/)、テストは `tests/unit/rally-api.test.js`（本物のSQLiteで実行）。
 
+推し活手帳の**サーバー通知**も同じ D1 を使います。`node scripts/vapid-keys.mjs` で鍵を作り、Pages の環境変数に `VAPID_PUBLIC_KEY`、通知送信用 Worker（[`wrangler.push.toml`](wrangler.push.toml)、15分ごとのCron）に公開鍵・秘密鍵を `wrangler secret` で登録します。
+
 ## チェック
 
 ```bash
