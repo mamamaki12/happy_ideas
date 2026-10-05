@@ -180,7 +180,8 @@ function editor() {
         h('div', { class: 'field', style: { marginTop: '8px' } }, h('label', { for: 'cp-c' }, '座標または地図URL'), coord),
         h('button', { class: 'small', onclick: () => { const c = parseCoords(coord.value); if (!c) return toast('座標を読み取れませんでした'); addPoint(c.lat, c.lon); } }, '座標で追加'))),
     h('section', { class: 'card' }, h('h2', {}, '③ 公開'), h('button', { class: 'rally-btn big', onclick: publish }, '参加用のURLとQRを作る'), publishBox,
-      h('p', { class: 'small muted' }, 'ラリーの内容はすべてURLの中に入ります。サーバーに保存しないので、費用はかかりません。内容を変えたら、URLとQRを作り直してください。')),
+      h('p', { class: 'small muted' }, 'ラリーの内容はすべてURLの中に入ります。サーバーに保存しないので、費用はかかりません。内容を変えたら、URLとQRを作り直してください。'),
+      h('p', { class: 'small' }, h('a', { href: '../privacy.html' }, 'プライバシーポリシー'))),
     h('details', { class: 'card' }, h('summary', {}, '新しいラリーを作る（今の下書きを消す）'), h('button', { class: 'small danger', style: { marginTop: '8px' }, onclick: () => { if (confirmDelete('今の下書き')) { db.remove('draft'); location.reload(); } } }, '下書きを消す')));
   drawList();
 }

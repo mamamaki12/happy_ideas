@@ -9,6 +9,7 @@ Webブラウザの機能（カメラ・通知・位置情報・センサー・�
 - ㊞ **製品版: ラリーメーカー** → [`products/rally/`](products/rally/)（競合調査後の1位。サーバーなしの位置情報スタンプラリー）
 - 📔 **製品版: 推し活手帳** → [`products/oshi-techo/`](products/oshi-techo/)（2位。支出・当落・予定・写真・年間まとめ）
 - ⚔ 競合調査: [`docs/competition.md`](docs/competition.md)
+- 🚀 公開と検証のプラン: [`docs/launch-plan.md`](docs/launch-plan.md)
 - 📊 市場調査: [`docs/market-research.md`](docs/market-research.md)
 - 💡 アイデア100: [`ideas/IDEAS.md`](ideas/IDEAS.md)
 - 🔬 機能ごとの実現性レポート: [`docs/feasibility.md`](docs/feasibility.md)（試作ごと: [`docs/feasibility-apps.md`](docs/feasibility-apps.md)）

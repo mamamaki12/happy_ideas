@@ -288,7 +288,7 @@ function settings() {
       h('p', { class: 'small muted' }, '予定の前日・当日に、アプリを開いたときにお知らせします。')),
     h('section', { class: 'card' }, h('h2', {}, 'バックアップ'), h('p', { class: 'small muted' }, 'データはこの端末の中だけにあります。機種変更の前に書き出してください。'),
       h('div', { class: 'btn-row' }, h('button', { onclick: () => download(new Blob([JSON.stringify({ app: 'oshi-techo', version: 1, exportedAt: new Date().toISOString(), oshis: S.oshis, entries: S.entries, tickets: S.tickets, budget: S.budget })], { type: 'application/json' }), `oshi-techo-${todayStr()}.json`) }, '📤 書き出す'), h('button', { onclick: () => fileIn.click() }, '📥 読み込む')), fileIn),
-    h('p', { class: 'center small' }, h('a', { href: '../../index.html' }, 'Happy Ideas のアイデア一覧へ')));
+    h('p', { class: 'center small' }, h('a', { href: '../privacy.html' }, 'プライバシーポリシー'), ' ・ ', h('a', { href: '../../index.html' }, 'Happy Ideas のアイデア一覧へ')));
   drawList();
 }
 

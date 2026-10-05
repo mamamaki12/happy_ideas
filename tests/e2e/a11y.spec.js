@@ -6,7 +6,7 @@ import { BUILT } from '../../ideas/built.js';
 const axePath = createRequire(import.meta.url).resolve('axe-core/axe.min.js');
 test.use({ bypassCSP: true }); // 検査スクリプトを注入するためだけに CSP を外す（アプリ自体の CSP は smoke/xss テストで確認済み）
 
-const PAGES = ['index.html', ...BUILT.map((s) => `apps/${s}/`), 'products/oshi-techo/', 'products/rally/'];
+const PAGES = ['index.html', ...BUILT.map((s) => `apps/${s}/`), 'products/oshi-techo/', 'products/rally/', 'products/privacy.html'];
 
 for (const path of PAGES) {
   test(`a11y: ${path}`, async ({ page }) => {
