@@ -4,7 +4,7 @@ Webブラウザの機能（カメラ・通知・位置情報・センサー・�
 
 - 試作はすべてアカウント不要・外部ライブラリなし。AIアプリ以外は端末内保存だけ
 - 実現性の判定: Webだけで製品にできる 60 ／ 制約あり 43（AIアプリ10を含む） ／ 技術検証どまり 7
-- テスト: 単体 97件、E2E 497件（全試作の起動・操作・XSSファズ・アクセシビリティ・AI中継）
+- テスト: 単体 114件、E2E 505件（全試作の起動・操作・XSSファズ・アクセシビリティ・AI中継）
 
 - ㊞ **製品版: ラリーメーカー** → [`products/rally/`](products/rally/)（競合調査後の1位。サーバーなしの位置情報スタンプラリー）
 - 📔 **製品版: 推し活手帳** → [`products/oshi-techo/`](products/oshi-techo/)（2位。支出・当落・予定・写真・年間まとめ）
@@ -22,10 +22,10 @@ Webブラウザの機能（カメラ・通知・位置情報・センサー・�
 ## 動かし方
 
 ```bash
-npm install          # テスト用（Playwright）だけ
-npm run build        # 各アプリの index.html とアイデア一覧を生成
-npm run serve        # http://localhost:4173 で開く
+python3 -m http.server 4173   # = npm run serve。http://localhost:4173 で開く（ページは生成済み）
 ```
+
+詳しい手順（スマホで試す・AIアプリを本物の Claude で動かす・サーバー機能・テスト・よくあるつまずき）は **[`docs/local-setup.md`](docs/local-setup.md)**、アプリごとの場所と準備することは **[`docs/app-list.md`](docs/app-list.md)** にあります。
 
 カメラ・マイク・位置情報は **HTTPS または localhost** でしか動きません。スマホで試す場合は GitHub Pages などHTTPSで配信してください。
 

@@ -145,4 +145,46 @@ const missing = built.filter((sl) => !FEASIBILITY[sl]);
 if (missing.length) console.warn(`warn: 実現性の判定がない試作: ${missing.join(', ')}`);
 writeFileSync(join(root, 'docs/feasibility-apps.md'), `${feas.join('\n')}\n`);
 
+// docs/app-list.md（ローカルで使うときの一覧。使う機能から「準備すること」を出す）
+const PREP = {
+  camera: 'カメラを許可（パソコンはWebカメラ）', microphone: 'マイクを許可', geolocation: '位置情報を許可（パソコンは誤差が大きい）',
+  orientation: '傾き・方位センサー（スマホのみ。iPhoneは画面のボタンで許可）', motion: '加速度センサー（スマホのみ。iPhoneは画面のボタンで許可）',
+  notification: '通知を許可（ページを開いている間だけ届く）', 'speech-recognition': '音声認識（Chrome・Safari。Firefoxは不可）',
+  barcode: 'バーコード検出（AndroidのChromeのみ。それ以外は手入力）', torch: 'ライト（AndroidのChromeのみ）', vibration: '振動（Androidのみ）',
+  webrtc: 'タブを2つ、または端末を2台使う', fetch: 'インターネット接続（天気API）', 'prompt-api': 'Chromeの内蔵AI（なければ簡易要約）',
+  claude: 'AIサーバー（なければデモ表示。→ local-setup.md の4）',
+};
+const PHONE_ONLY = ['orientation', 'motion', 'torch'];
+const list = [
+  '# アプリ一覧（ローカルで使うとき）',
+  '',
+  '> 自動生成ファイルです（`node scripts/build.mjs`）。元データは [`../ideas/ideas.js`](../ideas/ideas.js)。起動のしかたは [`local-setup.md`](./local-setup.md)。',
+  '',
+  '`npm run serve` で起動したあと、`http://localhost:4173/` の後ろに「場所」を付けて開きます（例: `http://localhost:4173/apps/habit/`）。トップページ（ギャラリー）からも全部開けます。',
+  '',
+  '- **PC**: ◯ = パソコンでも試せる ／ 📱 = センサーなどを使うのでスマホで試す（スマホでの開き方は local-setup.md の3）',
+  '- **準備すること**: 初めて開いたときにブラウザが許可を求めるもの・動く環境の条件。空欄はそのまま使えるもの',
+  '',
+  '## 製品版',
+  '',
+  '| アプリ | 場所 | できること | PC | 準備すること |',
+  '|---|---|---|---|---|',
+  '| ラリーメーカー | `products/rally/` | 位置情報スタンプラリーを作る・参加する（QR・ポスター付き） | ◯ | 参加するときは位置情報を許可。参加人数の集計はサーバーがあるときだけ（local-setup.md の5） |',
+  '| 推し活手帳 | `products/oshi-techo/` | 推しごとの支出・当落・予定・写真・年間まとめ | ◯ | 写真はカメラを許可。サーバー通知はサーバーがあるときだけ（local-setup.md の5） |',
+  '| てもとフォト | `products/photo-editor/` | 写真編集（フィルター・補正・修復・文字）・RAW・グリッド。写真は端末の外に出ない | ◯ | WebGL2 対応ブラウザ（最近のChrome・Safari・Firefox・Edge） |',
+  '',
+];
+for (const [cat, label] of Object.entries(CATEGORIES)) {
+  const items = IDEAS.filter((i) => i.cat === cat && built.includes(i.slug));
+  if (!items.length) continue;
+  list.push(`## ${label}（${items.length}）`, '', '| # | アプリ | 場所 | できること | PC | 準備すること |', '|---|---|---|---|---|---|');
+  for (const i of items) {
+    const prep = i.apis.filter((a) => PREP[a]).map((a) => PREP[a]).join('・');
+    const pc = i.apis.some((a) => PHONE_ONLY.includes(a)) ? '📱' : '◯';
+    list.push(`| ${i.id} | ${i.name} | \`apps/${i.slug}/\` | ${i.summary} | ${pc} | ${prep} |`);
+  }
+  list.push('');
+}
+writeFileSync(join(root, 'docs/app-list.md'), list.join('\n'));
+
 console.log(`built ${built.length} apps / ${IDEAS.length} ideas`);
