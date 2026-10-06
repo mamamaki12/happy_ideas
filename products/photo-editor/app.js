@@ -7,7 +7,7 @@ import { geoParams, outToSrc, srcToOut, outputSize, orientedSize, aspectValue, f
 import { autoAdjust, histogram } from './auto.js';
 import { readExif } from './exif.js';
 import { applyRetouch } from './retouch.js';
-import { compose, hitOverlay, overlayBox } from './compose.js';
+import { compose, hitOverlay, overlayBox, layout } from './compose.js';
 import { monotoneSpline } from './curves.js';
 import * as db from './db.js';
 import { slider, chips, colorPicker, toggle, fmtBytes } from './ui.js';
@@ -230,6 +230,7 @@ function closeEditor() {
   cancelAnimationFrame(E.raf);
   E.engine?.dispose(); E.thumbEngine?.dispose();
   E.base?.close?.();
+  document.removeEventListener('pointerdown', E.closeMenu);
   removeEventListener('keydown', onKey); removeEventListener('keyup', onKeyUp); removeEventListener('resize', requestRender);
   E = null;
 }
@@ -287,7 +288,9 @@ function rebuildMask() { E.mask = buildMask(E.state, E.W, E.H, E.maskCache); E.e
 function smallSource() {
   if (!E.small) {
     const s = Math.min(1, 320 / Math.max(E.W, E.H));
-    E.small = toCanvas(E.src || E.base, Math.max(1, Math.round(E.W * s)), Math.max(1, Math.round(E.H * s)));
+    const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(E.W * s)); c.height = Math.max(1, Math.round(E.H * s));
+    c.getContext('2d', { willReadFrequently: true }).drawImage(E.src || E.base, 0, 0, c.width, c.height);
+    E.small = c;
   }
   return E.small;
 }
@@ -419,10 +422,14 @@ function buildEditor() {
   E.setOrig = setOrig;
   const menu = h('details', { class: 'menu' }, h('summary', { 'aria-label': 'そのほかの操作', title: 'そのほかの操作' }, '⋯'),
     h('div', { class: 'menu-list' },
-      h('button', { type: 'button', onclick: (e) => { prefs.set('clip', S.presetPart(E.state)); toast('編集をコピーしました（写真一覧で別の写真に貼り付けられます）'); e.target.closest('details').open = false; } }, '編集をコピー'),
-      h('button', { type: 'button', onclick: (e) => { const c = prefs.get('clip', null); if (!c) { toast('コピーした編集がありません'); return; } E.state = S.applyPreset(E.state, c); commit(); buildPanel(); requestRender(); e.target.closest('details').open = false; } }, '編集を貼り付け'),
+      h('button', { type: 'button', onclick: (e) => { prefs.set('clip', S.presetPart(E.state)); toast('編集をコピーしました（写真一覧で別の写真に貼り付けられます）'); } }, '編集をコピー'),
+      h('button', { type: 'button', onclick: (e) => { const c = prefs.get('clip', null); if (!c) { toast('コピーした編集がありません'); return; } E.state = S.applyPreset(E.state, c); commit(); buildPanel(); requestRender(); } }, '編集を貼り付け'),
       h('button', { type: 'button', onclick: async () => { const blob = await db.getBlob(E.id); const id = uid(); await db.addProject({ ...E.proj, id, name: `${E.proj.name}（コピー）`, created: Date.now(), updated: Date.now(), state: S.clone(E.committed) }, blob); toast('複製しました'); openEditor(id); } }, '複製して別の編集を作る'),
       h('button', { type: 'button', class: 'danger', onclick: () => confirmBox('すべての編集を消して、元の写真に戻します。', 'リセット', () => { E.state = S.defaultState(); E.sel = null; E.selOverlay = null; rebuildSource(); E.maskCache.clear(); rebuildMask(); commit(); buildPanel(); requestRender(); }) }, 'すべての編集をリセット')));
+  // 項目を選んだら・外側を押したらメニューを閉じる
+  menu.addEventListener('click', (e) => { if (e.target.closest('.menu-list button')) menu.open = false; });
+  E.closeMenu = (e) => { if (menu.open && !menu.contains(e.target)) menu.open = false; };
+  document.addEventListener('pointerdown', E.closeMenu);
   E.panel = h('div', { class: 'panel', role: 'tabpanel', id: 'panel' });
   E.tabs = h('div', { class: 'tabs', role: 'tablist', 'aria-label': 'ツール' }, TOOLS.map(([k, icon, label]) => h('button', {
     type: 'button', role: 'tab', id: `tab-${k}`, 'aria-controls': 'panel', 'aria-selected': String(E.tool === k), tabindex: E.tool === k ? '0' : '-1',
@@ -780,7 +787,11 @@ function infoPanel() {
   const name = h('input', { id: 'proj-name', maxlength: 80, value: p.name });
   name.addEventListener('change', () => { E.proj.name = name.value.trim().slice(0, 80) || '写真'; db.putProject(E.proj); $('.ed-title').textContent = E.proj.name; });
   const rows = [['元の大きさ', `${p.w}×${p.h}${E.scaled ? `（編集は ${E.W}×${E.H}）` : ''}`], ['ファイルの大きさ', fmtBytes(p.size || 0)], ['形式', p.type || '不明'],
-    ['書き出す大きさ', (() => { const o = outputSize(E.state.geo, E.W, E.H); return `${o.w}×${o.h}`; })()]];
+    ['書き出す大きさ（元の大きさのとき）', (() => {
+      const o = outputSize(E.state.geo, E.W, E.H); const L0 = layout(o.w, o.h, E.state.frame);
+      const k = Math.min(1, Math.sqrt((MAX_PIXELS * 0.99) / (L0.cw * L0.ch))); // 丸めで上限を超えないよう少し余裕を持たせる
+      return `${Math.round(L0.cw * k)}×${Math.round(L0.ch * k)}${k < 1 ? '（端末の上限に合わせて縮小）' : ''}`;
+    })()]];
   if (x) {
     if (x.make || x.model) rows.push(['カメラ', `${x.make} ${x.model}`.trim()]);
     if (x.lens) rows.push(['レンズ', x.lens]);
@@ -1090,7 +1101,9 @@ async function renderToBlob({ base, W, H, state }, { format, quality, maxSide })
     eng.setSource(src, W, H);
     eng.setMask(buildMask(st, W, H));
     const o = outputSize(st.geo, W, H);
-    const s = Math.min(1, (maxSide || Infinity) / Math.max(o.w, o.h), eng.maxSize / Math.max(o.w, o.h), Math.sqrt(MAX_PIXELS / (o.w * o.h)));
+    // 枠・余白を含めた最終的な大きさで、長辺の指定と端末の上限（iPhone の Canvas は約1,670万画素まで）を守る
+    const L0 = layout(o.w, o.h, st.frame);
+    const s = Math.min(1, (maxSide || Infinity) / Math.max(L0.cw, L0.ch), eng.maxSize / Math.max(o.w, o.h), Math.sqrt((MAX_PIXELS * 0.99) / (L0.cw * L0.ch))); // 丸めで上限を超えないよう少し余裕を持たせる
     const w = Math.max(1, Math.round(o.w * s)); const hgt = Math.max(1, Math.round(o.h * s));
     eng.render(effective(st), w, hgt);
     let out = document.createElement('canvas');

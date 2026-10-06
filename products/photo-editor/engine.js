@@ -58,7 +58,7 @@ void main() { outColor = vec4(texture(uTex, vUv).rgb, 1.0); }`;
 const MAIN_FRAG = `#version 300 es
 precision highp float;
 in vec2 vUv; out vec4 outColor;
-uniform sampler2D uGeo, uBlur, uLut, uMask;
+uniform sampler2D uGeo, uBlur, uBlurMid, uLut, uMask;
 uniform vec2 uTexel; uniform float uDetailStep; uniform vec2 uOutSize; uniform vec2 uSrcSize;
 uniform float uExposure, uBrightness, uContrast, uHighlights, uShadows, uWhites, uBlacks;
 uniform float uTemp, uTint, uVibrance, uSaturation, uClarity, uDehaze, uSharpen, uNoise;
@@ -94,14 +94,20 @@ float vnoise(vec2 p) {
 }
 
 // 明るさの調整（全体と部分補正で共通）。lb はぼかした明るさ（局所的なトーン調整に使う）
-vec3 tone(vec3 c, float lb, float hl, float sh, float contrast, float clarity, float dehaze) {
+vec3 tone(vec3 c, float lb, float lm, float hl, float sh, float contrast, float clarity, float dehaze) {
   float l = luma(c); float l1 = l;
-  float sm = 1.0 - smoothstep(0.0, 0.6, lb); float hm = smoothstep(0.4, 1.0, lb);
+  // 輪郭（周りと明るさが大きく違う所）では、ぼかした明るさでなく自分の明るさを使う → ハロー（縁の光・影）を防ぐ
+  // 自分の明るさを主に使い、まわりの明るさ（中・大の半径）は少しだけ混ぜる
+  float le = mix(l, lm, 0.15 * (1.0 - smoothstep(0.03, 0.2, abs(l - lm))));
+  float sm = 1.0 - smoothstep(0.0, 0.6, le); float hm = smoothstep(0.4, 1.0, le);
   l1 += sh > 0.0 ? sh * 0.45 * sm * (1.0 - l1) : sh * 0.5 * sm * l1;
-  l1 += hl > 0.0 ? hl * 0.3 * hm * (1.0 - l1) : hl * 0.55 * hm * l1;
+  // ハイライトを下げるときは、明るいほど強く・でも中間より暗くはしない（白飛びの階調を取り戻す）
+  l1 += hl > 0.0 ? hl * 0.3 * hm * (1.0 - l1) : hl * 0.3 * hm * max(l1 - 0.35, 0.0);
   float sc = l1 < 0.5 ? 2.0 * l1 * l1 : 1.0 - 2.0 * (1.0 - l1) * (1.0 - l1);
   l1 = contrast >= 0.0 ? mix(l1, sc, contrast * 0.85) : mix(l1, 0.5, -contrast * 0.45);
-  l1 += (l - lb) * clarity * 1.2 * (1.0 - pow(2.0 * l - 1.0, 2.0));
+  // 明瞭度: 中くらいの半径の細部を強める。大きな差（輪郭）は弱めてハローを防ぐ
+  float d = l - lm; d = d / (1.0 + abs(d) * 20.0);
+  l1 += d * clarity * (clarity > 0.0 ? 2.2 : 1.0) * (1.0 - pow(2.0 * l - 1.0, 2.0));
   c = setLuma(c, l, max(l1, 0.0));
   if (dehaze > 0.0) { float t = dehaze * 0.35 * lb; c = (c - t * 0.85) / max(1.0 - t * 0.85, 0.2); float g = luma(c); c = mix(vec3(g), c, 1.0 + dehaze * 0.25); }
   else if (dehaze < 0.0) { c = mix(c, vec3(0.85), -dehaze * 0.35); }
@@ -125,6 +131,7 @@ void main() {
   vec3 orig = texture(uGeo, vUv).rgb;
   if (uBypass == 1) { outColor = vec4(orig, 1.0); return; }
   vec3 blur = texture(uBlur, vUv).rgb;
+  vec3 blurMid = texture(uBlurMid, vUv).rgb;
   vec3 c = orig;
 
   // ノイズ軽減（明るさが近い近傍だけを混ぜる）とシャープ用の近傍
@@ -153,7 +160,8 @@ void main() {
   l1 = pow(max(l1, 0.0), exp2(-uBrightness * 0.9));
   c = setLuma(c, l0, l1); lb = clamp((lb - bp) / max(wp - bp, 0.05), 0.0, 1.5);
 
-  c = tone(c, lb, uHighlights, uShadows, uContrast, uClarity, uDehaze);
+  float lm = clamp((luma(toSrgb(toLin(blurMid) * gain)) - bp) / max(wp - bp, 0.05), 0.0, 1.5);
+  c = tone(c, lb, lm, uHighlights, uShadows, uContrast, uClarity, uDehaze);
   c += (orig - avg) * uSharpen * 2.5;
 
   // 部分補正
@@ -165,7 +173,7 @@ void main() {
     vec4 a0 = uLocAdj0[i]; vec4 a1 = uLocAdj1[i]; vec4 a2 = uLocAdj2[i];
     vec3 lc = mix(c, blur, a2.y);
     lc = toSrgb(toLin(lc) * wbGain(a1.x, a1.y) * exp2(a0.x * 2.0));
-    lc = tone(lc, lb, a0.z, a0.w, a0.y, a1.w, a2.x);
+    lc = tone(lc, lb, lm, a0.z, a0.w, a0.y, a1.w, a2.x);
     float g = luma(lc); lc = mix(vec3(g), lc, 1.0 + a1.z);
     c = mix(c, lc, w);
   }
@@ -182,7 +190,10 @@ void main() {
   vec3 hsv = rgb2hsv(clamp(c, 0.0, 1.0));
   float dh = 0.0; float ds = 0.0; float dl = 0.0;
   if (uUseHsl == 1) for (int i = 0; i < 8; i++) {
-    float w = max(0.0, 1.0 - hueDist(hsv.x, uHslHue[i]) / 0.11);
+    // 隣の色との間をなめらかに分け合う（どの色相でも重みの合計が1になる）
+    float cc = uHslHue[i]; float dp = fract(cc - uHslHue[(i + 7) % 8] + 1.0); float dn = fract(uHslHue[(i + 1) % 8] - cc + 1.0);
+    float dd = hsv.x - cc; dd -= floor(dd + 0.5);
+    float w = dd >= 0.0 ? max(0.0, 1.0 - dd / dn) : max(0.0, 1.0 + dd / dp);
     dh += uHsl[i].x * w; ds += uHsl[i].y * w; dl += uHsl[i].z * w;
   }
   if (dh != 0.0 || ds != 0.0 || dl != 0.0) {
@@ -339,9 +350,18 @@ export class Engine {
     const bw = Math.max(4, Math.round(outW * Math.min(1, s))); const bh = Math.max(4, Math.round(outH * Math.min(1, s)));
     // 段階的に縮小してちらつき（エイリアス）を防ぐ
     let prev = geo; let lw = outW; let lh = outH; let step = 0;
+    let mid = Math.max(outW, outH) <= 720 ? geo : null; // 明瞭度用（長辺720px前後）
     while (lw / 2 > bw && lh / 2 > bh && step < 6) {
       lw = Math.max(bw, Math.round(lw / 2)); lh = Math.max(bh, Math.round(lh / 2));
       const f = this.fb(`down${step}`, lw, lh); const pc = this.progs.copy; gl.useProgram(pc.p); this.bindTex(pc, 'uTex', prev.tex, 0); this.draw(pc, f, lw, lh); prev = f; step++;
+      if (!mid && Math.max(lw, lh) <= 720) mid = f;
+    }
+    if (!mid) mid = prev;
+    const m1 = this.fb('mid1', mid.w, mid.h); const m2 = this.fb('mid2', mid.w, mid.h);
+    {
+      const pbm = this.progs.blur;
+      gl.useProgram(pbm.p); this.bindTex(pbm, 'uTex', mid.tex, 0); gl.uniform2f(pbm.loc.uDir, 1 / mid.w, 0); this.draw(pbm, m2, mid.w, mid.h);
+      gl.useProgram(pbm.p); this.bindTex(pbm, 'uTex', m2.tex, 0); gl.uniform2f(pbm.loc.uDir, 0, 1 / mid.h); this.draw(pbm, m1, mid.w, mid.h);
     }
     const b1 = this.fb('blur1', bw, bh); const b2 = this.fb('blur2', bw, bh);
     const pc = this.progs.copy; gl.useProgram(pc.p); this.bindTex(pc, 'uTex', prev.tex, 0); this.draw(pc, b1, bw, bh);
@@ -352,7 +372,7 @@ export class Engine {
     }
     // 3. 色
     const pm = this.progs.main; const L = pm.loc; gl.useProgram(pm.p);
-    this.bindTex(pm, 'uGeo', geo.tex, 0); this.bindTex(pm, 'uBlur', b1.tex, 1);
+    this.bindTex(pm, 'uGeo', geo.tex, 0); this.bindTex(pm, 'uBlur', b1.tex, 1); this.bindTex(pm, 'uBlurMid', m1.tex, 4);
     const key = JSON.stringify(state.curves);
     if (key !== this.lutKey) {
       gl.bindTexture(gl.TEXTURE_2D, this.lut);

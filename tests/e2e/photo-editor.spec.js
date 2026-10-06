@@ -330,3 +330,63 @@ test('a11y: 編集画面（重大な違反なし）', async ({ page }) => {
     expect(serious, `${t}: ${serious.join('\n')}`).toEqual([]);
   }
 });
+
+/** 表示中の写真の一部の「細かさ」（隣の画素との差の平均）。ぼけると小さくなる */
+const detail = (page, [x0, y0, x1, y1]) => page.evaluate(([x0, y0, x1, y1]) => {
+  const c = document.querySelector('canvas.view'); const w = Math.floor(c.width * (x1 - x0)); const hh = Math.floor(c.height * (y1 - y0));
+  const d = c.getContext('2d').getImageData(Math.floor(c.width * x0), Math.floor(c.height * y0), w, hh).data;
+  let s = 0; let n = 0;
+  for (let y = 0; y < hh; y++) for (let x = 1; x < w; x++) { const i = (y * w + x) * 4; s += Math.abs(d[i] - d[i - 4]) + Math.abs(d[i + 1] - d[i - 3]); n++; }
+  return s / n;
+}, [x0, y0, x1, y1]);
+
+test('画質: ハイライト-100で明るい所が濁らない・明瞭度-100で全体がぼけない・HSLは色の境目でも効く', async ({ page }) => {
+  await openWith(page);
+  const ridge = [0.2, 0.3, 0.45, 0.65]; // 山の稜線と人物の周り
+  const d0 = await detail(page, ridge);
+  await tab(page, 'ライト');
+  await setSlider(page, 'ハイライト', -100);
+  await page.waitForTimeout(300);
+  // 太陽（いちばん明るい所）が中間の灰色より暗くならない
+  expect(lum(await viewMean(page, [0.76, 0.18, 0.8, 0.22]))).toBeGreaterThan(150);
+  await setSlider(page, 'ハイライト', 0);
+  await tab(page, 'ディテール');
+  await setSlider(page, '明瞭度', -100);
+  await page.waitForTimeout(300);
+  expect(await detail(page, ridge)).toBeGreaterThan(d0 * 0.6);
+  await setSlider(page, '明瞭度', 0);
+  // 草（黄緑。イエローとグリーンの間の色）がグリーンの彩度で十分に変わる
+  const grass = [0.05, 0.85, 0.2, 0.95];
+  const [r0, g0] = await viewMean(page, grass);
+  await tab(page, 'HSL');
+  await page.getByRole('button', { name: 'グリーン' }).click();
+  await setSlider(page, '彩度', -100);
+  await page.getByRole('button', { name: 'イエロー' }).click();
+  await setSlider(page, '彩度', -100);
+  await page.waitForTimeout(300);
+  const [r1, g1] = await viewMean(page, grass);
+  expect(g1 - r1).toBeLessThan((g0 - r0) * 0.35);
+});
+
+test('枠と余白をつけても、書き出しは端末の上限（約1,670万画素）を超えない・メニューは選ぶと閉じる', async ({ page }) => {
+  await page.goto(URL0);
+  await page.locator('#open-file').setInputFiles(await makePhoto(page, { w: 4032, h: 3024 }));
+  await expect(page.locator('canvas.view')).toBeVisible({ timeout: 20000 });
+  await page.waitForFunction(() => window.__temoto.editor?.L);
+  await tab(page, 'フレーム');
+  await setSlider(page, '枠の太さ', 10);
+  await page.getByRole('button', { name: 'ストーリー 9:16' }).click();
+  await tab(page, '情報');
+  await expect(page.locator('.info')).toContainText('端末の上限に合わせて縮小');
+  const f = await exportFile(page, { format: 'JPEG' });
+  const [w, hh] = await imageSize(page, f.buf, 'image/jpeg');
+  expect(w * hh).toBeLessThanOrEqual(16_700_000);
+  expect(Math.abs(hh / w - 16 / 9)).toBeLessThan(0.01);
+  // メニュー
+  await page.locator('.menu summary').click();
+  await page.getByRole('button', { name: '編集をコピー' }).click();
+  expect(await page.locator('.menu').evaluate((m) => m.open)).toBe(false);
+  await page.locator('.menu summary').click();
+  await page.locator('canvas.view').click();
+  expect(await page.locator('.menu').evaluate((m) => m.open)).toBe(false);
+});

@@ -19,8 +19,9 @@ export function autoAdjust(hist) {
   const whites = clamp((1 - hi) * 250, 0, 40);
   // ホワイトバランス: 中間の明るさの R・B の平均の差（グレーワールド仮説を弱めに）
   const mr = mean(hist.r); const mg = mean(hist.g); const mb = mean(hist.b);
-  const temp = clamp((mb - mr) * 180, -30, 30);
-  const tint = clamp((mg - (mr + mb) / 2) * 180, -25, 25);
+  // 青空や夕焼けの写真まで「直して」しまわないよう、弱めにかける
+  const temp = clamp((mb - mr) * 80, -20, 20);
+  const tint = clamp((mg - (mr + mb) / 2) * 80, -15, 15);
   // コントラストが低い写真だけ強める
   const spread = hi - lo;
   const contrast = clamp((0.85 - spread) * 40, 0, 25);

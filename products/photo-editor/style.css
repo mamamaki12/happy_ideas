@@ -213,3 +213,5 @@ kbd { font-family: ui-monospace, monospace; font-size: .8rem; padding: 1px 6px; 
 @media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 3s; } }
 
 @media (max-width: 420px) { .ed-title { display: none; } .ed-head { justify-content: space-between; } }
+/* 長押し（比較ボタンなど）で iPhone の選択メニューが出ないように */
+.ed-head button, .tabs button, .stage { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
