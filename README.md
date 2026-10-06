@@ -8,7 +8,7 @@ Webブラウザの機能（カメラ・通知・位置情報・センサー・�
 
 - ㊞ **製品版: ラリーメーカー** → [`products/rally/`](products/rally/)（競合調査後の1位。サーバーなしの位置情報スタンプラリー）
 - 📔 **製品版: 推し活手帳** → [`products/oshi-techo/`](products/oshi-techo/)（2位。支出・当落・予定・写真・年間まとめ）
-- 📷 **てもとフォト（写真編集）** → [`products/photo-editor/`](products/photo-editor/)（写真を端末の外に出さずに編集。一般的な写真編集アプリとの比較は [`docs/photo-editor.md`](docs/photo-editor.md)）
+- 📷 **てもとフォト（写真編集）** → [`products/photo-editor/`](products/photo-editor/)（写真を端末の外に出さずに編集。RAW（DNG の現像・各社 RAW のプレビュー）とグリッド（2〜9枚を1枚に）にも対応。一般的な写真編集アプリとの比較は [`docs/photo-editor.md`](docs/photo-editor.md)）
 - 🤖 **Claude API を使うアプリ10個** → [`docs/ai-apps.md`](docs/ai-apps.md)（中継サーバー・回数制限・プロンプトインジェクション対策。サーバー未設定ならデモ表示）
 - ⚔ 競合調査: [`docs/competition.md`](docs/competition.md)
 - 🚀 公開と検証のプラン: [`docs/launch-plan.md`](docs/launch-plan.md)

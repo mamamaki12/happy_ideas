@@ -5,7 +5,9 @@ import { Engine } from './engine.js';
 import { effective, LOOKS } from './presets.js';
 import { geoParams, outToSrc, srcToOut, outputSize, orientedSize, aspectValue, fitCrop, dragCrop } from './geometry.js';
 import { autoAdjust, histogram } from './auto.js';
-import { readExif } from './exif.js';
+import { readExif, readTiffExif } from './exif.js';
+import { isRawName } from './raw.js';
+import { LAYOUTS, GRID_ASPECTS, MAX_GRID, defaultGrid, layoutById, cellRects, coverSource, gridSize, drawGrid, hitCell } from './grid.js';
 import { applyRetouch } from './retouch.js';
 import { compose, hitOverlay, overlayBox, layout } from './compose.js';
 import { monotoneSpline } from './curves.js';
@@ -55,7 +57,60 @@ async function thumbBlob(src, side = 360) {
   const c = toCanvas(src, Math.max(1, Math.round(src.width * s)), Math.max(1, Math.round(src.height * s)));
   return new Promise((r) => c.toBlob(r, 'image/jpeg', 0.8));
 }
-const isImage = (f) => f && (f.type.startsWith('image/') || /\.(jpe?g|png|webp|gif|avif|heic|heif|bmp)$/i.test(f.name || ''));
+const isImage = (f) => f && (f.type.startsWith('image/') || /\.(jpe?g|png|webp|gif|avif|heic|heif|bmp)$/i.test(f.name || '') || isRawName(f.name));
+const ACCEPT = 'image/*,.dng,.cr2,.cr3,.crw,.nef,.nrw,.arw,.srf,.sr2,.raf,.orf,.rw2,.pef,.srw,.3fr,.fff,.iiq,.erf,.mef,.mos,.kdc,.dcr,.x3f,.tif,.tiff';
+
+/** 向き（Exif の Orientation）に合わせて回した Canvas を作る */
+function orientCanvas(img, o) {
+  if (!o || o === 1) return img;
+  const w = img.width; const hgt = img.height; const swap = o >= 5;
+  const c = document.createElement('canvas'); c.width = swap ? hgt : w; c.height = swap ? w : hgt;
+  const x = c.getContext('2d');
+  const T = { 2: [-1, 0, 0, 1, w, 0], 3: [-1, 0, 0, -1, w, hgt], 4: [1, 0, 0, -1, 0, hgt], 5: [0, 1, 1, 0, 0, 0], 6: [0, 1, -1, 0, hgt, 0], 7: [0, -1, -1, 0, hgt, w], 8: [0, -1, 1, 0, 0, w] }[o];
+  if (T) x.setTransform(...T);
+  x.drawImage(img, 0, 0);
+  img.close?.();
+  return c;
+}
+
+/**
+ * RAW を開く。DNG は RAW データから現像、ほかはファイルの中の JPEG を使う（重い処理は Worker で）
+ * @returns {Promise<{image: ImageBitmap|HTMLCanvasElement, info: object}>}
+ */
+async function decodeRawBlob(blob, name) {
+  const buffer = await blob.arrayBuffer();
+  let r;
+  let worker = null;
+  try { worker = new Worker(new URL('./raw-worker.js', import.meta.url), { type: 'module' }); } catch { worker = null; }
+  if (worker) {
+    r = await new Promise((res, rej) => {
+      worker.onmessage = (e) => { worker.terminate(); if (e.data.ok) res(e.data); else rej(new Error(e.data.error)); };
+      worker.onerror = () => { worker.terminate(); rej(new Error('worker')); };
+      worker.postMessage({ buffer, name, maxPixels: MAX_PIXELS }, [buffer]);
+    });
+  } else {
+    const { decodeRaw } = await import('./raw.js');
+    const d = decodeRaw(buffer, { name, maxPixels: MAX_PIXELS });
+    r = d.kind === 'raw' ? d : { ...d, jpegs: d.previews.slice(0, 3).map((p) => ({ w: p.w, h: p.h, bytes: buffer.slice(p.offset, p.offset + p.length) })) };
+  }
+  if (r.kind === 'raw') {
+    const img = await createImageBitmap(new ImageData(new Uint8ClampedArray(r.rgba.buffer, 0, r.width * r.height * 4), r.width, r.height));
+    return { image: img, info: { kind: 'raw', format: r.format, scaled: !!r.scaled } };
+  }
+  for (const j of r.jpegs) {
+    try {
+      const own = readExif(j.bytes)?.orientation || 1; // プレビュー自身に向きの情報があれば、それを使う
+      const bmp = await createImageBitmap(new Blob([j.bytes], { type: 'image/jpeg' }), { imageOrientation: own > 1 ? 'from-image' : 'none' });
+      return { image: own > 1 ? bmp : orientCanvas(bmp, r.orientation), info: { kind: 'preview', format: r.format, previewW: j.w, previewH: j.h } };
+    } catch { /* 次の候補へ */ }
+  }
+  throw new Error('no preview');
+}
+/** ふつうの画像も RAW も開ける */
+async function decodeAny(blob, name, proj) {
+  if (isRawName(name || proj?.fileName) || proj?.raw) return decodeRawBlob(blob, name || proj.fileName);
+  return { image: await decode(blob), info: null };
+}
 
 async function importFiles(files) {
   const list = [...files].filter(isImage);
@@ -64,14 +119,16 @@ async function importFiles(files) {
   let first = null; let ok = 0;
   for (const f of list) {
     try {
-      const bmp = await decode(f);
+      const raw = isRawName(f.name);
+      if (raw) toast(`${f.name} を読み込んでいます（RAW）…`);
+      const { image: bmp, info } = await decodeAny(f, f.name);
       const id = uid();
-      const exif = /jpe?g$/i.test(f.type) || /\.jpe?g$/i.test(f.name) ? readExif(await f.slice(0, 512 * 1024).arrayBuffer()) : null;
-      await db.addProject({ id, name: (f.name || '写真').replace(/\.[^.]+$/, '').slice(0, 80) || '写真', created: Date.now(), updated: Date.now(), w: bmp.width, h: bmp.height, size: f.size, type: f.type, exif, state: S.defaultState(), thumb: await thumbBlob(bmp) }, f);
+      const exif = raw ? readTiffExif(await f.slice(0, 4 * 1024 * 1024).arrayBuffer()) : /jpe?g$/i.test(f.type) || /\.jpe?g$/i.test(f.name) ? readExif(await f.slice(0, 512 * 1024).arrayBuffer()) : null;
+      await db.addProject({ id, name: (f.name || '写真').replace(/\.[^.]+$/, '').slice(0, 80) || '写真', fileName: (f.name || '').slice(0, 200), raw: info, created: Date.now(), updated: Date.now(), w: bmp.width, h: bmp.height, size: f.size, type: f.type || (raw ? 'image/x-raw' : ''), exif, state: S.defaultState(), thumb: await thumbBlob(bmp) }, f);
       bmp.close?.();
       first ??= id; ok++;
     } catch {
-      toast(/heic|heif/i.test(f.type + f.name) ? 'HEIC はこのブラウザでは開けません（Safari なら開けます）' : `${f.name || '画像'} を読み込めませんでした`);
+      toast(/heic|heif/i.test(f.type + f.name) ? 'HEIC はこのブラウザでは開けません（Safari なら開けます）' : isRawName(f.name) ? `${f.name} は開けませんでした（このRAWの形式には対応していません）` : `${f.name || '画像'} を読み込めませんでした`);
     }
   }
   if (ok === 1 && first) openEditor(first); else showLibrary();
@@ -80,7 +137,7 @@ async function importFiles(files) {
 
 /** 写真と編集内容から、描画に必要なもの（元画像・修復後の画像・マスク）を用意する */
 async function prepare(proj, blob, maxTex) {
-  const bmp = await decode(blob);
+  const { image: bmp } = await decodeAny(blob, proj.fileName, proj);
   const ws = workSize(bmp.width, bmp.height, maxTex);
   let base = bmp;
   if (ws.w !== bmp.width || ws.h !== bmp.height) {
@@ -154,13 +211,14 @@ async function showLibrary() {
   document.title = 'てもとフォト';
   libUrls.forEach((u) => URL.revokeObjectURL(u)); libUrls = [];
   const projects = await db.listProjects().catch(() => []);
-  const fileIn = h('input', { type: 'file', accept: 'image/*', multiple: true, class: 'vh', id: 'open-file', onchange: () => { importFiles(fileIn.files); fileIn.value = ''; } });
+  const fileIn = h('input', { type: 'file', accept: ACCEPT, multiple: true, class: 'vh', id: 'open-file', onchange: () => { importFiles(fileIn.files); fileIn.value = ''; } });
   const sel = () => projects.filter((p) => selecting.has(p.id));
   const bar = h('div', { class: 'lib-actions' });
   const drawBar = () => {
     render(bar, selecting.size ? [
       h('span', { class: 'muted' }, `${selecting.size}枚を選択中`),
       h('button', { type: 'button', disabled: !prefs.get('clip', null), onclick: async () => { const clip = prefs.get('clip', null); for (const p of sel()) await db.putProject({ ...p, state: S.applyPreset(S.validateState(p.state), clip), updated: Date.now() }); toast('編集を貼り付けました'); selecting.clear(); showLibrary(); } }, '編集を貼り付け'),
+      h('button', { type: 'button', class: 'primary', disabled: selecting.size < 2 || selecting.size > MAX_GRID, title: selecting.size > MAX_GRID ? `グリッドは${MAX_GRID}枚まで` : '', onclick: () => showGrid(sel()) }, `▦ グリッドを作る${selecting.size > MAX_GRID ? `（${MAX_GRID}枚まで）` : ''}`),
       h('button', { type: 'button', onclick: () => openExport({ batch: sel() }) }, 'まとめて書き出し'),
       h('button', { type: 'button', class: 'danger', onclick: () => confirmBox(`${selecting.size}枚の写真と編集内容を、この端末から削除します。元に戻せません。`, '削除する', async () => { for (const p of sel()) await db.deleteProject(p.id); selecting.clear(); showLibrary(); }) }, '削除'),
       h('button', { type: 'button', class: 'ghost', onclick: () => { selecting.clear(); showLibrary(); } }, '選択をやめる'),
@@ -174,7 +232,8 @@ async function showLibrary() {
     return h('li', { class: 'lib-item' },
       h('button', { type: 'button', class: 'lib-open', onclick: () => (selecting.size ? check.click() : openEditor(p.id)), 'aria-label': `${p.name}を編集` },
         url ? h('img', { src: url, alt: '', loading: 'lazy' }) : h('span', { class: 'lib-noimg' }, '?'),
-        edited ? h('span', { class: 'lib-badge' }, '編集済み') : null),
+        edited ? h('span', { class: 'lib-badge' }, '編集済み') : null,
+        p.raw ? h('span', { class: 'lib-badge raw' }, 'RAW') : null),
       h('div', { class: 'lib-meta' }, check, h('span', { class: 'lib-name' }, p.name), h('span', { class: 'muted small' }, `${p.w}×${p.h}`)));
   }));
   if (selecting.size) grid.classList.add('selecting');
@@ -196,6 +255,8 @@ async function showLibrary() {
       projects.length ? grid : h('div', { class: 'lib-empty' },
         h('h2', {}, 'できること'),
         h('ul', { class: 'feature-list' }, [
+          'RAW（DNG は RAW データから現像。CR3・NEF・ARW・RAF などはカメラが作ったプレビュー）も開ける',
+          '複数の写真を1枚にまとめるグリッド（2〜9枚）',
           'フィルター22種（フィルム風・モノクロなど）と強さの調整',
           '明るさ・色・トーンカーブ・HSL・カラーグレーディング',
           '部分補正（ブラシ・グラデーション・色域・明るさの範囲）',
@@ -245,7 +306,7 @@ async function openEditor(id) {
     render(app, h('div', { class: 'fatal' }, h('h1', {}, 'この端末・ブラウザでは編集できません'), h('p', {}, 'WebGL2 に対応したブラウザ（最新の Chrome・Safari・Edge・Firefox）でお試しください。'), h('button', { type: 'button', onclick: showLibrary }, '写真一覧に戻る')));
     return;
   }
-  render(app, h('div', { class: 'loading' }, h('span', { class: 'spinner', 'aria-hidden': 'true' }), '写真を開いています…'));
+  render(app, h('div', { class: 'loading' }, h('span', { class: 'spinner', 'aria-hidden': 'true' }), proj.raw ? 'RAW を現像しています…' : '写真を開いています…'));
   let p;
   try { p = await prepare(proj, blob, engine.maxSize); } catch { engine.dispose(); toast('写真を開けませんでした'); showLibrary(); return; }
   const state = S.validateState(proj.state);
@@ -786,7 +847,8 @@ function infoPanel() {
   const p = E.proj; const x = p.exif;
   const name = h('input', { id: 'proj-name', maxlength: 80, value: p.name });
   name.addEventListener('change', () => { E.proj.name = name.value.trim().slice(0, 80) || '写真'; db.putProject(E.proj); $('.ed-title').textContent = E.proj.name; });
-  const rows = [['元の大きさ', `${p.w}×${p.h}${E.scaled ? `（編集は ${E.W}×${E.H}）` : ''}`], ['ファイルの大きさ', fmtBytes(p.size || 0)], ['形式', p.type || '不明'],
+  const rows = [['元の大きさ', `${p.w}×${p.h}${E.scaled ? `（編集は ${E.W}×${E.H}）` : ''}`], ['ファイルの大きさ', fmtBytes(p.size || 0)], ['形式', p.raw ? `RAW（${p.raw.format}）` : p.type || '不明'],
+    ...(p.raw ? [['RAWの読み込み', p.raw.kind === 'raw' ? `RAW データから現像${p.raw.scaled ? '（大きいので2×2をまとめて半分の大きさに）' : ''}` : `カメラが作ったプレビュー画像（${p.raw.previewW}×${p.raw.previewH}）を使用。この形式の RAW データの現像には対応していません`]] : []),
     ['書き出す大きさ（元の大きさのとき）', (() => {
       const o = outputSize(E.state.geo, E.W, E.H); const L0 = layout(o.w, o.h, E.state.frame);
       const k = Math.min(1, Math.sqrt((MAX_PIXELS * 0.99) / (L0.cw * L0.ch))); // 丸めで上限を超えないよう少し余裕を持たせる
@@ -1092,7 +1154,8 @@ function onKeyUp(e) { if (E && e.key === '\\') E.setOrig(false); }
 const canWebp = (() => { try { const c = document.createElement('canvas'); c.width = c.height = 1; return c.toDataURL('image/webp').startsWith('data:image/webp'); } catch { return false; } })();
 
 /** 1枚を書き出す（元の大きさで描き直す） */
-async function renderToBlob({ base, W, H, state }, { format, quality, maxSide }) {
+/** 編集内容を当てた画像を、Canvas に描く（書き出し・グリッドで使う） */
+function renderToCanvas({ base, W, H, state }, { maxSide } = {}) {
   const glc = document.createElement('canvas'); const eng = new Engine(glc);
   try {
     const st = S.validateState(state);
@@ -1106,13 +1169,21 @@ async function renderToBlob({ base, W, H, state }, { format, quality, maxSide })
     const s = Math.min(1, (maxSide || Infinity) / Math.max(L0.cw, L0.ch), eng.maxSize / Math.max(o.w, o.h), Math.sqrt((MAX_PIXELS * 0.99) / (L0.cw * L0.ch))); // 丸めで上限を超えないよう少し余裕を持たせる
     const w = Math.max(1, Math.round(o.w * s)); const hgt = Math.max(1, Math.round(o.h * s));
     eng.render(effective(st), w, hgt);
-    let out = document.createElement('canvas');
+    const out = document.createElement('canvas');
     compose(out, glc, st);
-    if (format === 'image/jpeg') { const f = document.createElement('canvas'); f.width = out.width; f.height = out.height; const ctx = f.getContext('2d'); ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, f.width, f.height); ctx.drawImage(out, 0, 0); out = f; }
-    const blob = await new Promise((r) => out.toBlob(r, format, quality));
-    if (!blob) throw new Error('toBlob');
-    return { blob, w: out.width, h: out.height };
+    return out;
   } finally { eng.dispose(); }
+}
+async function canvasToBlob(canvas, format, quality) {
+  let out = canvas;
+  if (format === 'image/jpeg') { const f = document.createElement('canvas'); f.width = out.width; f.height = out.height; const ctx = f.getContext('2d'); ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, f.width, f.height); ctx.drawImage(out, 0, 0); out = f; }
+  const blob = await new Promise((r) => out.toBlob(r, format, quality));
+  if (!blob) throw new Error('toBlob');
+  return { blob, w: out.width, h: out.height };
+}
+/** 1枚を書き出す（元の大きさで描き直す） */
+async function renderToBlob(src, { format, quality, maxSide }) {
+  return canvasToBlob(renderToCanvas(src, { maxSide }), format, quality);
 }
 const EXT = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
 const safeName = (s) => s.replace(/[\\/:*?"<>|\u0000-\u001f]/g, '_').slice(0, 80) || 'photo';
@@ -1175,6 +1246,193 @@ function openExport({ batch }) {
   document.body.append(dlg); dlg.showModal();
 }
 
+// ───────────────────────── グリッド（複数の写真を1枚に） ─────────────────────────
+let GR = null;
+async function showGrid(projects) {
+  closeEditor();
+  const ps = projects.slice(0, MAX_GRID);
+  if (ps.length < 2) { toast('グリッドには2枚以上の写真を選んでください'); return; }
+  render(app, h('div', { class: 'loading' }, h('span', { class: 'spinner', 'aria-hidden': 'true' }), `グリッドを準備しています…（${ps.length}枚）`));
+  const imgs = {};
+  try {
+    for (const p of ps) {
+      const prep = await prepare(p, await db.getBlob(p.id));
+      imgs[p.id] = renderToCanvas({ base: prep.base, W: prep.W, H: prep.H, state: p.state }, { maxSide: 1400 }); // 各写真の編集を当てたもの
+      prep.base.close?.();
+    }
+  } catch { toast('写真を準備できませんでした'); showLibrary(); return; }
+  GR = { ps, imgs, grid: { ...defaultGrid(ps.map((p) => p.id)), ...prefs.get('gridStyle', {}) }, sel: -1, swap: false, tab: 'layout' };
+  if (!LAYOUTS[ps.length].some((l) => l.id === GR.grid.layout)) GR.grid.layout = LAYOUTS[ps.length][0].id;
+  buildGrid();
+}
+const gridImages = () => GR.grid.cells.map((c) => GR.imgs[c.id]);
+
+function buildGrid() {
+  document.title = 'グリッド — てもとフォト';
+  GR.view = h('canvas', { class: 'view grid-view', role: 'img', 'aria-label': `${GR.ps.length}枚の写真のグリッド` });
+  GR.stage = h('div', { class: 'stage', 'data-tool': 'grid' }, GR.view);
+  GR.panel = h('div', { class: 'panel', role: 'tabpanel', id: 'grid-panel' });
+  const TABS = [['layout', '▦', 'レイアウト'], ['style', '▢', '余白・色'], ['photo', '☐', '写真']];
+  GR.tabs = h('div', { class: 'tabs', role: 'tablist', 'aria-label': 'グリッドの設定' }, TABS.map(([k, icon, label]) => h('button', {
+    type: 'button', role: 'tab', id: `gtab-${k}`, 'aria-controls': 'grid-panel', 'aria-selected': String(GR.tab === k), tabindex: GR.tab === k ? '0' : '-1',
+    onclick: () => { GR.tab = k; for (const b of GR.tabs.children) { const on = b.id === `gtab-${k}`; b.setAttribute('aria-selected', String(on)); b.tabIndex = on ? 0 : -1; } gridPanel(); },
+  }, h('span', { class: 'tab-icon', 'aria-hidden': 'true' }, icon), h('span', {}, label))));
+  render(app, h('div', { class: 'editor grid-editor' },
+    h('header', { class: 'ed-head' },
+      h('button', { type: 'button', class: 'back', onclick: () => { GR = null; showLibrary(); } }, '‹ 写真'),
+      h('span', { class: 'ed-title' }, `グリッド（${GR.ps.length}枚）`),
+      h('div', { class: 'ed-tools' }, h('button', { type: 'button', class: 'primary', onclick: openGridExport }, '書き出し'))),
+    GR.stage, h('div', { class: 'dock' }, GR.panel, GR.tabs)));
+  gridPointer(GR.stage);
+  gridPanel(); drawGridView();
+  addEventListener('resize', drawGridView);
+}
+
+function drawGridView() {
+  if (!GR?.view?.isConnected) { removeEventListener('resize', drawGridView); return; }
+  const st = GR.stage.getBoundingClientRect(); const dpr = Math.min(2, devicePixelRatio || 1);
+  const base = gridSize(GR.grid.aspect, 1000);
+  const fit = Math.min((st.width - 24) * dpr / base.w, (st.height - 24) * dpr / base.h, 2);
+  const W = Math.max(1, Math.round(base.w * fit)); const H = Math.max(1, Math.round(base.h * fit));
+  if (GR.view.width !== W || GR.view.height !== H) { GR.view.width = W; GR.view.height = H; }
+  GR.rects = drawGrid(GR.view.getContext('2d'), W, H, GR.grid, gridImages(), { selected: GR.sel });
+  GR.view.style.width = `${W / dpr}px`; GR.view.style.height = `${H / dpr}px`;
+}
+function saveGridStyle() { const { aspect, gap, margin, radius, bg } = GR.grid; prefs.set('gridStyle', { aspect, gap, margin, radius, bg }); }
+
+function gridPanel() {
+  const G = GR.grid; const n = G.cells.length;
+  let body;
+  if (GR.tab === 'layout') {
+    const thumbs = h('div', { class: 'grid-layouts', role: 'group', 'aria-label': 'レイアウト' }, LAYOUTS[n].map((l) => {
+      const c = h('canvas', { width: 64, height: 64, 'aria-hidden': 'true' });
+      const ctx = c.getContext('2d'); ctx.fillStyle = '#1c1d20'; ctx.fillRect(0, 0, 64, 64); ctx.fillStyle = '#8b8e95';
+      for (const r of cellRects(l, 64, 64, { gap: 6, margin: 6 })) ctx.fillRect(r.x, r.y, r.w, r.h);
+      return h('button', { type: 'button', class: 'grid-layout', 'aria-pressed': String(G.layout === l.id), onclick: () => { G.layout = l.id; gridPanel(); drawGridView(); } }, c, h('span', {}, l.name));
+    }));
+    body = [h('div', { class: 'sub-head' }, h('b', {}, '比率')),
+      chips(Object.keys(GRID_ASPECTS).map((k) => [k, k]), G.aspect, (v) => { G.aspect = v; saveGridStyle(); drawGridView(); }, { label: '比率' }).el,
+      h('div', { class: 'sub-head' }, h('b', {}, 'レイアウト')), thumbs];
+  } else if (GR.tab === 'style') {
+    const upd = (k, f = (v) => v) => (v) => { G[k] = f(v); saveGridStyle(); drawGridView(); };
+    body = [
+      slider({ label: '写真のすき間', min: 0, max: 10, step: 0.5, value: G.gap, def: 2, onInput: upd('gap') }).el,
+      slider({ label: '外側の余白', min: 0, max: 10, step: 0.5, value: G.margin, def: 2, onInput: upd('margin') }).el,
+      slider({ label: '角の丸み', min: 0, max: 100, value: G.radius, def: 0, onInput: upd('radius') }).el,
+      colorPicker({ label: '背景の色', value: G.bg, onPick: upd('bg') }).el,
+    ];
+  } else {
+    const i = GR.sel; const cell = G.cells[i];
+    body = cell ? [
+      hint(GR.swap ? '入れ替える相手の写真をタップしてください。' : 'ドラッグで写真の見える位置を動かせます。ほかの写真と入れ替えることもできます。'),
+      slider({ label: '拡大', min: 100, max: 400, value: Math.round(cell.zoom * 100), def: 100, unit: '%', onInput: (v) => { cell.zoom = v / 100; drawGridView(); } }).el,
+      row(btn(GR.swap ? '入れ替えをやめる' : '⇄ ほかの写真と入れ替え', () => { GR.swap = !GR.swap; gridPanel(); }, GR.swap ? 'active' : ''),
+        btn('位置と拡大をリセット', () => { Object.assign(cell, { zoom: 1, ox: 0, oy: 0 }); gridPanel(); drawGridView(); }, 'ghost small')),
+    ] : [hint('写真をタップして選ぶと、見える位置・拡大・入れ替えを変えられます。')];
+  }
+  GR.panel.setAttribute('aria-labelledby', `gtab-${GR.tab}`);
+  render(GR.panel, h('div', { class: 'panel-inner' }, body));
+}
+
+function gridPointer(stage) {
+  const pts = new Map(); let drag = null; let pinch = null;
+  const pos = (e) => { const r = GR.view.getBoundingClientRect(); return [((e.clientX - r.left) / r.width) * GR.view.width, ((e.clientY - r.top) / r.height) * GR.view.height]; };
+  const overflow = (i) => {
+    const img = gridImages()[i]; const rc = GR.rects[i]; const c = GR.grid.cells[i];
+    const sc = Math.max(rc.w / img.width, rc.h / img.height) * c.zoom;
+    return [(img.width * sc - rc.w) / 2, (img.height * sc - rc.h) / 2];
+  };
+  stage.addEventListener('pointerdown', (e) => {
+    if (!GR) return;
+    pts.set(e.pointerId, [e.clientX, e.clientY]); stage.setPointerCapture(e.pointerId);
+    if (pts.size === 2 && GR.sel >= 0) { const [a, b] = [...pts.values()]; pinch = { d: Math.hypot(a[0] - b[0], a[1] - b[1]), z: GR.grid.cells[GR.sel].zoom }; drag = null; return; }
+    const i = hitCell(GR.rects, ...pos(e));
+    if (i < 0) { GR.sel = -1; GR.swap = false; gridPanel(); drawGridView(); return; }
+    if (GR.swap && GR.sel >= 0 && i !== GR.sel) {
+      const c = GR.grid.cells; [c[GR.sel], c[i]] = [c[i], c[GR.sel]];
+      GR.sel = i; GR.swap = false; gridPanel(); drawGridView(); toast('入れ替えました'); return;
+    }
+    if (GR.sel !== i) { GR.sel = i; if (GR.tab !== 'photo') { GR.tab = 'photo'; for (const b of GR.tabs.children) { const on = b.id === 'gtab-photo'; b.setAttribute('aria-selected', String(on)); b.tabIndex = on ? 0 : -1; } } gridPanel(); drawGridView(); }
+    const c = GR.grid.cells[i];
+    drag = { i, start: pos(e), ox: c.ox, oy: c.oy, ov: overflow(i) };
+  });
+  stage.addEventListener('pointermove', (e) => {
+    if (!GR || !pts.has(e.pointerId)) return;
+    pts.set(e.pointerId, [e.clientX, e.clientY]);
+    if (pinch && pts.size === 2) { const [a, b] = [...pts.values()]; GR.grid.cells[GR.sel].zoom = Math.min(4, Math.max(1, pinch.z * Math.hypot(a[0] - b[0], a[1] - b[1]) / pinch.d)); drawGridView(); return; }
+    if (!drag) return;
+    const p = pos(e); const c = GR.grid.cells[drag.i];
+    if (drag.ov[0] > 0.5) c.ox = Math.max(-1, Math.min(1, drag.ox - (p[0] - drag.start[0]) / drag.ov[0]));
+    if (drag.ov[1] > 0.5) c.oy = Math.max(-1, Math.min(1, drag.oy - (p[1] - drag.start[1]) / drag.ov[1]));
+    drawGridView();
+  });
+  const end = (e) => { pts.delete(e.pointerId); if (pts.size < 2) pinch = null; if (!pts.size) { drag = null; if (GR?.tab === 'photo') gridPanel(); } };
+  stage.addEventListener('pointerup', end); stage.addEventListener('pointercancel', end);
+  stage.addEventListener('wheel', (e) => {
+    if (!GR || GR.sel < 0) return; e.preventDefault();
+    const c = GR.grid.cells[GR.sel]; c.zoom = Math.min(4, Math.max(1, c.zoom * Math.exp(-e.deltaY * 0.002))); drawGridView();
+  }, { passive: false });
+}
+
+/** 書き出し用に、元の画質で描く（各写真は、そのマスに必要な大きさで描き直す） */
+async function renderGridFull(longSide) {
+  let { w, h: hh } = gridSize(GR.grid.aspect, longSide);
+  const k = Math.min(1, Math.sqrt((MAX_PIXELS * 0.99) / (w * hh))); w = Math.round(w * k); hh = Math.round(hh * k);
+  const n = GR.grid.cells.length;
+  const rects = cellRects(layoutById(n, GR.grid.layout), w, hh, GR.grid);
+  const images = [];
+  for (let i = 0; i < n; i++) {
+    const c = GR.grid.cells[i]; const p = GR.ps.find((q) => q.id === c.id);
+    const need = Math.min(4096, Math.ceil(Math.max(rects[i].w, rects[i].h) * c.zoom * 1.6));
+    const prep = await prepare(p, await db.getBlob(p.id));
+    images.push(renderToCanvas({ base: prep.base, W: prep.W, H: prep.H, state: p.state }, { maxSide: need }));
+    prep.base.close?.();
+  }
+  const out = document.createElement('canvas'); out.width = w; out.height = hh;
+  drawGrid(out.getContext('2d'), w, hh, GR.grid, images);
+  return out;
+}
+
+function openGridExport() {
+  const opt = prefs.get('gridExport', { format: 'image/jpeg', size: 2048 });
+  const status = h('p', { class: 'muted small', 'aria-live': 'polite' });
+  const name = h('input', { id: 'grid-name', maxlength: 80, value: `grid_${new Date().toISOString().slice(0, 10)}` });
+  const busy = (on) => { for (const b of dlg.querySelectorAll('.dlg-actions button')) b.disabled = on; };
+  // 同じ設定でもう一度作るとき（書き出した後に一覧へ保存など）は、前の結果を使う
+  let last = null;
+  const make = async () => {
+    const key = JSON.stringify([GR.grid, opt.size, opt.format]);
+    if (last?.key === key) return last.r;
+    busy(true); status.textContent = '作っています…';
+    try { const c = await renderGridFull(opt.size); const r = await canvasToBlob(c, opt.format, 0.92); status.textContent = `${r.w}×${r.h}・${fmtBytes(r.blob.size)}`; last = { key, r }; return r; } finally { busy(false); }
+  };
+  const fileName = () => `${safeName(name.value.trim() || 'grid')}.${EXT[opt.format]}`;
+  const dlg = h('dialog', { class: 'dlg export', 'aria-labelledby': 'gexp-h' },
+    h('h2', { id: 'gexp-h' }, 'グリッドを書き出し'),
+    h('div', { class: 'sub-head' }, h('b', {}, '形式')),
+    chips([['image/jpeg', 'JPEG'], ['image/png', 'PNG（劣化なし）'], ...(canWebp ? [['image/webp', 'WebP（小さい）']] : [])], opt.format, (v) => { opt.format = v; prefs.set('gridExport', opt); }, { label: '形式' }).el,
+    h('div', { class: 'sub-head' }, h('b', {}, '大きさ（長い辺）')),
+    chips([[1080, '1080px（SNS）'], [2048, '2048px'], [4096, '4096px']], opt.size, (v) => { opt.size = v; prefs.set('gridExport', opt); }, { label: '大きさ' }).el,
+    h('div', { class: 'field' }, h('label', { for: 'grid-name' }, 'ファイル名'), name),
+    h('p', { class: 'ok-note' }, '✓ 書き出した画像には、位置情報などのメタデータは入りません。'),
+    status,
+    h('div', { class: 'dlg-actions' },
+      h('button', { type: 'button', class: 'ghost', onclick: () => dlg.close() }, '閉じる'),
+      h('button', { type: 'button', onclick: async () => {
+        try {
+          const r = await make(); const id = uid(); const bmp = await createImageBitmap(r.blob);
+          await db.addProject({ id, name: name.value.trim().slice(0, 80) || 'グリッド', fileName: fileName(), created: Date.now(), updated: Date.now(), w: r.w, h: r.h, size: r.blob.size, type: opt.format, exif: null, state: S.defaultState(), thumb: await thumbBlob(bmp) }, r.blob);
+          bmp.close?.(); status.textContent = '写真一覧に保存しました。文字やフレームを足すなど、続けて編集できます。'; toast('写真一覧に保存しました');
+        } catch { status.textContent = '保存できませんでした'; }
+      } }, '写真一覧に保存'),
+      h('button', { type: 'button', hidden: !navigator.canShare, onclick: async () => {
+        try { const r = await make(); const f = new File([r.blob], fileName(), { type: opt.format }); if (navigator.canShare({ files: [f] })) await navigator.share({ files: [f] }); else download(r.blob, fileName()); } catch (e) { if (e?.name !== 'AbortError') status.textContent = '共有できませんでした'; }
+      } }, '共有…'),
+      h('button', { type: 'button', class: 'primary', onclick: async () => { try { const r = await make(); download(r.blob, fileName()); toast('書き出しました'); } catch { status.textContent = '書き出せませんでした。大きさを小さくしてお試しください。'; } } }, '書き出す')));
+  dlg.addEventListener('close', () => dlg.remove());
+  document.body.append(dlg); dlg.showModal();
+}
+
 // ───────────────────────── はじまり ─────────────────────────
 document.addEventListener('paste', (e) => {
   const files = [...(e.clipboardData?.files || [])].filter(isImage);
@@ -1189,4 +1447,4 @@ if ('launchQueue' in window) window.launchQueue.setConsumer(async (p) => { const
 if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register(new URL('../../sw.js', import.meta.url), { scope: new URL('../../', import.meta.url).pathname }).catch(() => {});
 showLibrary();
 // テスト・デバッグ用（中身の確認だけ。外部には何も送らない）
-window.__temoto = { get state() { return E && S.clone(E.state); }, get editor() { return E; } };
+window.__temoto = { get state() { return E && S.clone(E.state); }, get editor() { return E; }, get grid() { return GR; } };

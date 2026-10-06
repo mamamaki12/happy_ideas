@@ -45,3 +45,15 @@ export function withExif(file) {
   const seg = Buffer.from([0xff, 0xe1, ...u16(app1.length + 2), ...app1]);
   return { ...file, buffer: Buffer.concat([file.buffer.subarray(0, 2), seg, file.buffer.subarray(2)]) };
 }
+
+/** 単色の写真（グリッドのテスト用） */
+export async function solidPhoto(page, color, { w = 800, h = 600, name = 'solid.png' } = {}) {
+  const b64 = await page.evaluate(async ({ color, w, h }) => {
+    const c = document.createElement('canvas'); c.width = w; c.height = h; const x = c.getContext('2d');
+    x.fillStyle = color; x.fillRect(0, 0, w, h);
+    const blob = await new Promise((r) => c.toBlob(r, 'image/png'));
+    const buf = new Uint8Array(await blob.arrayBuffer()); let s = ''; for (let i = 0; i < buf.length; i += 0x8000) s += String.fromCharCode(...buf.subarray(i, i + 0x8000));
+    return btoa(s);
+  }, { color, w, h });
+  return { name, mimeType: 'image/png', buffer: Buffer.from(b64, 'base64') };
+}

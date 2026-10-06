@@ -70,3 +70,12 @@ function parseTiff(v, start, end) {
     iso: typeof out.iso === 'number' ? out.iso : null, focalLength: typeof out.focalLength === 'number' ? out.focalLength : null,
   };
 }
+
+/** TIFF 形式の RAW（DNG・CR2・NEF・ARW など）の先頭から Exif を読む */
+export function readTiffExif(buffer) {
+  const v = new DataView(buffer instanceof ArrayBuffer ? buffer : buffer.buffer);
+  if (v.byteLength < 8) return null;
+  const b0 = v.getUint8(0); const b1 = v.getUint8(1);
+  if (!((b0 === 0x49 && b1 === 0x49) || (b0 === 0x4d && b1 === 0x4d))) return null;
+  try { return parseTiff(v, 0, v.byteLength); } catch { return null; }
+}
