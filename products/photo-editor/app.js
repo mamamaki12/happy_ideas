@@ -7,7 +7,7 @@ import { geoParams, outToSrc, srcToOut, outputSize, orientedSize, aspectValue, f
 import { autoAdjust, histogram } from './auto.js';
 import { readExif, readTiffExif } from './exif.js';
 import { isRawName } from './raw.js';
-import { LAYOUTS, GRID_ASPECTS, MAX_GRID, defaultGrid, layoutById, cellRects, coverSource, gridSize, drawGrid, hitCell } from './grid.js';
+import { LAYOUTS, GRID_ASPECTS, MAX_GRID, defaultGrid, layoutById, cellRects, coverSource, gridSize, drawGrid, hitCell, hitDivider, dividerRange, gridMetrics, cellEdges } from './grid.js';
 import { applyRetouch } from './retouch.js';
 import { compose, hitOverlay, overlayBox, layout } from './compose.js';
 import { monotoneSpline } from './curves.js';
@@ -1295,7 +1295,7 @@ function drawGridView() {
   const fit = Math.min((st.width - 24) * dpr / base.w, (st.height - 24) * dpr / base.h, 2);
   const W = Math.max(1, Math.round(base.w * fit)); const H = Math.max(1, Math.round(base.h * fit));
   if (GR.view.width !== W || GR.view.height !== H) { GR.view.width = W; GR.view.height = H; }
-  GR.rects = drawGrid(GR.view.getContext('2d'), W, H, GR.grid, gridImages(), { selected: GR.sel });
+  GR.rects = drawGrid(GR.view.getContext('2d'), W, H, GR.grid, gridImages(), { selected: GR.sel, handles: true, active: GR.line });
   GR.view.style.width = `${W / dpr}px`; GR.view.style.height = `${H / dpr}px`;
 }
 function saveGridStyle() { const { aspect, gap, margin, radius, bg } = GR.grid; prefs.set('gridStyle', { aspect, gap, margin, radius, bg }); }
@@ -1308,11 +1308,13 @@ function gridPanel() {
       const c = h('canvas', { width: 64, height: 64, 'aria-hidden': 'true' });
       const ctx = c.getContext('2d'); ctx.fillStyle = '#1c1d20'; ctx.fillRect(0, 0, 64, 64); ctx.fillStyle = '#8b8e95';
       for (const r of cellRects(l, 64, 64, { gap: 6, margin: 6 })) ctx.fillRect(r.x, r.y, r.w, r.h);
-      return h('button', { type: 'button', class: 'grid-layout', 'aria-pressed': String(G.layout === l.id), onclick: () => { G.layout = l.id; gridPanel(); drawGridView(); } }, c, h('span', {}, l.name));
+      return h('button', { type: 'button', class: 'grid-layout', 'aria-pressed': String(G.layout === l.id), onclick: () => { G.layout = l.id; G.lines = {}; gridPanel(); drawGridView(); } }, c, h('span', {}, l.name));
     }));
     body = [h('div', { class: 'sub-head' }, h('b', {}, '比率')),
       chips(Object.keys(GRID_ASPECTS).map((k) => [k, k]), G.aspect, (v) => { G.aspect = v; saveGridStyle(); drawGridView(); }, { label: '比率' }).el,
-      h('div', { class: 'sub-head' }, h('b', {}, 'レイアウト')), thumbs];
+      h('div', { class: 'sub-head' }, h('b', {}, 'レイアウト')), thumbs,
+      hint('写真の間の線（白いつまみ）をドラッグすると、写真の大きさの割合を変えられます。'),
+      Object.keys(G.lines || {}).length ? btn('線の位置を元に戻す', () => { G.lines = {}; gridPanel(); drawGridView(); }, 'ghost small') : null];
   } else if (GR.tab === 'style') {
     const upd = (k, f = (v) => v) => (v) => { G[k] = f(v); saveGridStyle(); drawGridView(); };
     body = [
@@ -1335,8 +1337,11 @@ function gridPanel() {
 }
 
 function gridPointer(stage) {
-  const pts = new Map(); let drag = null; let pinch = null;
+  const pts = new Map(); let drag = null; let pinch = null; let line = null;
   const pos = (e) => { const r = GR.view.getBoundingClientRect(); return [((e.clientX - r.left) / r.width) * GR.view.width, ((e.clientY - r.top) / r.height) * GR.view.height]; };
+  const layout = () => layoutById(GR.grid.cells.length, GR.grid.layout);
+  // 線の近く（指で押しやすいよう、画面上で 14px 以内）なら線をつかむ
+  const lineAt = (e) => { const r = GR.view.getBoundingClientRect(); return hitDivider(layout(), GR.rects, ...pos(e), 14 * (GR.view.width / r.width)); };
   const overflow = (i) => {
     const img = gridImages()[i]; const rc = GR.rects[i]; const c = GR.grid.cells[i];
     const sc = Math.max(rc.w / img.width, rc.h / img.height) * c.zoom;
@@ -1345,7 +1350,15 @@ function gridPointer(stage) {
   stage.addEventListener('pointerdown', (e) => {
     if (!GR) return;
     pts.set(e.pointerId, [e.clientX, e.clientY]); stage.setPointerCapture(e.pointerId);
+    if (line) return; // 線を動かしている間は、ほかの指は使わない
     if (pts.size === 2 && GR.sel >= 0) { const [a, b] = [...pts.values()]; pinch = { d: Math.hypot(a[0] - b[0], a[1] - b[1]), z: GR.grid.cells[GR.sel].zoom }; drag = null; return; }
+    const d = pts.size === 1 && lineAt(e);
+    if (d) {
+      const G = GR.grid; G.lines ||= {};
+      const e0 = cellEdges(layout(), G.lines)[d.after[0]][d.axis === 'v' ? 0 : 1];
+      line = { d, id: e.pointerId, start: pos(e), v0: e0, range: dividerRange(layout(), G.lines, d) };
+      GR.line = d.id; drawGridView(); return;
+    }
     const i = hitCell(GR.rects, ...pos(e));
     if (i < 0) { GR.sel = -1; GR.swap = false; gridPanel(); drawGridView(); return; }
     if (GR.swap && GR.sel >= 0 && i !== GR.sel) {
@@ -1357,8 +1370,17 @@ function gridPointer(stage) {
     drag = { i, start: pos(e), ox: c.ox, oy: c.oy, ov: overflow(i) };
   });
   stage.addEventListener('pointermove', (e) => {
-    if (!GR || !pts.has(e.pointerId)) return;
+    if (!GR) return;
+    if (!pts.size && e.pointerType === 'mouse') { const d = lineAt(e); stage.style.cursor = d ? (d.axis === 'v' ? 'col-resize' : 'row-resize') : ''; }
+    if (!pts.has(e.pointerId)) return;
     pts.set(e.pointerId, [e.clientX, e.clientY]);
+    if (line) {
+      if (e.pointerId !== line.id) return;
+      const p = pos(e); const m = gridMetrics(GR.view.width, GR.view.height, GR.grid);
+      const v = line.d.axis === 'v' ? line.v0 + (p[0] - line.start[0]) / m.iw : line.v0 + (p[1] - line.start[1]) / m.ih;
+      GR.grid.lines[line.d.id] = Math.max(line.range[0], Math.min(line.range[1], v));
+      drawGridView(); return;
+    }
     if (pinch && pts.size === 2) { const [a, b] = [...pts.values()]; GR.grid.cells[GR.sel].zoom = Math.min(4, Math.max(1, pinch.z * Math.hypot(a[0] - b[0], a[1] - b[1]) / pinch.d)); drawGridView(); return; }
     if (!drag) return;
     const p = pos(e); const c = GR.grid.cells[drag.i];
@@ -1366,7 +1388,11 @@ function gridPointer(stage) {
     if (drag.ov[1] > 0.5) c.oy = Math.max(-1, Math.min(1, drag.oy - (p[1] - drag.start[1]) / drag.ov[1]));
     drawGridView();
   });
-  const end = (e) => { pts.delete(e.pointerId); if (pts.size < 2) pinch = null; if (!pts.size) { drag = null; if (GR?.tab === 'photo') gridPanel(); } };
+  const end = (e) => {
+    pts.delete(e.pointerId); if (pts.size < 2) pinch = null;
+    if (line && e.pointerId === line.id) { line = null; if (GR) { GR.line = null; drawGridView(); if (GR.tab === 'layout') gridPanel(); } }
+    if (!pts.size) { drag = null; if (GR?.tab === 'photo') gridPanel(); }
+  };
   stage.addEventListener('pointerup', end); stage.addEventListener('pointercancel', end);
   stage.addEventListener('wheel', (e) => {
     if (!GR || GR.sel < 0) return; e.preventDefault();
