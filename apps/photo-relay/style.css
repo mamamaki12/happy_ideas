@@ -1,0 +1,6 @@
+.relay-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+.relay-grid figure { margin: 0; }
+.relay-grid img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 10px; display: block; }
+.relay-grid figcaption { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
+.code { font-family: ui-monospace, monospace; font-size: .7rem; }
+.relay-grid:empty::after { content: "まだ写真がありません"; color: var(--muted); font-size: .9rem; }

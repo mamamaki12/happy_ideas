@@ -1,0 +1,6 @@
+.breath-circle { width: 120px; height: 120px; margin: 30px auto; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #a5d8ff, #4dabf7); display: grid; place-items: center; transition-property: transform; transition-timing-function: ease-in-out; transform: scale(1); }
+.breath-circle.in { transform: scale(1.8); }
+.breath-circle.hold { transform: scale(1.8); }
+.breath-circle.out { transform: scale(1); }
+.breath-label { font-weight: 700; color: #0b3d63; }
+.breath-count { font-size: 2rem; min-height: 1.2em; }

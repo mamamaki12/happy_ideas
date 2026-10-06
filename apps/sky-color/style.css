@@ -1,0 +1,4 @@
+.swatch { width: 140px; height: 140px; border-radius: 50%; margin: 0 auto 10px; box-shadow: inset 0 0 0 1px rgb(0 0 0 / 10%), var(--shadow); }
+.sky-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(52px, 1fr)); gap: 6px; }
+.sky-chip { aspect-ratio: 1; border-radius: 10px; display: flex; align-items: flex-end; justify-content: center; }
+.sky-chip span { font-size: .65rem; background: rgb(0 0 0 / 35%); color: #fff; border-radius: 6px; padding: 0 4px; margin-bottom: 3px; }

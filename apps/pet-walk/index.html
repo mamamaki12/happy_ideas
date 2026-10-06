@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; media-src 'self' blob: mediastream:; connect-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#c2410c">
+<meta name="description" content="散歩ルートと、排泄などの出来事を記録する。">
+<title>ペット散歩記録</title>
+<link rel="icon" href="../../shared/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../../shared/style.css">
+<link rel="stylesheet" href="style.css">
+<script type="module" src="app.js"></script>
+</head>
+<body>
+<header class="app-header">
+  <a class="back" href="../../index.html">← 一覧</a>
+  <h1>ペット散歩記録</h1>
+</header>
+<main id="app">
+  <p class="lead">散歩ルートと、排泄などの出来事を記録する。</p>
+  <noscript><p class="error">このアプリは JavaScript が必要です。</p></noscript>
+</main>
+<footer class="app-footer">
+  <details>
+    <summary>このアプリについて（#90）</summary>
+    <p><b>ニーズ:</b> ペット・GPS</p>
+    <p><b>実現性 C（技術検証どまり）:</b> おさんぽ記録と同じく、画面を消すと位置の記録が止まる。イベントの記録ボタンは便利だが、ルート記録はネイティブ向き。</p>
+    <p>データはこの端末の中だけに保存され、外部には送られません。</p>
+    <button type="button" class="small danger" data-clear-data="pet-walk">このアプリのデータを消す</button>
+  </details>
+</footer>
+<script type="module" src="../../shared/page.js"></script>
+</body>
+</html>

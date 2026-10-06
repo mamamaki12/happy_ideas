@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; media-src 'self' blob: mediastream:; connect-src 'self' https://api.open-meteo.com; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#c2410c">
+<meta name="description" content="洗濯・乾燥の終了時刻に通知。部屋干しの乾きやすさも気温・湿度から表示。">
+<title>洗濯タイマー</title>
+<link rel="icon" href="../../shared/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../../shared/style.css">
+<script type="module" src="app.js"></script>
+</head>
+<body>
+<header class="app-header">
+  <a class="back" href="../../index.html">← 一覧</a>
+  <h1>洗濯タイマー</h1>
+</header>
+<main id="app">
+  <p class="lead">洗濯・乾燥の終了時刻に通知。部屋干しの乾きやすさも気温・湿度から表示。</p>
+  <noscript><p class="error">このアプリは JavaScript が必要です。</p></noscript>
+</main>
+<footer class="app-footer">
+  <details>
+    <summary>このアプリについて（#15）</summary>
+    <p><b>ニーズ:</b> 共働き・苦労キャンセル</p>
+    <p><b>実現性 B（Webで動くが制約あり）:</b> タイマー中に画面を消すと通知が届かないことがある。乾きやすさ指数は天気APIで問題なく動く。</p>
+    <p>データはこの端末の中だけに保存され、外部には送られません。</p>
+    <button type="button" class="small danger" data-clear-data="laundry-timer">このアプリのデータを消す</button>
+  </details>
+</footer>
+<script type="module" src="../../shared/page.js"></script>
+</body>
+</html>

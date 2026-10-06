@@ -1,0 +1,5 @@
+.kind-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-bottom: 10px; }
+.kind-grid button { flex-direction: column; gap: 0; padding: 6px 2px; min-height: 72px; border-radius: 12px; font-size: .78rem; }
+.kind-grid button small { font-size: .6rem; color: var(--muted); font-weight: 400; }
+.kind-grid button[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
+.ki { font-size: 1.5rem; line-height: 1.2; }

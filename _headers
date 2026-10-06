@@ -1,0 +1,8 @@
+# Netlify / Cloudflare Pages 用のセキュリティヘッダー（meta CSP では指定できないものを補う）
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+  X-Frame-Options: DENY
+  Content-Security-Policy: frame-ancestors 'none'
+  Permissions-Policy: camera=(self), microphone=(self), geolocation=(self), accelerometer=(self), gyroscope=(self), magnetometer=(self), fullscreen=(self), screen-wake-lock=(self), payment=(), usb=(), serial=(), hid=(), bluetooth=()
+  Cross-Origin-Opener-Policy: same-origin

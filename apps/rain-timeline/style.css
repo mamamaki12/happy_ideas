@@ -1,0 +1,5 @@
+.rain-bars { display: flex; gap: 1px; height: 90px; align-items: flex-end; margin-bottom: 10px; }
+.rb { flex: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; position: relative; background: var(--surface-2); border-radius: 2px; }
+.rb > div { background: #74c0fc; border-radius: 2px; }
+.rb.warn > div { background: #339af0; } .rb.danger > div { background: #e03131; }
+.rb span { position: absolute; bottom: -16px; font-size: .6rem; color: var(--muted); left: 0; }

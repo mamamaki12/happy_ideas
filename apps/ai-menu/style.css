@@ -1,0 +1,5 @@
+.menu-list li { align-items: flex-start; }
+.menu-list .warn-item { background: color-mix(in srgb, var(--danger) 7%, transparent); border-radius: 10px; padding-inline: 8px; }
+.menu-show { position: fixed; inset: 0; z-index: 50; display: grid; place-content: center; gap: 12px; padding: 24px; text-align: center; background: var(--surface); }
+.menu-show.hidden { display: none; }
+.menu-show-name { font-size: clamp(2rem, 10vw, 3.5rem); font-weight: 800; margin: 0; overflow-wrap: anywhere; }

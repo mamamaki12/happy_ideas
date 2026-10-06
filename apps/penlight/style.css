@@ -1,0 +1,5 @@
+.swatches { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.sw { width: 44px; height: 44px; min-height: 44px; padding: 0; border-radius: 50%; border: 3px solid var(--border); }
+.sw.on { border-color: var(--text); box-shadow: 0 0 0 3px var(--bg) inset; }
+.swatches input[type=color] { width: 54px; }
+.pen-stage { position: fixed; inset: 0; z-index: 300; cursor: pointer; }

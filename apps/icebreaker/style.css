@@ -1,0 +1,3 @@
+.ice-card { width: 100%; min-height: 220px; border-radius: 20px; font-size: 1.4rem; font-weight: 700; line-height: 1.5; padding: 24px; background: linear-gradient(135deg, var(--accent-soft), var(--surface)); margin-bottom: 12px; }
+.ice-card.flip { animation: flip .35s ease-out; }
+@keyframes flip { from { transform: rotateY(90deg); opacity: .3; } }

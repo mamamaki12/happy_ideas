@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; media-src 'self' blob: mediastream:; connect-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#c2410c">
+<meta name="description" content="日本語の文をローマ字で打つタイピング練習。打鍵速度を記録する。">
+<title>ローマ字タイピング</title>
+<link rel="icon" href="../../shared/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../../shared/style.css">
+<link rel="stylesheet" href="style.css">
+<script type="module" src="app.js"></script>
+</head>
+<body>
+<header class="app-header">
+  <a class="back" href="../../index.html">← 一覧</a>
+  <h1>ローマ字タイピング</h1>
+</header>
+<main id="app">
+  <p class="lead">日本語の文をローマ字で打つタイピング練習。打鍵速度を記録する。</p>
+  <noscript><p class="error">このアプリは JavaScript が必要です。</p></noscript>
+</main>
+<footer class="app-footer">
+  <details>
+    <summary>このアプリについて（#74）</summary>
+    <p><b>ニーズ:</b> 学習</p>
+    <p><b>実現性 A（Webだけで製品にできる）:</b> キーボード入力とローマ字判定は全ブラウザで動く。スマホは隠し入力欄で対応。</p>
+    <p>データはこの端末の中だけに保存され、外部には送られません。</p>
+    <button type="button" class="small danger" data-clear-data="typing">このアプリのデータを消す</button>
+  </details>
+</footer>
+<script type="module" src="../../shared/page.js"></script>
+</body>
+</html>

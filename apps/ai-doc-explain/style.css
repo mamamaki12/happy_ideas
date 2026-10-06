@@ -1,0 +1,4 @@
+.doc-out.large { font-size: 1.2rem; }
+.terms { margin: 0; display: grid; gap: 6px; }
+.terms dt { font-weight: 700; }
+.terms dd { margin: 0 0 4px; color: var(--muted); }

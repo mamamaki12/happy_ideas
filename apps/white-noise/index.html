@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; media-src 'self' blob: mediastream:; connect-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#c2410c">
+<meta name="description" content="ホワイト／ピンク／ブラウンノイズや雨音を音声ファイルなしで合成する。">
+<title>環境音ジェネレーター</title>
+<link rel="icon" href="../../shared/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../../shared/style.css">
+<script type="module" src="app.js"></script>
+</head>
+<body>
+<header class="app-header">
+  <a class="back" href="../../index.html">← 一覧</a>
+  <h1>環境音ジェネレーター</h1>
+</header>
+<main id="app">
+  <p class="lead">ホワイト／ピンク／ブラウンノイズや雨音を音声ファイルなしで合成する。</p>
+  <noscript><p class="error">このアプリは JavaScript が必要です。</p></noscript>
+</main>
+<footer class="app-footer">
+  <details>
+    <summary>このアプリについて（#73）</summary>
+    <p><b>ニーズ:</b> 集中・睡眠</p>
+    <p><b>実現性 A（Webだけで製品にできる）:</b> Web Audioでノイズを合成。音声ファイル不要。画面を消すと止まるブラウザがある。</p>
+    <p>データはこの端末の中だけに保存され、外部には送られません。</p>
+    <button type="button" class="small danger" data-clear-data="white-noise">このアプリのデータを消す</button>
+  </details>
+</footer>
+<script type="module" src="../../shared/page.js"></script>
+</body>
+</html>

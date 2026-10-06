@@ -1,0 +1,19 @@
+# 推し活手帳のサーバー通知を送る Worker（任意）。Pages と同じ D1 を使う。
+# 鍵の作り方: node scripts/vapid-keys.mjs → 出力を wrangler secret put で登録
+#   npx wrangler secret put VAPID_PUBLIC_KEY -c wrangler.push.toml
+#   npx wrangler secret put VAPID_PRIVATE_KEY -c wrangler.push.toml
+# Pages 側にも VAPID_PUBLIC_KEY を環境変数として設定する（/api/push/key が返す）
+name = "happy-ideas-push"
+main = "server/push/worker.js"
+compatibility_date = "2026-09-01"
+
+[triggers]
+crons = ["*/15 * * * *"]
+
+[vars]
+VAPID_SUBJECT = "mailto:公開前に連絡先を記入"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "happy-ideas"
+database_id = "ここに database_id を記入"

@@ -1,0 +1,2 @@
+.noise-meter > div { background: linear-gradient(90deg, #40c057, #fab005 60%, #e03131 85%); }
+.noise-hist { width: 100%; height: 90px; margin: 12px 0; background: var(--surface-2); border-radius: 10px; }

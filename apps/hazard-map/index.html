@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; media-src 'self' blob: mediastream:; connect-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#c2410c">
+<meta name="description" content="通学路の危険箇所を写真と位置で記録し、ファイルやURLで地域に配る（サーバーなし版）。">
+<title>ヒヤリハット地図</title>
+<link rel="icon" href="../../shared/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../../shared/style.css">
+<script type="module" src="app.js"></script>
+</head>
+<body>
+<header class="app-header">
+  <a class="back" href="../../index.html">← 一覧</a>
+  <h1>ヒヤリハット地図</h1>
+</header>
+<main id="app">
+  <p class="lead">通学路の危険箇所を写真と位置で記録し、ファイルやURLで地域に配る（サーバーなし版）。</p>
+  <noscript><p class="error">このアプリは JavaScript が必要です。</p></noscript>
+</main>
+<footer class="app-footer">
+  <details>
+    <summary>このアプリについて（#64）</summary>
+    <p><b>ニーズ:</b> 子育て・地域</p>
+    <p><b>実現性 A（Webだけで製品にできる）:</b> 写真・位置の記録とGeoJSONの書き出し・取り込みはサーバーなしで動く。リアルタイムに地域で共有するならサーバーが必要。</p>
+    <p>データはこの端末の中だけに保存され、外部には送られません。</p>
+    <button type="button" class="small danger" data-clear-data="hazard-map">このアプリのデータを消す</button>
+  </details>
+</footer>
+<script type="module" src="../../shared/page.js"></script>
+</body>
+</html>

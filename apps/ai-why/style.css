@@ -1,0 +1,8 @@
+.why-mic { width: 56px; height: 56px; border-radius: 50%; font-size: 1.5rem; padding: 0; }
+.why-mic.on { background: var(--danger); border-color: var(--danger); animation: why-pulse 1s infinite; }
+@keyframes why-pulse { 50% { transform: scale(1.08); } }
+@media (prefers-reduced-motion: reduce) { .why-mic.on { animation: none; } }
+.why-out { font-size: 1.12rem; line-height: 1.9; }
+.why-bubble { display: flex; gap: 10px; align-items: flex-start; }
+.why-face { font-size: 2.4rem; line-height: 1; }
+.why-bubble p { background: var(--surface-2); border-radius: 16px; padding: 12px 14px; }

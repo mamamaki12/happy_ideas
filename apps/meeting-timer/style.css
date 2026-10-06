@@ -1,0 +1,4 @@
+.speakers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 12px; }
+.spk { flex-direction: column; min-height: 96px; border-radius: var(--radius); border: 3px solid var(--c); font-variant-numeric: tabular-nums; }
+.spk.on { background: var(--c); color: #111; }
+.share-bar { display: flex; height: 16px; border-radius: 8px; overflow: hidden; background: var(--surface-2); }

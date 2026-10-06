@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; media-src 'self' blob: mediastream:; connect-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#c2410c">
+<meta name="description" content="学校・園のお知らせプリントを撮ると、予定・持ち物・提出物と締め切りに分けてくれる。予定はカレンダーに追加できる。">
+<title>プリント整理AI</title>
+<link rel="icon" href="../../shared/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../../shared/style.css">
+<script type="module" src="app.js"></script>
+</head>
+<body>
+<header class="app-header">
+  <a class="back" href="../../index.html">← 一覧</a>
+  <h1>プリント整理AI</h1>
+</header>
+<main id="app">
+  <p class="lead">学校・園のお知らせプリントを撮ると、予定・持ち物・提出物と締め切りに分けてくれる。予定はカレンダーに追加できる。</p>
+  <noscript><p class="error">このアプリは JavaScript が必要です。</p></noscript>
+</main>
+<footer class="app-footer">
+  <details>
+    <summary>このアプリについて（#101）</summary>
+    <p><b>ニーズ:</b> 小学生の保護者の56.8%が「プリントが多い」（アドビ調査）</p>
+    <p><b>実現性 B（Webで動くが制約あり）:</b> 写真の読み取りと構造化（日付・持ち物・締め切り）は Claude の画像入力とツール出力で安定して形がそろう。中継サーバーとAPI費用が必要。曜日と日付が食い違うプリントへの対処はプロンプトで指定。</p>
+    <p>入力した文章や写真は、AIサーバーが設定されているときだけ、答えを作るために Anthropic の Claude API へ送られます（このサイトでは保存しません）。履歴などはこの端末の中だけに保存されます。</p>
+    <button type="button" class="small danger" data-clear-data="ai-print">このアプリのデータを消す</button>
+  </details>
+</footer>
+<script type="module" src="../../shared/page.js"></script>
+</body>
+</html>

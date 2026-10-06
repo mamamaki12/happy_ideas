@@ -1,0 +1,2 @@
+.pig { font-size: 4rem; line-height: 1; animation: bob 2.4s ease-in-out infinite; }
+@keyframes bob { 50% { transform: translateY(-6px) rotate(-4deg); } }

@@ -1,0 +1,7 @@
+.chat { list-style: none; margin: 10px 0; padding: 8px; max-height: 50dvh; min-height: 120px; overflow-y: auto; background: var(--surface-2); border-radius: 12px; display: flex; flex-direction: column; gap: 6px; }
+.chat li { max-width: 80%; padding: 6px 10px; border-radius: 14px; background: var(--surface); display: flex; flex-direction: column; }
+.chat li.me { align-self: flex-end; background: var(--accent); color: var(--accent-ink); }
+.chat small { font-size: .65rem; opacity: .7; }
+.ptt { width: 100%; min-height: 90px; font-size: 1.3rem; border-radius: var(--radius); user-select: none; touch-action: none; }
+.ptt.on { background: #e03131; color: #fff; border-color: #e03131; }
+.code { font-family: ui-monospace, monospace; font-size: .7rem; }

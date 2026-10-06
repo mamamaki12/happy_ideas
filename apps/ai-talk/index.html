@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; media-src 'self' blob: mediastream:; connect-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#c2410c">
+<meta name="description" content="カフェ・道案内・面接などの場面で、声か文字で英会話を練習。AIが相手役とやさしい添削をする。">
+<title>英会話ロールプレイ</title>
+<link rel="icon" href="../../shared/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../../shared/style.css">
+<link rel="stylesheet" href="style.css">
+<script type="module" src="app.js"></script>
+</head>
+<body>
+<header class="app-header">
+  <a class="back" href="../../index.html">← 一覧</a>
+  <h1>英会話ロールプレイ</h1>
+</header>
+<main id="app">
+  <p class="lead">カフェ・道案内・面接などの場面で、声か文字で英会話を練習。AIが相手役とやさしい添削をする。</p>
+  <noscript><p class="error">このアプリは JavaScript が必要です。</p></noscript>
+</main>
+<footer class="app-footer">
+  <details>
+    <summary>このアプリについて（#108）</summary>
+    <p><b>ニーズ:</b> 語学のAI会話練習が標準化（既存アプリの会話は浅いとの不満）</p>
+    <p><b>実現性 B（Webで動くが制約あり）:</b> 会話の履歴（最大12ターン）を毎回送る。音声認識（英語）と読み上げは Chrome と Safari で動く。1回の会話のAPI費用が積み上がるので回数制限が重要。</p>
+    <p>入力した文章や写真は、AIサーバーが設定されているときだけ、答えを作るために Anthropic の Claude API へ送られます（このサイトでは保存しません）。履歴などはこの端末の中だけに保存されます。</p>
+    <button type="button" class="small danger" data-clear-data="ai-talk">このアプリのデータを消す</button>
+  </details>
+</footer>
+<script type="module" src="../../shared/page.js"></script>
+</body>
+</html>
