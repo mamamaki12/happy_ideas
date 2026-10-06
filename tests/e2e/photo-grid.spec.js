@@ -101,3 +101,50 @@ test('a11y: グリッドの画面（重大な違反なし）', async ({ page }) 
     expect(serious, `${t}: ${serious.join('\n')}`).toEqual([]);
   }
 });
+
+test('グリッド: 写真の間の線をドラッグして大きさの割合を変える（書き出しにも反映・元に戻せる）', async ({ page }) => {
+  const errors = []; page.on('pageerror', (e) => errors.push(e.message));
+  const names = await setup(page);
+  await page.getByRole('button', { name: 'すべて選択' }).click();
+  await page.getByRole('button', { name: /グリッドを作る/ }).click();
+  await expect(page.locator('canvas.grid-view')).toBeVisible({ timeout: 20000 });
+  await page.waitForTimeout(200);
+  const box = await page.locator('canvas.grid-view').boundingBox();
+  const drag = async ([x0, y0], [x1, y1]) => {
+    await page.mouse.move(box.x + box.width * x0, box.y + box.height * y0); await page.mouse.down();
+    await page.mouse.move(box.x + box.width * x1, box.y + box.height * y1, { steps: 8 }); await page.mouse.up();
+  };
+  // 2×2 の縦線を右へ: 左の列（上下とも）が広くなる。写真は選ばれない
+  await drag([0.5, 0.25], [0.75, 0.25]);
+  expect(is(await at(page, 0.65, 0.25), COLORS[names[0]])).toBe(true);
+  expect(is(await at(page, 0.65, 0.75), COLORS[names[2]])).toBe(true);
+  expect(is(await at(page, 0.85, 0.25), COLORS[names[1]])).toBe(true);
+  expect(await page.evaluate(() => window.__temoto.grid.sel)).toBe(-1);
+  // 横線を上へ: 下の段が高くなる
+  await drag([0.3, 0.5], [0.3, 0.3]);
+  expect(is(await at(page, 0.3, 0.4), COLORS[names[2]])).toBe(true);
+  // 端まで動かしても、写真は消えない（最小の大きさで止まる）
+  await drag([0.75, 0.75], [1.2, 0.75]);
+  expect(is(await at(page, 0.97, 0.75), COLORS[names[3]])).toBe(true);
+  // 書き出しにも反映（1:1 の 1080px）
+  await page.getByRole('button', { name: '書き出し', exact: true }).click();
+  const dlg = page.getByRole('dialog');
+  await dlg.getByRole('button', { name: '1080px（SNS）' }).click();
+  const dl = page.waitForEvent('download');
+  await dlg.getByRole('button', { name: '書き出す', exact: true }).click();
+  const buf = await readFile(await (await dl).path());
+  const px = await page.evaluate(async (b64) => {
+    const bmp = await createImageBitmap(new Blob([Uint8Array.from(atob(b64), (c) => c.charCodeAt(0))]));
+    const c = new OffscreenCanvas(bmp.width, bmp.height); const x = c.getContext('2d'); x.drawImage(bmp, 0, 0);
+    return [[0.65, 0.2], [0.65, 0.45]].map(([u, v]) => [...x.getImageData(Math.floor(u * bmp.width), Math.floor(v * bmp.height), 1, 1).data].slice(0, 3));
+  }, buf.toString('base64'));
+  expect(is(px[0], COLORS[names[0]])).toBe(true);
+  expect(is(px[1], COLORS[names[2]])).toBe(true);
+  await dlg.getByRole('button', { name: '閉じる' }).click();
+  // 元に戻す
+  await page.getByRole('tab', { name: 'レイアウト' }).click();
+  await page.getByRole('button', { name: '線の位置を元に戻す' }).click();
+  expect(is(await at(page, 0.65, 0.25), COLORS[names[1]])).toBe(true);
+  await expect(page.getByRole('button', { name: '線の位置を元に戻す' })).toHaveCount(0);
+  expect(errors).toEqual([]);
+});

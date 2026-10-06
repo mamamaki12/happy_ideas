@@ -51,3 +51,44 @@ test('grid: 出力の大きさ・初期値・当たり判定', () => {
   const r = cellRects(layoutById(2, '2h'), 200, 100, {});
   assert.equal(hitCell(r, 150, 50), 1); assert.equal(hitCell(r, 50, 50), 0); assert.equal(hitCell(r, 300, 50), -1);
 });
+
+test('grid: 線（マスの境目）を動かすと、両側のマスの大きさが変わり、全体は埋まったまま', async () => {
+  const { dividers, dividerRange, hitDivider } = await import('../../products/photo-editor/grid.js');
+  for (let n = 2; n <= MAX_GRID; n++) {
+    for (const l of LAYOUTS[n]) {
+      const ds = dividers(l);
+      assert.ok(ds.length >= 1, `${l.id}: 線がある`);
+      for (const d of ds) {
+        assert.ok(d.before.length && d.after.length, `${l.id} ${d.id}: 両側にマス`);
+        // 動かせる範囲いっぱいまで動かしても、マスは重ならず最小の大きさを保つ
+        for (const side of [0, 1]) {
+          const lines = { [d.id]: dividerRange(l, {}, d)[side] };
+          const rs = cellRects(l, 1000, 1000, { lines });
+          assert.ok(rs.every((r) => r.w >= 50 && r.h >= 50), `${l.id} ${d.id}: 小さすぎるマス`);
+          const area = rs.reduce((s, r) => s + r.w * r.h, 0);
+          assert.ok(Math.abs(area - 1e6) < 1, `${l.id} ${d.id}: 全体を埋める (${area})`);
+        }
+      }
+    }
+  }
+  // 2×2: 縦線を右へ動かすと、左の列が広くなる。横線は別に動かせる
+  const g4 = layoutById(4, '4g');
+  const v = dividers(g4).find((d) => d.axis === 'v');
+  assert.deepEqual([v.before, v.after], [[0, 2], [1, 3]]);
+  const rs = cellRects(g4, 1000, 1000, { lines: { [v.id]: 0.7 } });
+  assert.equal(Math.round(rs[0].w), 700); assert.equal(Math.round(rs[1].x), 700); assert.equal(Math.round(rs[2].w), 700);
+  // 上3・下4: 上の段と下の段の縦線はそれぞれ独立している
+  const l7 = layoutById(7, '7a');
+  assert.deepEqual(dividers(l7).filter((d) => d.axis === 'v').map((d) => d.id).sort(), ['v3_1', 'v4_0', 'v6_1', 'v8_0', 'v9_1']);
+  // 大きく1つ＋5つ: 下の段の線は、上の大きいマスの右端を越えては動かせない
+  const l6 = layoutById(6, '6c');
+  const d6 = dividers(l6).find((d) => d.id === 'v1_2');
+  assert.ok(dividerRange(l6, { v2_0: 0.4 }, d6)[1] <= 0.4 - 0.06 + 1e-9);
+  // 線の近くを押すと、その線が見つかる（すき間ありでも）
+  const r4 = cellRects(g4, 1000, 1000, { gap: 2, margin: 2 });
+  assert.equal(hitDivider(g4, r4, 500, 200, 15)?.axis, 'v');
+  assert.equal(hitDivider(g4, r4, 200, 500, 15)?.axis, 'h');
+  assert.equal(hitDivider(g4, r4, 250, 250, 15), null);
+  // 線を動かしていなければ、これまでと同じ位置
+  assert.deepEqual(cellRects(g4, 800, 600, { gap: 2, margin: 2 }), cellRects(g4, 800, 600, { gap: 2, margin: 2, lines: {} }));
+});

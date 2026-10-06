@@ -23,23 +23,96 @@ export const MAX_GRID = 9;
 
 export function defaultGrid(ids) {
   const n = Math.min(MAX_GRID, ids.length);
-  return { layout: LAYOUTS[n][0].id, aspect: '1:1', gap: 2, margin: 2, radius: 0, bg: '#ffffff', cells: ids.slice(0, n).map((id) => ({ id, zoom: 1, ox: 0, oy: 0 })) };
+  return { layout: LAYOUTS[n][0].id, aspect: '1:1', gap: 2, margin: 2, radius: 0, bg: '#ffffff', lines: {}, cells: ids.slice(0, n).map((id) => ({ id, zoom: 1, ox: 0, oy: 0 })) };
 }
 export const layoutById = (n, id) => (LAYOUTS[n] || []).find((l) => l.id === id) || LAYOUTS[n]?.[0];
 
 /**
- * 各マスの位置（px）。gap・margin は短い辺に対する %（0〜10）
- * @returns {{x:number,y:number,w:number,h:number}[]}
+ * 動かせる線（マスの境目）。同じ位置でつながっている境目を1本とする。
+ * axis 'v' は縦線（左右の大きさを変える）、'h' は横線。k はマス目の上の位置、a〜b はその線が通る範囲（マス目の単位）。
+ * before / after は線の手前（左・上）と向こう（右・下）にあるマスの番号。
  */
-export function cellRects(layout, W, H, { gap = 0, margin = 0 } = {}) {
+export function dividers(layout) {
+  const out = [];
+  for (const axis of ['v', 'h']) {
+    const n = axis === 'v' ? layout.cols : layout.rows; const m = axis === 'v' ? layout.rows : layout.cols;
+    const span = (c) => (axis === 'v' ? [c[0], c[0] + c[2], c[1], c[1] + c[3]] : [c[1], c[1] + c[3], c[0], c[0] + c[2]]);
+    for (let k = 1; k < n; k++) {
+      const on = Array.from({ length: m }, (_, t) => layout.cells.some((c) => { const [, e, s0, s1] = span(c); return e === k && t >= s0 && t < s1; }));
+      for (let t = 0; t < m;) {
+        if (!on[t]) { t++; continue; }
+        const a = t; while (t < m && on[t]) t++;
+        const inRun = (c) => { const [, , s0, s1] = span(c); return s0 >= a && s1 <= t; };
+        out.push({
+          id: `${axis}${k}_${a}`, axis, k, a, b: t,
+          before: layout.cells.flatMap((c, i) => (span(c)[1] === k && inRun(c) ? [i] : [])),
+          after: layout.cells.flatMap((c, i) => (span(c)[0] === k && inRun(c) ? [i] : [])),
+        });
+      }
+    }
+  }
+  return out;
+}
+
+/** 各マスの端の位置（0〜1）。lines は動かした線の位置 { [id]: 0〜1 } */
+export function cellEdges(layout, lines = {}) {
+  const at = new Map();
+  for (const d of dividers(layout)) for (let t = d.a; t < d.b; t++) at.set(`${d.axis}${d.k}:${t}`, d.id);
+  const edge = (axis, k, t, n) => {
+    if (k <= 0) return 0; if (k >= n) return 1;
+    const v = lines[at.get(`${axis}${k}:${t}`)];
+    return Number.isFinite(v) ? v : k / n;
+  };
+  return layout.cells.map(([x, y, w, h]) => [edge('v', x, y, layout.cols), edge('h', y, x, layout.rows), edge('v', x + w, y, layout.cols), edge('h', y + h, x, layout.rows)]);
+}
+
+/** 線を動かせる範囲（どのマスも最小の大きさ min 以上を保つ） */
+export function dividerRange(layout, lines, d, min = 0.06) {
+  const e = cellEdges(layout, lines); const s = d.axis === 'v' ? 0 : 1;
+  return [Math.max(...d.before.map((i) => e[i][s] + min)), Math.min(...d.after.map((i) => e[i][s + 2] - min))];
+}
+
+/** 外側の余白とすき間（px）と、すき間を含めた内側の大きさ */
+export function gridMetrics(W, H, { gap = 0, margin = 0 } = {}) {
   const m = Math.min(W, H);
   const gp = (gap / 100) * m; const mg = (margin / 100) * m;
-  const iw = W - mg * 2 + gp; const ih = H - mg * 2 + gp; // マス目の幅（右端・下端のすき間を含めた計算）
-  return layout.cells.map(([x, y, w, h]) => {
-    const x0 = mg + (x / layout.cols) * iw; const y0 = mg + (y / layout.rows) * ih;
-    const x1 = mg + ((x + w) / layout.cols) * iw - gp; const y1 = mg + ((y + h) / layout.rows) * ih - gp;
+  return { gp, mg, iw: W - mg * 2 + gp, ih: H - mg * 2 + gp };
+}
+
+/**
+ * 各マスの位置（px）。gap・margin は短い辺に対する %（0〜10）、lines は動かした線の位置
+ * @returns {{x:number,y:number,w:number,h:number}[]}
+ */
+export function cellRects(layout, W, H, { gap = 0, margin = 0, lines = {} } = {}) {
+  const { gp, mg, iw, ih } = gridMetrics(W, H, { gap, margin });
+  return cellEdges(layout, lines).map(([a, b, c, d]) => {
+    const x0 = mg + a * iw; const y0 = mg + b * ih;
+    const x1 = mg + c * iw - gp; const y1 = mg + d * ih - gp;
     return { x: x0, y: y0, w: Math.max(1, x1 - x0), h: Math.max(1, y1 - y0) };
   });
+}
+
+/** 線の画面上の位置（px）: 線の中心 c と、線が通る範囲 s0〜s1 */
+export function dividerGeometry(d, rects) {
+  const v = d.axis === 'v';
+  const end = Math.max(...d.before.map((i) => (v ? rects[i].x + rects[i].w : rects[i].y + rects[i].h)));
+  const start = Math.min(...d.after.map((i) => (v ? rects[i].x : rects[i].y)));
+  const all = [...d.before, ...d.after].map((i) => rects[i]);
+  const s0 = Math.min(...all.map((r) => (v ? r.y : r.x))); const s1 = Math.max(...all.map((r) => (v ? r.y + r.h : r.x + r.w)));
+  return { c: (end + start) / 2, s0, s1 };
+}
+
+/** 点（px）の近くにある線（なければ null）。tol は許容する距離（px） */
+export function hitDivider(layout, rects, x, y, tol) {
+  let best = null; let bestD = tol;
+  for (const d of dividers(layout)) {
+    const g = dividerGeometry(d, rects);
+    const [p, q] = d.axis === 'v' ? [x, y] : [y, x];
+    if (q < g.s0 || q > g.s1) continue;
+    const dist = Math.abs(p - g.c);
+    if (dist <= bestD) { best = d; bestD = dist; }
+  }
+  return best;
 }
 
 /** 写真をマスいっぱいに表示するときの、切り出す範囲（元画像の px）。zoom 1〜4、ox/oy は -1〜1（はみ出した分の中での位置） */
@@ -57,7 +130,7 @@ export function gridSize(aspect, longSide) {
 }
 
 /** 描く（ctx は 2D Canvas）。images は cells と同じ順の画像（Canvas / ImageBitmap） */
-export function drawGrid(ctx, W, H, grid, images, { selected = -1 } = {}) {
+export function drawGrid(ctx, W, H, grid, images, { selected = -1, handles = false, active = null } = {}) {
   const n = grid.cells.length;
   const layout = layoutById(n, grid.layout);
   const rects = cellRects(layout, W, H, grid);
@@ -80,6 +153,19 @@ export function drawGrid(ctx, W, H, grid, images, { selected = -1 } = {}) {
       ctx.strokeRect(rc.x + ctx.lineWidth / 2, rc.y + ctx.lineWidth / 2, rc.w - ctx.lineWidth, rc.h - ctx.lineWidth); ctx.restore();
     }
   });
+  if (handles) {
+    // 動かせる線のつまみ（画面の表示だけ。書き出しには描かない）
+    const u = Math.max(2, Math.min(W, H) / 250);
+    for (const d of dividers(layout)) {
+      const g = dividerGeometry(d, rects); const mid = (g.s0 + g.s1) / 2; const len = Math.min(u * 14, (g.s1 - g.s0) * 0.4);
+      const on = d.id === active;
+      ctx.save(); ctx.fillStyle = on ? '#f2c14e' : 'rgba(255,255,255,0.92)'; ctx.strokeStyle = 'rgba(0,0,0,0.45)'; ctx.lineWidth = u * 0.6;
+      ctx.beginPath();
+      const [x, y, w, h] = d.axis === 'v' ? [g.c - u * 1.5, mid - len / 2, u * 3, len] : [mid - len / 2, g.c - u * 1.5, len, u * 3];
+      if (ctx.roundRect) ctx.roundRect(x, y, w, h, u * 1.5); else ctx.rect(x, y, w, h);
+      ctx.fill(); ctx.stroke(); ctx.restore();
+    }
+  }
   ctx.restore();
   return rects;
 }
