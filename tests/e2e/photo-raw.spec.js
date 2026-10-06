@@ -1,6 +1,6 @@
 // てもとフォト: RAW ファイル（DNG は現像、NEF/CR3 などは中のプレビュー）を開く
 import { test, expect } from '@playwright/test';
-import { makePhoto, viewMean } from './photo-helpers.js';
+import { makePhoto, viewMean, savedExposures } from './photo-helpers.js';
 import { makeDng, makePreviewRaw, makeContainerRaw, XYZ_TO_SRGB } from '../unit/raw-fixtures.js';
 
 test.describe.configure({ timeout: 60000 });
@@ -31,7 +31,8 @@ test('DNG（可逆JPEG圧縮・ホワイトバランス・色変換つき）を�
   // 編集して、一覧に戻って開き直す（保存した RAW をもう一度現像する）
   await page.getByRole('tab', { name: 'ライト' }).click();
   await page.getByLabel('露光量', { exact: true }).evaluate((el) => { el.value = 30; el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true })); });
-  await page.waitForTimeout(600);
+  // 保存が終わるまで待ってから再読み込み
+  await expect.poll(() => savedExposures(page), { timeout: 15000 }).toContain(30);
   await page.reload();
   await expect(page.locator('.lib-badge.raw')).toHaveText('RAW');
   await page.locator('.lib-open').first().click();

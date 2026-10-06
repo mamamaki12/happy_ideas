@@ -2,7 +2,7 @@
 import { test, expect } from '@playwright/test';
 import { createRequire } from 'node:module';
 import { readFile } from 'node:fs/promises';
-import { makePhoto, viewMean, withExif } from './photo-helpers.js';
+import { makePhoto, viewMean, withExif, savedExposures } from './photo-helpers.js';
 
 const URL0 = '/products/photo-editor/';
 const SKY = [0.05, 0.05, 0.5, 0.3]; // 表示中の写真の、空の部分（左上）
@@ -282,7 +282,8 @@ test('保存して再読み込みしても編集が残る・プリセット・�
   await page.getByRole('button', { name: '保存', exact: true }).click();
   await page.locator('.menu summary').click();
   await page.getByRole('button', { name: '編集をコピー' }).click();
-  await page.waitForTimeout(600);
+  // 保存が終わるまで待ってから再読み込み（遅い CI では決め打ちの待ち時間では足りない）
+  await expect.poll(() => savedExposures(page), { timeout: 15000 }).toContain(40);
   await page.reload();
   await expect(page.locator('.lib-item')).toHaveCount(1);
   await expect(page.locator('.lib-badge')).toHaveText('編集済み');

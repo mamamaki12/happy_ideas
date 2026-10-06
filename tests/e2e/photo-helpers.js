@@ -57,3 +57,16 @@ export async function solidPhoto(page, color, { w = 800, h = 600, name = 'solid.
   }, { color, w, h });
   return { name, mimeType: 'image/png', buffer: Buffer.from(b64, 'base64') };
 }
+
+/** 端末内（IndexedDB）に保存された、各写真の露光量（保存が終わるのを待つ用） */
+export function savedExposures(page) {
+  return page.evaluate(() => new Promise((res) => {
+    const r = indexedDB.open('temoto-photo');
+    r.onsuccess = () => {
+      const q = r.result.transaction('projects').objectStore('projects').getAll();
+      q.onsuccess = () => { res(q.result.map((p) => p.state?.adj?.exposure)); r.result.close(); };
+      q.onerror = () => res([]);
+    };
+    r.onerror = () => res([]);
+  }));
+}
