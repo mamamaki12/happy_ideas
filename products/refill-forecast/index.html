@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="theme-color" content="#27686c"><meta name="description" content="開封と使い切りを記録すると、自分の消費ペースが見えてくる。">
+<title>なくなる前に — Happy Ideas</title><link rel="stylesheet" href="../daily-kit/style.css"><script type="module" src="../daily-kit/app.js"></script></head>
+<body data-app="refill-forecast"><header><a href="../../">← Happy Ideas</a><b id="brand">なくなる前に</b></header>
+<main><section class="hero"><div><p id="eyebrow" class="eyebrow"></p><h1 id="title">なくなる前に</h1><p id="lead" class="lead">開封と使い切りを記録すると、自分の消費ペースが見えてくる。</p><button id="add" class="primary">＋ 登録</button></div><div class="art" aria-hidden="true"><span id="symbol"></span></div></section>
+<p id="load-error" role="alert"></p><section id="stats" class="stats" aria-label="記録のまとめ"></section>
+<section aria-label="記録一覧"><div class="bar"><h2>わたしの記録</h2><button id="demo">お試しデータを追加</button></div><input id="search" class="search" type="search" placeholder="キーワードで検索" aria-label="キーワードで検索"><div id="filters"></div><p id="count" aria-live="polite"></p><div id="cards" class="cards"></div></section>
+<p id="tips"></p><details class="backup"><summary>バックアップ・復元</summary><p>記録はこのブラウザ内に保存され、外部には送信しません。ブラウザのデータを消すと記録も消えるため、定期的に保存してください。復元はこのアプリの記録だけを置き換えます。</p><div class="backup-actions"><button id="export">バックアップを保存</button><label class="file">バックアップを復元<input id="import" type="file" accept="application/json,.json"></label></div></details><noscript>このアプリにはJavaScriptが必要です。</noscript></main>
+<footer>ログイン不要・端末内保存。別の端末にはバックアップファイルで移せます。自動通知は行いません。</footer><p id="notice" role="status" aria-live="polite"></p>
+<dialog id="editor"><form id="form"><div class="bar"><h2 id="editor-title">記録を追加</h2><button id="close" type="button" aria-label="閉じる">✕</button></div><div id="fields"></div><div id="photo-area" hidden><label>写真（任意・10MBまで）<input id="photo" type="file" accept="image/*"></label><p id="photo-message"></p><button id="remove-photo" type="button">写真を外す</button></div><p id="form-error" role="alert"></p><button id="save" type="submit" class="primary">保存する</button></form></dialog>
+</body></html>
