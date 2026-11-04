@@ -2,7 +2,7 @@ import { h, add, render, $, store, uid, yen, todayStr, fmtDate, daysUntil, toast
 import { drawWrapped, canvasToBlob } from '../../shared/canvas-text.js';
 import { inkFor, darkenFor } from '../../shared/color.js';
 import { installHint } from '../../shared/install-hint.js';
-import { SPEND_KINDS, nextEvent, spendTotal, yearSummary, validateBackup, daysBetween, TICKET_STATUS, ticketAlerts, ticketStats, computeReminders } from './logic.js';
+import { SPEND_KINDS, nextEvent, spendTotal, yearSummary, validateBackup, daysBetween, TICKET_STATUS, ticketAlerts, ticketStats, computeReminders, backupDue, ymd } from './logic.js';
 
 // 推し活手帳: 推しごとの支出・参戦予定・写真をひとつに。データは端末の中だけ。
 const db = store('oshi-techo');
@@ -34,7 +34,7 @@ async function enablePush() {
   const keyRes = await fetch(`${PUSH_API}key`, { credentials: 'omit' }).catch(() => null);
   if (!keyRes?.ok) throw new Error('このサイトには通知サーバーがありません（Cloudflare Pages で公開した場合のみ使えます）');
   const { publicKey } = await keyRes.json();
-  if ((await Notification.requestPermission()) !== 'granted') throw new Error('通知が許可されませんでした');
+  if ((await Notification.requestPermission()) !== 'granted') throw new Error('通知が許可されていません。ブラウザの設定で、このサイトの通知を「許可」にしてから、もう一度お試しください');
   const reg = await navigator.serviceWorker.ready;
   const sub = (await reg.pushManager.getSubscription()) || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlB64ToBytes(publicKey) });
   db.set('pushOn', true);
@@ -136,11 +136,28 @@ function home() {
       h('p', { class: 'small muted' }, month > S.budget ? `予算 ${yen(S.budget)} を ${yen(month - S.budget)} オーバー` : `予算 ${yen(S.budget)} まで あと ${yen(S.budget - month)}`),
       h('p', { class: 'small' }, `${o.name}への今年の合計: `, h('b', {}, yen(year)))),
     h('section', { class: 'card' }, h('h2', {}, '最近の記録'), recent.length ? h('ul', { class: 'list' }, recent.map(entryRow)) : h('p', { class: 'empty' }, 'まだ記録がありません'),
-      recent.length ? h('button', { class: 'small ghost', onclick: () => go('log') }, 'すべて見る →') : null));
+      recent.length ? h('button', { class: 'small ghost', onclick: () => go('log') }, 'すべて見る →') : null),
+    backupCard());
   // 前日・当日の予定を1日1回通知
   const soon = S.entries.filter((e) => e.type === 'event' && [0, 1].includes(daysUntil(e.date)));
   for (const e of soon) { const k = `n:${e.id}:${t}`; if (!db.get(k)) { db.set(k, 1); notify(daysUntil(e.date) ? `明日は ${e.title}！` : `今日は ${e.title}！`, daysUntil(e.date) ? '持ち物とチケットを確認しよう' : '楽しんでね'); } }
   for (const a of alerts) { const k = `t:${a.t.id}:${a.kind}:${t}`; if (!db.get(k)) { db.set(k, 1); notify(`🎫 ${a.t.title}`, a.text); } }
+}
+
+// ── バックアップ（データは端末の中だけ。書き出した日を覚えておき、しばらく書き出していなければホームですすめる） ──
+function exportBackup() {
+  download(new Blob([JSON.stringify({ app: 'oshi-techo', version: 1, exportedAt: new Date().toISOString(), oshis: S.oshis, entries: S.entries, tickets: S.tickets, budget: S.budget })], { type: 'application/json' }), `oshi-techo-${todayStr()}.json`);
+  db.set('backup', { ...db.get('backup', {}), last: todayStr() });
+}
+const lastBackupText = () => { const b = db.get('backup', {}); if (!b.last) return 'まだ書き出していません。'; const [y, m, d] = b.last.split('-').map(Number); return `最後に書き出した日: ${y}年${m}月${d}日`; };
+function backupCard() {
+  const b = db.get('backup', {}); const t = todayStr();
+  if (!backupDue(b, S.entries.length + S.tickets.length, t)) return null;
+  const card = h('section', { class: 'card backup-tip', 'aria-label': 'バックアップのおすすめ' },
+    h('p', { class: 'small' }, b.last ? `最後のバックアップから${daysBetween(b.last, t)}日たちました。機種変更やブラウザのデータ削除に備えて、書き出しておきましょう。` : '記録はこのスマホの中だけにあります。機種変更やブラウザのデータ削除に備えて、バックアップを書き出しておきましょう。'),
+    h('div', { class: 'btn-row' }, h('button', { class: 'small oshi-btn', onclick: () => { exportBackup(); card.remove(); toast('バックアップを書き出しました'); } }, '📤 書き出す'),
+      h('button', { class: 'small', onclick: () => { db.set('backup', { ...b, snooze: ymd(new Date(Date.now() + 7 * 86400000)) }); card.remove(); } }, 'あとで')));
+  return card;
 }
 
 // ── 当落管理 ──
@@ -213,7 +230,7 @@ function entryRow(e) {
   return h('li', {}, h('span', { class: 'dot', style: { background: o.color }, title: o.name }),
     h('div', { class: 'grow' }, h('div', {}, e.type === 'event' ? `📅 ${e.title}` : `${e.kind} ${e.title}`), h('div', { class: 'sub' }, `${fmtDate(e.date)}${e.venue ? ` ・ ${e.venue}` : ''}${S.oshis.length > 1 ? ` ・ ${o.name}` : ''}`)),
     e.type === 'spend' ? h('b', {}, yen(e.amount)) : h('span', { class: 'pill' }, daysUntil(e.date) >= 0 ? `あと${daysUntil(e.date)}日` : '参戦済み'),
-    h('button', { class: 'small ghost', 'aria-label': '削除', onclick: () => { if (confirmDelete()) { S.entries = S.entries.filter((x) => x.id !== e.id); save(); draw(); } } }, '×'));
+    h('button', { class: 'small ghost', 'aria-label': '削除', onclick: () => { if (confirmDelete(`「${e.type === 'event' ? e.title : `${e.kind} ${e.title}`.trim()}」（${fmtDate(e.date)}）`)) { S.entries = S.entries.filter((x) => x.id !== e.id); save(); draw(); toast('削除しました'); } } }, '×'));
 }
 
 // ── 記録一覧 ──
@@ -299,11 +316,12 @@ function wrapped() {
 // ── 設定 ──
 function settings() {
   const list = h('ul', { class: 'list' });
+  const lastBackup = h('p', { class: 'small muted', id: 'backup-last' }, lastBackupText());
   const drawList = () => render(list, S.oshis.map((o) => h('li', {},
     h('input', { type: 'color', value: o.color, 'aria-label': `${o.name}の推し色`, class: 'mini-color', onchange: (e) => { o.color = e.target.value; save(); theme(); } }),
     h('input', { value: o.emoji, maxlength: 4, 'aria-label': `${o.name}の絵文字`, class: 'mini-emoji', onchange: (e) => { o.emoji = e.target.value || '⭐'; save(); } }),
     h('input', { value: o.name, maxlength: 30, 'aria-label': '推しの名前', class: 'grow', onchange: (e) => { o.name = e.target.value.trim() || o.name; save(); } }),
-    h('button', { class: 'small ghost', 'aria-label': `${o.name}を削除`, disabled: S.oshis.length <= 1, onclick: () => { if (!confirmDelete(`${o.name}と、その記録すべて`)) return; S.oshis = S.oshis.filter((x) => x.id !== o.id); S.entries = S.entries.filter((e) => e.oshi !== o.id); S.cur = S.oshis[0]?.id; save(); theme(); drawList(); } }, '×'))));
+    h('button', { class: 'small ghost', 'aria-label': `${o.name}を削除`, disabled: S.oshis.length <= 1, onclick: () => { if (!confirmDelete(`${o.name}と、その記録すべて（支出・予定・チケット）`)) return; S.oshis = S.oshis.filter((x) => x.id !== o.id); S.entries = S.entries.filter((e) => e.oshi !== o.id); S.tickets = S.tickets.filter((t) => t.oshi !== o.id); S.cur = S.oshis[0]?.id; save(); theme(); drawList(); } }, '×'))));
   const newName = h('input', { maxlength: 30, placeholder: '推しの名前', 'aria-label': '追加する推しの名前' });
   const newColor = h('input', { type: 'color', value: '#7950f2', 'aria-label': '追加する推しの色' });
   const fileIn = h('input', { type: 'file', accept: 'application/json,.json', class: 'hidden', 'aria-label': 'バックアップを読み込む', onchange: async (e) => {
@@ -316,7 +334,8 @@ function settings() {
     h('section', { class: 'card' }, h('h2', {}, '推し'), list, h('form', { class: 'row', style: { marginTop: '10px' }, onsubmit: (e) => { e.preventDefault(); if (!newName.value.trim()) return; const o = { id: uid(), name: newName.value.trim(), color: newColor.value, emoji: '⭐', since: '' }; S.oshis.push(o); save(); newName.value = ''; drawList(); toast('推しを追加しました'); } },
       h('div', { class: 'shrink' }, newColor), h('div', {}, newName), h('button', { class: 'shrink', type: 'submit' }, '追加'))),
     h('section', { class: 'card' }, h('h2', {}, '予算と通知'), h('label', { for: 'bg' }, '1か月の推し活予算（円）'), h('input', { id: 'bg', type: 'number', min: 0, value: S.budget, onchange: (e) => { S.budget = Math.max(0, +e.target.value || 0); save(); } }), h('div', { style: { marginTop: '10px' } }, notifyButton()),
-      h('p', { class: 'small muted' }, '予定の前日・当日に、アプリを開いたときにお知らせします。')),
+      h('p', { class: 'small muted' }, '予定の前日・当日に、アプリを開いたときにお知らせします。'),
+      'Notification' in window && Notification.permission === 'denied' ? h('p', { class: 'small' }, '🔕 このサイトの通知がブロックされています。ブラウザの設定（サイトの設定 → 通知）で「許可」にすると使えます。') : null),
     (() => {
       const status = h('p', { class: 'small', 'aria-live': 'polite' }, db.get('pushOn', false) ? '✅ オン: アプリを閉じていても、入金期限・当落発表・ライブ前日にお知らせします' : 'オフ');
       const btn = h('button', { class: db.get('pushOn', false) ? '' : 'oshi-btn', onclick: async () => {
@@ -328,7 +347,7 @@ function settings() {
         h('p', { class: 'small muted' }, 'サーバーに送るのは「いつ・どの種類（入金/当落/予定）のお知らせか」だけです。チケット名や推しの名前は送りません。'));
     })(),
     h('section', { class: 'card' }, h('h2', {}, 'バックアップ'), h('p', { class: 'small muted' }, 'データはこの端末の中だけにあります。機種変更の前に書き出してください。'),
-      h('div', { class: 'btn-row' }, h('button', { onclick: () => download(new Blob([JSON.stringify({ app: 'oshi-techo', version: 1, exportedAt: new Date().toISOString(), oshis: S.oshis, entries: S.entries, tickets: S.tickets, budget: S.budget })], { type: 'application/json' }), `oshi-techo-${todayStr()}.json`) }, '📤 書き出す'), h('button', { onclick: () => fileIn.click() }, '📥 読み込む')), fileIn),
+      h('div', { class: 'btn-row' }, h('button', { onclick: () => { exportBackup(); render(lastBackup, lastBackupText()); } }, '📤 書き出す'), h('button', { onclick: () => fileIn.click() }, '📥 読み込む')), fileIn, lastBackup),
     h('p', { class: 'center small' }, h('a', { href: '../privacy.html' }, 'プライバシーポリシー'), ' ・ ', h('a', { href: '../../index.html' }, 'Happy Ideas のアイデア一覧へ')));
   drawList();
 }

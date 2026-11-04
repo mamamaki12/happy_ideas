@@ -22,12 +22,29 @@ export async function packRally(rally) {
   return b64u(await pipe(json, new CompressionStream('deflate-raw')));
 }
 
-/** 圧縮を展開して検証する。不正なら null（展開後 64KB までに制限して圧縮爆弾を防ぐ） */
+/** 圧縮を展開して JSON にする。不正なら例外（展開後 64KB までに制限して圧縮爆弾を防ぐ） */
+async function unpackJson(code) {
+  if (typeof code !== 'string' || code.length > 8000 || !/^[A-Za-z0-9_-]+$/.test(code)) throw new Error('bad code');
+  const json = await pipe(unb64u(code), new DecompressionStream('deflate-raw'), 65536);
+  return JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(json));
+}
+
+/** 圧縮を展開して検証する。不正なら null */
 export async function unpackRally(code) {
+  try { return sanitizeRally(await unpackJson(code)); } catch { return null; }
+}
+
+/**
+ * 主催者用の「管理用リンク」（#edit=）の中身を検証する。ラリーの内容に加えて、集計を見るための主催者キーを持つ。
+ * リンクは攻撃者が作れるので、ラリーと同じ検査をして、キーは 48 桁の16進数だけ受け付ける。不正なら null
+ */
+export async function unpackDraft(code) {
   try {
-    if (typeof code !== 'string' || code.length > 8000 || !/^[A-Za-z0-9_-]+$/.test(code)) return null;
-    const json = await pipe(unb64u(code), new DecompressionStream('deflate-raw'), 65536);
-    return sanitizeRally(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(json)));
+    const raw = await unpackJson(code);
+    const r = sanitizeRally(raw);
+    if (!r || !/^[A-Za-z0-9_-]{6,16}$/.test(r.id)) return null;
+    const key = typeof raw.key === 'string' && /^[0-9a-f]{48}$/.test(raw.key) ? raw.key : undefined;
+    return { id: r.id, t: r.t, d: r.d, g: r.g, from: r.from, to: r.to, c: r.c, p: r.p, ...(key ? { key, statsOn: raw.statsOn === true } : {}) };
   } catch { return null; }
 }
 

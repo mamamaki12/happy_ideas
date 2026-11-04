@@ -120,3 +120,56 @@ test('当落管理: 申込 → 当選（入金期限）→ ホームに警告 �
   await expect(page.getByRole('heading', { name: 'バックアップ' })).toBeVisible();
   expect(errors).toEqual([]);
 });
+
+/** 推しを2人にして、それぞれのチケットと支出を入れた状態を作る（localStorage に直接） */
+async function seed(page, extra = {}) {
+  await page.goto('/products/oshi-techo/');
+  await page.evaluate((extra) => {
+    const set = (k, v) => localStorage.setItem(`happy:oshi-techo:${k}`, JSON.stringify(v));
+    set('oshis', [{ id: 'a', name: 'ミナ', color: '#ff5fa2', emoji: '💖', since: '' }, { id: 'b', name: 'ソラ', color: '#3b82f6', emoji: '⭐', since: '' }]);
+    set('cur', 'a');
+    set('entries', [1, 2, 3, 4, 5].map((n) => ({ id: `e${n}`, oshi: n % 2 ? 'a' : 'b', type: 'spend', kind: '🛍 グッズ', amount: 1000 * n, title: `グッズ${n}`, venue: '', date: '2026-10-0' + n, memo: '' })));
+    set('tickets', [{ id: 't1', oshi: 'a', title: 'ミナの東京公演', site: '', venue: '', eventDate: '', resultOn: '', payBy: '', price: 0, status: 'applied' }, { id: 't2', oshi: 'b', title: 'ソラの大阪公演', site: '', venue: '', eventDate: '', resultOn: '', payBy: '', price: 0, status: 'applied' }]);
+    for (const [k, v] of Object.entries(extra)) set(k, v);
+  }, extra);
+  await page.reload();
+}
+
+test('推しを削除すると、その推しのチケットも消える（ほかの推しの記録に混ざらない）', async ({ page }) => {
+  await seed(page);
+  page.on('dialog', (d) => d.accept());
+  await page.getByRole('link', { name: '設定' }).click();
+  await page.getByRole('button', { name: 'ソラを削除' }).click();
+  await page.getByRole('link', { name: /当落/ }).click();
+  await expect(page.getByText('ミナの東京公演')).toBeVisible();
+  await expect(page.getByText('ソラの大阪公演')).toHaveCount(0);
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('happy:oshi-techo:tickets')).map((t) => t.id))).toEqual(['t1']);
+});
+
+test('記録が増えたら、ホームでバックアップの書き出しをすすめる（あとで・書き出し後は出さない）', async ({ page }) => {
+  await seed(page);
+  const tip = page.getByRole('region', { name: 'バックアップのおすすめ' });
+  await expect(tip).toContainText('記録はこのスマホの中だけにあります');
+  await tip.getByRole('button', { name: 'あとで' }).click();
+  await expect(tip).toHaveCount(0);
+  await page.reload();
+  await expect(tip).toHaveCount(0);
+  await page.evaluate(() => localStorage.removeItem('happy:oshi-techo:backup'));
+  await page.reload();
+  const download = page.waitForEvent('download');
+  await tip.getByRole('button', { name: '📤 書き出す' }).click();
+  expect((await download).suggestedFilename()).toMatch(/^oshi-techo-.*\.json$/);
+  await expect(tip).toHaveCount(0);
+  await page.getByRole('link', { name: '設定' }).click();
+  await expect(page.locator('#backup-last')).toContainText('最後に書き出した日: ');
+});
+
+test('記録を消すときは、どの記録かを確認してから消す', async ({ page }) => {
+  await seed(page);
+  const asked = [];
+  page.on('dialog', (d) => { asked.push(d.message()); d.accept(); });
+  await page.getByRole('button', { name: 'すべて見る →' }).click();
+  await page.locator('li', { hasText: 'グッズ5' }).getByRole('button', { name: '削除' }).click();
+  expect(asked[0]).toContain('グッズ5');
+  await expect(page.locator('li', { hasText: 'グッズ5' })).toHaveCount(0);
+});

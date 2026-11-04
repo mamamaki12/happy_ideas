@@ -4,7 +4,7 @@ import { compassTo } from '../../shared/compass.js';
 import { drawQr } from '../../shared/qr.js';
 import { showQr } from '../../shared/qr-ui.js';
 import { drawWrapped, canvasToBlob } from '../../shared/canvas-text.js';
-import { packRally, unpackRally, sanitizeRally, periodState, tryStamp } from './logic.js';
+import { packRally, unpackRally, unpackDraft, sanitizeRally, periodState, tryStamp } from './logic.js';
 import { darkenFor } from '../../shared/color.js';
 
 // ラリーメーカー: サーバーなしで動く位置情報スタンプラリー。主催者はURL（QR）を配るだけ、参加者はアプリ不要。
@@ -36,6 +36,7 @@ const I18N = {
     accuracy: 'GPSの精度が低いため押せません。空が見える場所でもう一度お試しください', speed: '移動が速すぎます。少し時間をおいてお試しください', done: 'すべてのスタンプを集めました',
     far: (n, m) => `いちばん近い「${n}」まであと約${m}m`, all: (n) => `${n}か所すべて達成`, at: '達成', staff: '受付スタッフの方へ: 時計が動いていて、背景が流れていれば本物の画面です（スクリーンショットではありません）',
     share: '🖼 記念画像をシェア', back: '編集に戻る', certText: (t) => `「${t}」をコンプリートしました！`, certSub: (n) => `${n}か所のスタンプを集めました`, lang: 'English',
+    geo: { 1: '位置情報が許可されていないため、スタンプを押せません。ブラウザやスマホの設定で、このサイトの位置情報を「許可」にしてから、もう一度押してください', 2: '位置を取得できませんでした。空が見える場所で、もう一度お試しください', 3: '位置の確認に時間がかかっています。もう一度お試しください' },
   },
   en: {
     preview: '👀 Preview (stamps are not saved)', period: (a, b) => `Period: ${a || '…'} – ${b}`, count: '', stamps: 'Stamps collected',
@@ -44,6 +45,7 @@ const I18N = {
     accuracy: 'GPS accuracy is too low. Please try again where you can see the sky', speed: 'You are moving too fast. Please wait a moment and try again', done: 'You have collected all stamps',
     far: (n, m) => `The nearest spot "${n}" is about ${m} m away`, all: (n) => `All ${n} spots completed`, at: 'Completed', staff: 'For staff: if the clock is ticking and the background is moving, this is a live screen (not a screenshot)',
     share: '🖼 Share your badge', back: 'Back to editor', certText: (t) => `I completed "${t}"!`, certSub: (n) => `Collected ${n} stamps`, lang: '日本語',
+    geo: { 1: 'Location access is blocked, so stamps cannot be collected. Allow location for this site in your browser or phone settings, then try again', 2: 'Could not get your location. Please try again where you can see the sky', 3: 'Getting your location is taking too long. Please try again' },
   },
 };
 let lang = db.get('lang', (navigator.language || 'ja').startsWith('ja') ? 'ja' : 'en');
@@ -94,7 +96,7 @@ function play(r, { preview = false } = {}) {
         vibrate([80, 60, 200]); toast(T().gotToast(r.p[res.index].n));
         draw(); const el = main.querySelectorAll('.stamp')[res.index]; el?.classList.add('just');
       } else draw(res.code === 'far' ? T().far(r.p[res.nearest].n, res.meters) : T()[res.code]);
-    } catch (e) { draw(e.message); }
+    } catch (e) { draw(T().geo[e.code] || e.message); }
   }
   function guide(box) {
     getPosition({ maximumAge: 10000 }).then((pos) => {
@@ -103,7 +105,7 @@ function play(r, { preview = false } = {}) {
       if (!rest.length) return;
       const t = rest[0]; compass?.stop(); compass = compassTo({ lat: t.a, lon: t.o });
       render(box, h('p', {}, h('b', {}, `${t.i + 1}. ${t.n}`), t.h ? ` — ${t.h}` : ''), compass.el); compass.start();
-    }).catch((e) => toast(e.message));
+    }).catch((e) => toast(T().geo[e.code] || e.message));
   }
   function complete() {
     const last = Math.max(...Object.values(stamps).map((x) => x.t));
@@ -164,12 +166,13 @@ function editor() {
     save(); name.value = ''; hint.value = ''; coord.value = ''; drawList(); name.focus();
   };
 
+  /** 集計を使えるようにする。戻り値: 'on'（使える）/ 'limit'（今日の登録の上限）/ 'off'（集計サーバーがない） */
   async function enableStats(r) {
     d.key ||= hex(24); save();
     try {
       const res = await post(API, { id: r.id, keyHash: await sha256(d.key), points: r.p.length });
-      return res.ok;
-    } catch { return false; }
+      return res.ok ? 'on' : res.status === 429 ? 'limit' : 'off';
+    } catch { return 'off'; }
   }
   async function showStats(box) {
     try {
@@ -188,7 +191,8 @@ function editor() {
     let r = sanitizeRally({ ...d, t: d.t || 'スタンプラリー' });
     if (!r) return toast('チェックポイントを1か所以上追加してください');
     // 集計サーバー（Cloudflare Pages + D1）があれば使う。なければ集計なしで公開
-    const statsOn = await enableStats(r);
+    const stats = await enableStats(r);
+    const statsOn = stats === 'on';
     r = { ...r, s: statsOn ? 1 : 0 }; d.statsOn = statsOn; save();
     const code = await packRally(r);
     const url = new URL(location.href); url.search = ''; url.hash = `z=${code}`;
@@ -200,7 +204,18 @@ function editor() {
         h('button', { onclick: () => poster(r, u) }, '🖨 ポスター（A4）'),
         h('button', { onclick: () => signs(r) }, '🪧 チェックポイント看板')),
       h('button', { class: 'ghost small', style: { marginTop: '8px' }, onclick: () => { app.replaceChildren(); play(r, { preview: true }); window.scrollTo(0, 0); } }, '👀 参加者の画面を試す'),
-      statsOn ? h('p', { class: 'small' }, '📊 参加状況の集計がオンです（匿名の人数だけを数えます）。') : h('p', { class: 'small muted' }, '※ このサイトには集計サーバーがないため、参加人数は数えられません。'));
+      statsOn ? h('p', { class: 'small' }, '📊 参加状況の集計がオンです（匿名の人数だけを数えます）。')
+        : stats === 'limit' ? h('p', { class: 'small' }, '※ 今日は同じ回線から新しく登録できるラリーの数の上限に達したため、集計なしで作りました。明日もう一度「参加用のURLとQRを作る」を押すと、集計をオンにできます。')
+          : h('p', { class: 'small muted' }, '※ このサイトには集計サーバーがないため、参加人数は数えられません。'));
+  }
+
+  /** 管理用リンク: 下書きと主催者キーを入れたURL。機種変更やブラウザのデータ削除のあとも、続きから編集・集計の確認ができる */
+  async function adminLink() {
+    const r = sanitizeRally({ ...d, t: d.t || 'スタンプラリー' });
+    if (!r) return toast('チェックポイントを1か所以上追加してください');
+    const code = await packRally({ id: d.id, t: d.t, d: d.d, g: d.g, from: d.from, to: d.to, c: d.c, p: r.p, ...(d.key ? { key: d.key, statsOn: !!d.statsOn } : {}) });
+    const url = new URL(location.href); url.search = ''; url.hash = `edit=${code}`;
+    await share({ title: '管理用リンク', text: `ラリーメーカーの管理用リンク「${r.t}」（参加者には配らないでください）`, url: url.href });
   }
 
   add(app,
@@ -221,6 +236,10 @@ function editor() {
       h('p', { class: 'small muted' }, 'ラリーの内容はすべてURLの中に入ります。サーバーに保存しないので、費用はかかりません。内容を変えたら、URLとQRを作り直してください。'),
       h('p', { class: 'small' }, h('a', { href: '../privacy.html' }, 'プライバシーポリシー'))),
     d.statsOn ? (() => { const box = h('div'); return h('section', { class: 'card' }, h('h2', {}, '📊 参加状況'), box, h('button', { class: 'small', onclick: () => showStats(box) }, '最新にする')); })() : null,
+    h('details', { class: 'card' }, h('summary', {}, '🔑 下書きを守る・別の端末で続ける（管理用リンク）'),
+      h('p', { class: 'small' }, '下書きと、参加状況を見るための鍵は、この端末のブラウザの中だけにあります。管理用リンクを自分あてのメールやメモに保存しておくと、機種変更やブラウザのデータ削除のあとも、そのリンクを開けば続きから編集・確認できます。'),
+      h('p', { class: 'small muted' }, '鍵が入っているので、参加者やほかの人には配らないでください（配るのは「参加用のURLとQR」です）。'),
+      h('button', { class: 'small', onclick: adminLink }, '🔑 管理用リンクを保存')),
     h('details', { class: 'card' }, h('summary', {}, '新しいラリーを作る（今の下書きを消す）'), h('button', { class: 'small danger', style: { marginTop: '8px' }, onclick: () => { if (confirmDelete('今の下書き')) { db.remove('draft'); location.reload(); } } }, '下書きを消す')));
   drawList();
 }
@@ -263,11 +282,17 @@ async function signs(r) {
 
 // ───────────────── 起動 ─────────────────
 (async () => {
-  if (location.hash.startsWith('#z=')) {
+  addEventListener('hashchange', () => location.reload()); // URL の # 以降が変わったら開き直す
+  if (location.hash.startsWith('#edit=')) {
+    const dr = await unpackDraft(location.hash.slice(6));
+    history.replaceState(null, '', location.pathname); // 鍵の入ったURLを、アドレスバーや履歴に残さない
+    if (!dr) toast('管理用リンクが壊れているか、対応していない形式です');
+    else if (window.confirm(`管理用リンクの「${dr.t}」（チェックポイント${dr.p.length}か所）を読み込みます。この端末の今の下書きは置き換わります。よろしいですか？`)) { db.set('draft', dr); toast('管理用リンクから下書きを読み込みました'); }
+    editor();
+  } else if (location.hash.startsWith('#z=')) {
     const r = await unpackRally(location.hash.slice(3));
     if (!r) { add(app, h('p', { class: 'error' }, 'ラリーのURLが壊れているか、対応していない形式です。'), h('a', { href: './' }, 'ラリーを作る')); return; }
     document.title = r.t;
     play(r);
   } else editor();
-  addEventListener('hashchange', () => location.reload());
 })();
