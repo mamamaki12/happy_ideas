@@ -87,8 +87,8 @@ npx wrangler d1 execute happy-ideas --local --file=server/schema.sql   # 初回�
 ANTHROPIC_API_KEY=ここに Anthropic Console で作ったキー
 # 任意: 1日の回数（IPごと。既定 20）
 AI_DAILY_LIMIT=100
-# 任意: 使うモデル（既定 claude-sonnet-5-5。安くするなら claude-haiku-4-5-20251001）
-# AI_MODEL=claude-haiku-4-5-20251001
+# 任意: 使うモデル（既定 claude-sonnet-5-5。安くするなら claude-haiku-5-5）
+# AI_MODEL=claude-haiku-5-5
 ```
 
 起動します。

@@ -1,5 +1,6 @@
 // POST /api/rally  { id, keyHash, points } — 主催者がラリーを登録する（集計を使う場合のみ）
 import { json, readJson, sameOrigin, ID_RE, HEX64 } from './_lib.js';
+import { overRateLimit, LIMITS } from '../../../server/limits.js';
 
 export async function onRequestPost({ request, env }) {
   if (!sameOrigin(request)) return json({ error: 'forbidden' }, 403);
@@ -8,6 +9,8 @@ export async function onRequestPost({ request, env }) {
   const existing = await env.DB.prepare('SELECT key_hash FROM rallies WHERE id = ?').bind(b.id).first();
   if (existing && existing.key_hash !== b.keyHash) return json({ error: 'id taken' }, 409); // 他人のラリーIDの乗っ取りを防ぐ
   if (existing) { await env.DB.prepare('UPDATE rallies SET points = ? WHERE id = ?').bind(b.points, b.id).run(); return json({ ok: true }); }
+  // 新しいラリーの登録は、同じ回線から1日 LIMITS.rallyCreate 件まで（大量に登録してデータベースを埋められないように）
+  if (await overRateLimit(env, request, 'rally-create', LIMITS.rallyCreate)) return json({ error: 'limit' }, 429);
   await env.DB.prepare('INSERT INTO rallies (id, key_hash, points, created) VALUES (?, ?, ?, ?)').bind(b.id, b.keyHash, b.points, Date.now()).run();
   return json({ ok: true }, 201);
 }

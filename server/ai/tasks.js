@@ -20,7 +20,7 @@ export const TASKS = {
       '書かれていないことは推測で作らない。読めない部分は「読み取れず」とする。',
       '持ち物は「上ばき」のように短く。提出物・集金・申込の締切は todos に入れる。',
     ],
-    tool: S.obj({
+    output: S.obj({
       title: S.str(80, 'プリントの題名'),
       summary: S.str(300, '保護者向けの2〜3文の要約'),
       events: S.arr(S.obj({ date: S.date(), time: S.time(), title: S.str(60), note: S.str(120) }), 10, '行事・予定'),
@@ -44,7 +44,7 @@ export const TASKS = {
       'お金を払った・個人情報を入力した場合に備え、警察相談専用電話 #9110 と消費者ホットライン 188 を案内してよい。',
       'URLは文字として説明するだけで、そのまま繰り返さない。',
     ],
-    tool: S.obj({
+    output: S.obj({
       level: S.enum(['high', 'medium', 'low'], 'medium'),
       verdict: S.str(100, '一言の判定'),
       pattern: S.str(40, '手口の名前（例: 宅配業者を装うSMS）。なければ空文字'),
@@ -64,7 +64,7 @@ export const TASKS = {
       '写っていない食材は extra（買い足し・常備調味料）に分ける。避けたい食材（アレルギーなど）は絶対に使わない。',
       '傷みやすい食材（葉物・魚・肉・豆腐など）を優先して使う。手順は家庭の調理器具でできる短い文で。',
     ],
-    tool: S.obj({
+    output: S.obj({
       ingredients: S.arr(S.str(30), 30, '写真に写っている食材'),
       recipes: S.arr(S.obj({
         name: S.str(40), minutes: S.int(1, 120), uses: S.arr(S.str(30), 10, '写真の食材のうち使うもの'),
@@ -88,7 +88,7 @@ export const TASKS = {
       '下書きの事実（日時・金額・名前）は変えない。新しい約束や言い訳を作らない。',
       '「丁寧」「ふつう」「短め」の3つを作る。LINEやメールにそのまま貼れる文にする。',
     ],
-    tool: S.obj({
+    output: S.obj({
       versions: S.arr(S.obj({ label: S.str(20), text: S.str(800) }), 3),
       points: S.arr(S.str(100), 4, '書き直しで気をつけた点'),
     }),
@@ -105,7 +105,7 @@ export const TASKS = {
       'やること・期限・お金・問い合わせ先をはっきりさせる。書かれていないことは書かない。',
       '法律・医療の最終判断はしない。不安な点は発行元に確認するよう cautions に書く。',
     ],
-    tool: S.obj({
+    output: S.obj({
       kind: S.str(40, '書類の種類'),
       from: S.str(60, '発行元'),
       summary: S.str(300),
@@ -128,7 +128,7 @@ export const TASKS = {
       'アレルゲン（卵・乳・小麦・えび・かに・そば・落花生・くるみ など）や豚肉・アルコール・生もの・辛さは、一般的なレシピから推定し、推定であることを前提に flags に入れる。',
       '避けたい食材に当たりそうな料理は warn を true にする。値段は写真の通りに書く。',
     ],
-    tool: S.obj({
+    output: S.obj({
       items: S.arr(S.obj({
         original: S.str(60, '写真の表記'), name: S.str(60, '指定言語での名前'), desc: S.str(150), price: S.str(20),
         flags: S.arr(S.str(20), 8, 'アレルゲン・豚肉・アルコール・生もの・辛い など（指定言語）'), warn: S.bool(),
@@ -149,7 +149,7 @@ export const TASKS = {
       '危ないこと・大人の話題・個人情報についての質問には答えず、おうちの人に聞くよう伝える。',
       'try は家でできる安全な観察や実験。火・刃物・薬品は使わない。',
     ],
-    tool: S.obj({ answer: S.str(400), try: S.str(150, 'やってみよう（安全なもの）。なければ空文字'), next: S.str(80, '次に考えてみたくなる問い') }),
+    output: S.obj({ answer: S.str(400), try: S.str(150, 'やってみよう（安全なもの）。なければ空文字'), next: S.str(80, '次に考えてみたくなる問い') }),
   },
 
   // 108 英会話ロールプレイ
@@ -168,7 +168,7 @@ export const TASKS = {
       '学習者の最後の発言に文法や不自然な点があれば correction に日本語で短く説明し、better に自然な英文を書く。なければどちらも空文字。',
       '場面と関係ない依頼には乗らず、ロールプレイに戻す。',
     ],
-    tool: S.obj({
+    output: S.obj({
       reply: S.str(300, '相手役の英語の返事'), reply_ja: S.str(300, '返事の日本語訳'),
       correction: S.str(200), better: S.str(200), hint_ja: S.str(150, '次に言えそうなことのヒント（日本語）'),
     }),
@@ -186,7 +186,7 @@ export const TASKS = {
       '品目は「食費・日用品・外食・交通・趣味・医療・その他」に分類する。割引は負の金額の品目にする。',
       '読めない金額は推測しない（0にする）。合計はレシートに書かれた合計を使う。',
     ],
-    tool: S.obj({
+    output: S.obj({
       store: S.str(40), date: S.date(), total: S.int(0, 10000000),
       items: S.arr(S.obj({ name: S.str(40), price: S.int(-1000000, 10000000), category: S.enum(['食費', '日用品', '外食', '交通', '趣味', '医療', 'その他'], 'その他') }), 40),
     }),
@@ -207,7 +207,7 @@ export const TASKS = {
       'メモにある気持ちや出来事を中心にし、利用者らしい言葉を残す。推しについての事実を作らない。',
       '相手の負担になること（返事の要求・私生活への詮索・過度なお願い）は入れない。感想ポストは140字程度、ハッシュタグは入れない。',
     ],
-    tool: S.obj({ title: S.str(40, '短い題'), text: S.str(1200), tips: S.arr(S.str(100), 3, '送る前に見直すとよい点') }),
+    output: S.obj({ title: S.str(40, '短い題'), text: S.str(1200), tips: S.arr(S.str(100), 3, '送る前に見直すとよい点') }),
   },
 };
 

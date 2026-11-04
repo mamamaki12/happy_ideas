@@ -40,3 +40,12 @@ CREATE TABLE IF NOT EXISTS ai_usage (
   n INTEGER NOT NULL DEFAULT 0,
   PRIMARY KEY (k, day)
 );
+
+-- 乱用対策の回数（ラリーの登録・参加、通知の購読。同じ回線から1日に何回か）。形は ai_usage と同じ。
+-- k は「用途＋日付＋IP（IPv6 は /64）」のハッシュ。古い日付の行は自動で消す。
+CREATE TABLE IF NOT EXISTS rate_limits (
+  k TEXT NOT NULL,
+  day TEXT NOT NULL,
+  n INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (k, day)
+);

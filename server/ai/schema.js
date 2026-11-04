@@ -1,5 +1,5 @@
 // AIの出力の形を1か所で定義する小さな仕組み。
-// 同じ定義から (1) Claude に渡すツールの JSON Schema と (2) 返ってきた値の検査・切り詰めを作る。
+// 同じ定義から (1) Claude に渡す出力の JSON Schema（structured outputs）と (2) 返ってきた値の検査・切り詰めを作る。
 // AIの出力は信用しない: 型が違う・長すぎる・件数が多すぎるものは、ここで直すか捨てる。
 
 // 改行とタブ以外の制御文字を消す
@@ -33,7 +33,8 @@ export const S = {
     clean: (v) => (Array.isArray(v) ? v.slice(0, maxItems).map(item.clean).filter((x) => x !== '' && x !== null) : []),
   }),
   obj: (props, description) => ({
-    json: { type: 'object', properties: Object.fromEntries(Object.entries(props).map(([k, p]) => [k, p.json])), required: Object.keys(props), ...(description ? { description } : {}) },
+    // structured outputs の決まり: すべての object に additionalProperties: false と、全項目の required が必要
+    json: { type: 'object', properties: Object.fromEntries(Object.entries(props).map(([k, p]) => [k, p.json])), required: Object.keys(props), additionalProperties: false, ...(description ? { description } : {}) },
     clean: (v) => {
       if (!v || typeof v !== 'object' || Array.isArray(v)) return null;
       return Object.fromEntries(Object.entries(props).map(([k, p]) => [k, p.clean(v[k])]));

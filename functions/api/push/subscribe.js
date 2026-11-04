@@ -2,6 +2,7 @@
 // DELETE /api/push/subscribe { endpoint } — 購読を解除
 import { json, readJson, sameOrigin, sha256hex } from '../rally/_lib.js';
 import { validEndpoint, validKeys, KINDS, MAX_REMINDERS } from '../../../server/push/policy.js';
+import { overRateLimit, LIMITS } from '../../../server/limits.js';
 
 export async function onRequestPost({ request, env }) {
   if (!sameOrigin(request)) return json({ error: 'forbidden' }, 403);
@@ -12,6 +13,10 @@ export async function onRequestPost({ request, env }) {
   const now = Date.now(); const max = now + 400 * 86400000;
   const rems = b.reminders.filter((r) => KINDS.includes(r?.kind) && Number.isInteger(r?.at) && r.at > now && r.at < max);
   const id = await sha256hex(sub.endpoint);
+  // 新しい購読は、同じ回線から1日 LIMITS.pushSubscribe 件まで（でたらめな購読を大量に登録して、通知の送信を詰まらせないように）。
+  // すでにある購読の予定の更新は数えない
+  const known = await env.DB.prepare('SELECT 1 AS x FROM push_subs WHERE id = ?').bind(id).first();
+  if (!known && await overRateLimit(env, request, 'push-subscribe', LIMITS.pushSubscribe)) return json({ error: 'limit' }, 429);
   await env.DB.prepare('INSERT INTO push_subs (id, endpoint, p256dh, auth, created) VALUES (?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET p256dh = excluded.p256dh, auth = excluded.auth').bind(id, sub.endpoint, sub.keys.p256dh, sub.keys.auth, now).run();
   await env.DB.prepare('DELETE FROM reminders WHERE sub_id = ? AND sent = 0').bind(id).run();
   for (const r of rems) await env.DB.prepare('INSERT INTO reminders (sub_id, at, kind) VALUES (?, ?, ?)').bind(id, r.at, r.kind).run();
