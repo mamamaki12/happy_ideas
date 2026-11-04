@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { CONFIGS } from '../../products/daily-kit/config.js';
-import { today,addDays,days,due,cooling,forecast,eligible,matches,validate,safeLink } from '../../products/daily-kit/logic.js';
+import { today,addDays,days,due,cooling,forecast,eligible,matches,validate,safeLink,backupDue } from '../../products/daily-kit/logic.js';
 test('calendar arithmetic crosses month and leap-day boundaries',()=>{
  assert.equal(addDays('2024-02-28',2),'2024-03-01');assert.equal(days('2026-12-31','2027-01-01'),1);
 });
@@ -25,5 +25,15 @@ for(const c of Object.values(CONFIGS))test(`${c.slug}: sample backup round trip 
 });
 test('invalid future dates, cycle overlaps, duplicate completion dates and images are rejected',()=>{
  const check=(slug,patch)=>{const c=CONFIGS[slug];return ()=>validate({version:1,app:slug,items:[{id:'a',...c.samples()[0],...patch}]},c);};
- assert.throws(check('chore-meter',{last:addDays(today(),1)}));assert.throws(check('chore-meter',{history:[today(),today()]}));assert.throws(check('refill-forecast',{cycles:[{start:'2025-01-01',end:'2025-01-01'}]}));assert.throws(check('refill-forecast',{opened:'2025-01-05',cycles:[{start:'2025-01-01',end:'2025-01-10'}]}));assert.throws(check('home-finder',{photo:'https://example.com/photo.jpg'}));assert.throws(check('cooldown-cart',{url:'javascript:alert(1)'}));
+ assert.throws(check('chore-meter',{last:addDays(today(),3)}));assert.throws(check('chore-meter',{history:[today(),today()]}));assert.throws(check('refill-forecast',{cycles:[{start:'2025-01-01',end:'2025-01-01'}]}));assert.throws(check('refill-forecast',{opened:'2025-01-05',cycles:[{start:'2025-01-01',end:'2025-01-10'}]}));assert.throws(check('home-finder',{photo:'https://example.com/photo.jpg'}));assert.throws(check('cooldown-cart',{url:'javascript:alert(1)'}));
+});
+test('time zones: stored dates up to 2 days ahead load, later ones are rejected',()=>{
+ const c=CONFIGS['chore-meter'];const item=(h)=>({version:1,app:'chore-meter',items:[{id:'a',name:'掃除',room:'台所',interval:7,last:'2026-01-01',note:'',history:h}]});
+ assert.doesNotThrow(()=>validate(item([addDays(today(),1)]),c));assert.doesNotThrow(()=>validate(item([addDays(today(),2)]),c));
+ assert.throws(()=>validate(item([addDays(today(),3)]),c));
+});
+test('backup reminder rule',()=>{
+ assert.equal(backupDue({},2,'2026-11-05'),false);assert.equal(backupDue({},3,'2026-11-05'),true);
+ assert.equal(backupDue({last:'2026-10-07'},5,'2026-11-05'),false);assert.equal(backupDue({last:'2026-10-06'},5,'2026-11-05'),true);
+ assert.equal(backupDue({last:'2026-01-01',snooze:'2026-11-06'},5,'2026-11-05'),false);
 });
