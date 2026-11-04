@@ -60,7 +60,7 @@ iPhone で通知を試すときは、Safari の共有ボタンから「ホーム
 
 1. Cloudflare Pages でこのリポジトリをつなぎ、ビルドコマンド `npm run site`、出力ディレクトリ `_site`
 2. `npx wrangler d1 create happy-ideas` → `wrangler.toml` に database_id を記入
-3. `npx wrangler d1 execute happy-ideas --remote --file=server/schema.sql`
+3. `npx wrangler d1 execute happy-ideas --remote --file=server/schema.sql`（新しい版に更新したときも、もう一度実行してください。足りない表を足すだけで、記録は消えません）
 4. Pages の設定で D1 バインディング `DB` を追加
 
 集計APIのコードは [`functions/api/rally/`](functions/api/rally/)、テストは `tests/unit/rally-api.test.js`（本物のSQLiteで実行）。
