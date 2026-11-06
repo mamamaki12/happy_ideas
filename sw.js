@@ -1,11 +1,13 @@
 // Service Worker: 一度開いたページをオフラインでも開けるようにする（ネットワーク優先・失敗時キャッシュ）。
 // 通知の表示（registration.showNotification）にも使う。
-const CACHE = 'happy-ideas-v3';
+const CACHE = 'happy-ideas-v4'; // 名前は必ず happy-ideas- で始める（古い版の掃除はこの前置きで見分ける）
 
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (e) => {
   e.waitUntil((async () => {
-    for (const k of await caches.keys()) if (k !== CACHE) await caches.delete(k);
+    // 消すのはこのアプリの古いキャッシュだけ。GitHub Pages（<ユーザー名>.github.io）では、
+    // 同じ人のほかのアプリとキャッシュの置き場所を共有するので、よそのキャッシュは消さない
+    for (const k of await caches.keys()) if (k.startsWith('happy-ideas-') && k !== CACHE) await caches.delete(k);
     await self.clients.claim();
   })());
 });

@@ -1,5 +1,8 @@
 import { test, expect } from '@playwright/test';
-import { today,addDays } from '../../products/daily-kit/logic.js';
+import { addDays } from '../../products/daily-kit/logic.js';
+// ブラウザは日本時間（playwright.config.js の timezoneId）で動く。テスト側の日付も日本時間で作る
+// （Node の今日を使うと、CI（UTC）では日本時間の0〜9時に1日ずれて失敗していた）
+const today=()=>new Date(Date.now()+9*3600000).toISOString().slice(0,10);
 const samples={
  'home-finder':{name:'予備ケーブル',room:'寝室',spot:'棚の青い箱',tags:'USB タイプC',note:'充電用'},
  'gap-time':{name:'机を整理',minutes:'5',place:'家',energy:'1',note:'まずは紙を片付ける'},
@@ -33,4 +36,33 @@ test('cooldown locks early purchase; markup is displayed as text',async({page})=
 });
 test('storage failure keeps existing records',async({page})=>{
  await page.goto('/products/life-manual/');await page.evaluate(()=>{Storage.prototype.setItem=()=>{throw new DOMException('full','QuotaExceededError');};});await page.locator('#add').click();await page.locator('#field-name').fill('保存できない記録');await page.locator('#save').click();await expect(page.getByRole('status')).toContainText('保存容量が不足');await expect(page.locator('#editor')).toBeVisible();await page.locator('#close').click();await expect(page.locator('article')).toHaveCount(0);
+});
+
+test('time zones: records dated "tomorrow" after flying west still load and can be updated',async({page})=>{
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto('/products/chore-meter/');
+ const tomorrow=await page.evaluate(()=>{const d=new Date();d.setDate(d.getDate()+1);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;});
+ await page.evaluate((t)=>localStorage.setItem('happy-daily-chore-meter-v1',JSON.stringify({version:1,app:'chore-meter',items:[{id:'c1',name:'シーツ交換',room:'寝室',interval:7,last:'2026-01-01',note:'',history:[t]}]})),tomorrow);
+ await page.reload();
+ await expect(page.locator('#load-error')).toBeHidden();await expect(page.locator('article')).toHaveCount(1);
+ await page.locator('#add').click();await page.locator('#field-name').fill('換気扇');await page.locator('#field-room').fill('台所');await page.locator('#save').click();
+ await expect(page.locator('article')).toHaveCount(2);expect(errors).toEqual([]);
+});
+test('delete can be undone from the notice',async({page})=>{
+ page.on('dialog',d=>d.accept());
+ await page.goto('/products/life-manual/');await page.locator('#demo').click();await expect(page.locator('article')).toHaveCount(2);
+ const first=page.locator('article').first();const name=await first.locator('h2').textContent();
+ await first.getByRole('button',{name:'削除',exact:true}).click();await expect(page.locator('article')).toHaveCount(1);
+ await page.getByRole('status').getByRole('button',{name:'元に戻す'}).click();await expect(page.locator('article')).toHaveCount(2);
+ await page.reload();await expect(page.locator('article h2',{hasText:name})).toHaveCount(1);
+});
+test('backup reminder appears once there are records, can be snoozed, and records the last backup',async({page})=>{
+ page.on('dialog',d=>d.accept());
+ await page.goto('/products/gap-time/');await expect(page.locator('#backup-reminder')).toBeHidden();
+ await page.locator('#demo').click();const reminder=page.locator('#backup-reminder');
+ await expect(reminder).toContainText('まだバックアップを保存していません');
+ await reminder.getByRole('button',{name:'あとで'}).click();await expect(reminder).toBeHidden();await page.reload();await expect(reminder).toBeHidden();
+ await page.evaluate(()=>localStorage.removeItem('happy-daily-gap-time-v1-backup'));await page.reload();
+ const download=page.waitForEvent('download');await reminder.getByRole('button',{name:'バックアップを保存'}).click();await download;
+ await expect(reminder).toBeHidden();await page.getByText('バックアップ・復元',{exact:true}).click();await expect(page.locator('#backup-last')).toContainText('最後のバックアップ: ');
 });

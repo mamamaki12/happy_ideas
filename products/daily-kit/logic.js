@@ -4,6 +4,10 @@ export function isDate(s) { return typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$
 export const days = (a,b) => Math.round((Date.parse(b)-Date.parse(a))/DAY);
 export const addDays = (d,n) => new Date(Date.parse(d)+n*DAY).toISOString().slice(0,10);
 export const yen = n => `¥${new Intl.NumberFormat('ja-JP').format(n)}`;
+/** 保存済みの記録で受け付ける最後の日付。時差のある国へ移動すると、記録した日が端末の「今日」より先になることがあるので2日の余裕を持つ */
+export const latestDay = () => addDays(today(), 2);
+/** バックアップをすすめるか（3件以上あり、30日以上バックアップしていない。「あとで」を押したらその日まで出さない） */
+export function backupDue(meta, count, now = today()) { if (count < 3 || (meta?.snooze && meta.snooze > now)) return false; return !meta?.last || days(meta.last, now) >= 30; }
 export function safeLink(s) { if(!s)return '';try {const u=new URL(s);return ['http:','https:'].includes(u.protocol)?u.href:'';}catch{return '';}}
 export function due(item, now=today()) { const last=item.history.at(-1)||item.last;const elapsed=days(last,now);return {last,elapsed,left:item.interval-elapsed,progress:Math.min(100,Math.max(0,elapsed/item.interval*100))}; }
 export function cooling(item,now=today()) { const date=addDays(item.added,item.wait);return {date,left:Math.max(0,days(now,date))}; }
@@ -13,15 +17,15 @@ export function normalize(s) { return String(s).normalize('NFKC').toLowerCase().
 export function matches(item,query) { const text=normalize(Object.values(item).filter(v=>typeof v==='string'&&!v.startsWith('data:')).join(' '));return normalize(query).trim().split(/\s+/).every(w=>text.includes(w)); }
 export function validate(raw,config) {
  if(!raw||raw.version!==1||raw.app!==config.slug||!Array.isArray(raw.items)||raw.items.length>300)throw Error('このアプリのバックアップではないか、件数が上限を超えています。');
- const ids=new Set();
+ const ids=new Set(),latest=latestDay();
  const fail=()=>{throw Error('記録の内容が不正です。日付・数値・写真を確認してください。');};
- const dateList=x=>Array.isArray(x)&&x.length<=10000&&x.every(d=>isDate(d)&&d<=today());
+ const dateList=x=>Array.isArray(x)&&x.length<=10000&&x.every(d=>isDate(d)&&d<=latest);
  const items=raw.items.map(i=>{
   if(!i||typeof i.id!=='string'||!i.id||i.id.length>100||ids.has(i.id))fail();ids.add(i.id);const out={id:i.id};
   for(const f of config.fields){const v=i[f.key];
    if(f.type==='number'){if(!Number.isInteger(v)||v<f.min||v>f.max)fail();}
    else if(f.type==='select'){if(!f.options.some(o=>String(o[0])===v))fail();}
-   else if(f.type==='date'){if(!(f.optional&&v==='')&&(!isDate(v)||v>today()))fail();}
+   else if(f.type==='date'){if(!(f.optional&&v==='')&&(!isDate(v)||v>latest))fail();}
    else {if(typeof v!=='string'||v.length>(f.maxLength||500)||(f.required&&!v.trim()))fail();if(f.type==='url'&&v&&!safeLink(v))fail();}
    out[f.key]=v;
   }
@@ -33,7 +37,7 @@ export function validate(raw,config) {
    case 'chore-meter': if(!dateList(i.history)||i.history.some(d=>d<i.last)||new Set(i.history).size!==i.history.length)fail();out.history=[...i.history].sort();break;
    case 'refill-forecast': {
     if(!Array.isArray(i.cycles)||i.cycles.length>1000)fail();let prev='';
-    out.cycles=i.cycles.map(c=>{if(!c||!isDate(c.start)||!isDate(c.end)||c.start>=c.end||c.end>today()||c.start<prev)fail();prev=c.end;return {start:c.start,end:c.end};});
+    out.cycles=i.cycles.map(c=>{if(!c||!isDate(c.start)||!isDate(c.end)||c.start>=c.end||c.end>latest||c.start<prev)fail();prev=c.end;return {start:c.start,end:c.end};});
     if(i.opened&&prev&&i.opened<prev)fail();break;
    }
   }

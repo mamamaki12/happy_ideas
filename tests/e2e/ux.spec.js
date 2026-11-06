@@ -105,3 +105,39 @@ test.describe('iPhone の Safari', () => {
     await expect(page.getByText('推し活手帳をホーム画面に追加')).toHaveCount(0);
   });
 });
+
+test('ギャラリー: ひらがな・半角カナでも探せて、製品版も検索結果に出る', async ({ page }) => {
+  await page.goto('/index.html');
+  const all = await page.locator('.idea').count();
+  await page.getByLabel('キーワードで探す').fill('カメラ');
+  const camera = await page.locator('.idea').count();
+  expect(camera).toBeGreaterThan(0);
+  expect(camera).toBeLessThan(all);
+  for (const q of ['かめら', 'ｶﾒﾗ']) {
+    await page.getByLabel('キーワードで探す').fill(q);
+    await expect(page.locator('.idea')).toHaveCount(camera);
+  }
+  await page.getByLabel('キーワードで探す').fill('すたんぷらりー');
+  const products = page.getByRole('region', { name: '製品版・新作アプリ（検索結果）' });
+  await expect(products.getByRole('link', { name: /ラリーメーカー/ })).toHaveAttribute('href', 'products/rally/');
+  await page.getByLabel('キーワードで探す').fill('家事');
+  await expect(products.getByRole('link', { name: /そろそろ家事/ })).toBeVisible();
+  await page.getByLabel('キーワードで探す').fill('');
+  await expect(products.getByRole('link')).toHaveCount(0);
+});
+
+test('ギャラリー: 前回の絞り込みが残っていたら、そうと分かり、すぐ解除できる', async ({ page }) => {
+  await page.goto('/index.html');
+  const all = await page.locator('.idea').count();
+  await expect(page.getByRole('button', { name: '絞り込みを解除' })).toBeHidden();
+  await page.evaluate(() => { localStorage.setItem('happy:gallery:grade', JSON.stringify('C')); localStorage.setItem('happy:gallery:builtOnly', 'true'); });
+  await page.reload();
+  await expect(page.locator('#count')).toContainText('絞り込み中');
+  await expect(page.locator('.more-filters')).toHaveAttribute('open', '');
+  expect(await page.locator('.idea').count()).toBeLessThan(all);
+  await page.getByRole('button', { name: '絞り込みを解除' }).first().click();
+  await expect(page.locator('.idea')).toHaveCount(all);
+  await expect(page.locator('#count')).not.toContainText('絞り込み中');
+  await page.reload();
+  await expect(page.locator('.idea')).toHaveCount(all);
+});

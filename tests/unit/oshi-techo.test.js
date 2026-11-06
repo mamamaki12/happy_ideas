@@ -71,3 +71,12 @@ test('oshi-techo: サーバー通知の予定（時刻と種類だけ）', () =>
   assert.deepEqual(r.map((x) => [new Date(x.at).getDate(), new Date(x.at).getHours(), x.kind]), [[6, 9, 'result'], [7, 12, 'pay'], [8, 9, 'pay'], [19, 19, 'event']]);
   assert.ok(r.every((x) => Object.keys(x).join() === 'at,kind')); // 名前などは含めない
 });
+
+test('backupDue: 記録が5件以上で、30日以上書き出していないときだけすすめる（あとでの間は出さない）', async () => {
+  const { backupDue } = await import('../../products/oshi-techo/logic.js');
+  assert.equal(backupDue({}, 4, '2026-11-05'), false);
+  assert.equal(backupDue({}, 5, '2026-11-05'), true);
+  assert.equal(backupDue({ last: '2026-10-07' }, 9, '2026-11-05'), false);
+  assert.equal(backupDue({ last: '2026-10-06' }, 9, '2026-11-05'), true);
+  assert.equal(backupDue({ snooze: '2026-11-12' }, 9, '2026-11-05'), false);
+});

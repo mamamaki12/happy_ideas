@@ -72,6 +72,7 @@ export async function sendPush(subscription, payload, vapid, { fetchImpl = fetch
   const body = await encryptPayload(JSON.stringify(payload), subscription.keys);
   const res = await fetchImpl(subscription.endpoint, {
     method: 'POST', body,
+    redirect: 'manual', // 送り先は既知の Push サービスだけ。転送（3xx）で別のサーバーへ送らされないように、たどらない
     headers: { 'content-encoding': 'aes128gcm', 'content-type': 'application/octet-stream', ttl: String(ttl), urgency: 'normal', authorization: await vapidAuth(subscription.endpoint, vapid) },
   });
   return { status: res.status, gone: res.status === 404 || res.status === 410 };

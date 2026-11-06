@@ -1,5 +1,5 @@
 import { CONFIGS } from './config.js';
-import { today, days, yen, due, cooling, forecast, eligible, matches, validate, safeLink } from './logic.js';
+import { today, days, addDays, yen, due, cooling, forecast, eligible, matches, validate, safeLink, backupDue } from './logic.js';
 const config=CONFIGS[document.body.dataset.app];
 const $=s=>document.querySelector(s);
 const key=`happy-daily-${config.slug}-v1`;
@@ -7,7 +7,17 @@ const blank=()=>({version:1,app:config.slug,items:[]});
 let state=blank(),editing=null,photo='',imageJob=0,noticeTimer,loadError='',picked=null;
 function h(tag,attrs={},...kids){const n=document.createElement(tag);for(const [k,v]of Object.entries(attrs)){if(k.startsWith('on'))n.addEventListener(k.slice(2),v);else if(v!==false&&v!==null)n.setAttribute(k,v===true?'':String(v));}for(const k of kids.flat())if(k!==null&&k!==undefined)n.append(k instanceof Node?k:document.createTextNode(String(k)));return n;}
 function button(label,fn,attrs={}){return h('button',{type:'button',onclick:fn,...attrs},label);}
-function say(message){$('#notice').textContent=message;clearTimeout(noticeTimer);noticeTimer=setTimeout(()=>{$('#notice').textContent='';},7000);}
+/** 画面下のお知らせ。undo を渡すと「元に戻す」ボタンも出す */
+function say(message,undo){const n=$('#notice');clearTimeout(noticeTimer);n.replaceChildren(message,...(undo?[button('元に戻す',()=>{clearTimeout(noticeTimer);n.replaceChildren();undo();})]:[]));noticeTimer=setTimeout(()=>{n.replaceChildren();},undo?10000:7000);}
+// 最後にバックアップした日と「あとで」の期限（記録とは別のキーに保存。読めなくても記録には影響しない）
+const backupKey=`${key}-backup`;
+function backupMeta(){try{return JSON.parse(localStorage.getItem(backupKey))||{};}catch{return {};}}
+function setBackupMeta(m){try{localStorage.setItem(backupKey,JSON.stringify({...backupMeta(),...m}));}catch{/* noop */}}
+/** バックアップのすすめ（記録が増えたのに、しばらくバックアップしていないとき）と、最後にバックアップした日 */
+function drawBackup(){const meta=backupMeta();$('#backup-last').textContent=meta.last?`最後のバックアップ: ${meta.last}`:'まだバックアップを保存していません。';const box=$('#backup-reminder');
+ if(loadError||!backupDue(meta,state.items.length)){box.replaceChildren();return;}
+ box.replaceChildren(h('p',{},meta.last?`最後のバックアップから${days(meta.last,today())}日たちました。新しい記録も保存しておきましょう。`:'まだバックアップを保存していません。記録はこのブラウザの中だけにあるので、ブラウザのデータを消すと記録も消えます。'),
+  button('バックアップを保存',()=>$('#export').click(),{class:'primary'}),button('あとで',()=>{setBackupMeta({snooze:addDays(today(),7)});drawBackup();}));}
 try{const raw=localStorage.getItem(key);if(raw)state=validate(JSON.parse(raw),config);}catch{loadError='保存データを読み込めませんでした。元データを上書きしないよう保存を止めています。バックアップから復元してください。';}
 function save(next,restore=false){if(loadError&&!restore){say(loadError);return false;}try{const checked=validate(next,config);localStorage.setItem(key,JSON.stringify(checked));state=checked;loadError='';$('#load-error').textContent='';render();return true;}catch(e){say(e.name==='QuotaExceededError'?'保存容量が不足しています。写真を減らすか、バックアップして不要な記録を削除してください。':`保存できませんでした。${e.message}`);return false;}}
 function change(id,fn,message='記録しました。'){const next=structuredClone(state);const item=next.items.find(i=>i.id===id);if(!item)return;fn(item);if(save(next))say(message);}
@@ -36,7 +46,8 @@ function setup(){
  $('#search').addEventListener('input',render);$('#add').onclick=()=>openEditor();$('#close').onclick=()=>$('#editor').close();$('#editor').addEventListener('close',()=>{imageJob++;});
  $('#demo').onclick=()=>{const samples=config.samples();if(!confirm(`お試しデータを${samples.length}件追加しますか？自分の記録とは区別して削除できます。`))return;const items=samples.map(i=>({id:crypto.randomUUID(),...i,name:`${i.name}（お試し）`}));if(save({...state,items:[...state.items,...items]}))say('お試しデータを追加しました。');};
  $('#form').onsubmit=submit;$('#photo').onchange=readPhoto;$('#remove-photo').onclick=()=>{imageJob++;photo='';$('#photo').value='';$('#photo-message').textContent='写真を外しました。';$('#save').disabled=false;};
- $('#export').onclick=()=>{const url=URL.createObjectURL(new Blob([JSON.stringify(state,null,2)],{type:'application/json'}));const a=h('a',{href:url,download:`${config.slug}-${today()}.json`});document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);};
+ $('#load-error').after(h('div',{id:'backup-reminder',class:'reminder'}));$('.backup').append(h('p',{id:'backup-last'}));
+ $('#export').onclick=()=>{if(loadError){say('保存済みの記録を読み込めていないため、バックアップを作れません。');return;}setBackupMeta({last:today()});drawBackup();const url=URL.createObjectURL(new Blob([JSON.stringify(state,null,2)],{type:'application/json'}));const a=h('a',{href:url,download:`${config.slug}-${today()}.json`});document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);};
  $('#import').onchange=async e=>{const file=e.target.files[0];if(!file)return;try{if(file.size>110*1024*1024)throw Error('ファイルが大きすぎます。');const data=validate(JSON.parse(await file.text()),config);if(confirm(`${data.items.length}件のデータで、このアプリの記録を置き換えますか？`)&&save(data,true))say('復元しました。');}catch(err){say(`復元できませんでした。${err.message}`);}finally{e.target.value='';}};
  window.addEventListener('storage',e=>{if(e.key!==key)return;try{state=e.newValue?validate(JSON.parse(e.newValue),config):blank();loadError='';$('#load-error').textContent='';if($('#editor').open)$('#editor').close();render();say('別のタブの更新を反映しました。');}catch{loadError='別のタブの記録を読み込めません。バックアップから復元してください。';$('#load-error').textContent=loadError;}});
  window.addEventListener('focus',render);document.addEventListener('visibilitychange',()=>{if(!document.hidden)render();});setInterval(()=>{if(!document.hidden)render();},60000);
@@ -52,7 +63,7 @@ function visible(){let list=state.items.filter(i=>matches(i,$('#search').value))
  default:list.reverse();
  }return list;
 }
-function render(){if(!$('#cards'))return;$('#stats').replaceChildren(...summary().map(([v,l])=>stat(v,l)));const list=visible();$('#count').textContent=`${list.length}件を表示 / 全${state.items.length}件`;$('#cards').replaceChildren(...(list.length?list.map(card):[h('div',{class:'empty'},h('span',{'aria-hidden':'true'},config.icon),h('h2',{},state.items.length?'条件に合う記録がありません':'今日から、ちょっと楽に。'),h('p',{},state.items.length?'検索や絞り込みを変えてみてください。':config.empty))]));}
+function render(){if(!$('#cards'))return;drawBackup();$('#stats').replaceChildren(...summary().map(([v,l])=>stat(v,l)));const list=visible();$('#count').textContent=`${list.length}件を表示 / 全${state.items.length}件`;$('#cards').replaceChildren(...(list.length?list.map(card):[h('div',{class:'empty'},h('span',{'aria-hidden':'true'},config.icon),h('h2',{},state.items.length?'条件に合う記録がありません':'今日から、ちょっと楽に。'),h('p',{},state.items.length?'検索や絞り込みを変えてみてください。':config.empty))]));}
 function card(i){const body=h('div',{class:'card-body'});const top=h('div',{class:'card-top'},h('h2',{},i.name));body.append(top);
  const p=(s,cl='detail')=>body.append(h('p',{class:cl},s));const badge=(s)=>body.append(h('span',{class:'badge'},s));const actions=h('div',{class:'actions'});const action=(s,fn,disabled=false,primary=false)=>actions.append(button(s,fn,{disabled,class:primary?'primary':''}));
  switch(config.slug){
@@ -63,7 +74,7 @@ function card(i){const body=h('div',{class:'card-body'});const top=h('div',{clas
  case 'chore-meter':{const d=due(i);badge(i.room);p(d.left<0?`${-d.left}日、目安を過ぎています`:d.left===0?'今日が目安':`あと${d.left}日`,'big');body.append(h('progress',{max:100,value:d.progress,'aria-label':'次の家事の目安までの経過'}));p(`前回 ${d.last} · ${i.interval}日ごと`);action(lastDate(i)===today()?'今日は完了済み':'今日やった！',()=>change(i.id,x=>x.history.push(today()),'おつかれさま！次の目安を更新しました。'),lastDate(i)===today(),true);action('最後の完了を戻す',()=>change(i.id,x=>x.history.pop(),'最後の記録を取り消しました。'),!i.history.length);break;}
  case 'refill-forecast':{const f=forecast(i);badge(`ストック ${i.stock}個`);p(!i.opened?'使用中の物なし':f.left<0?'予想日を過ぎています':f.left===0?'今日が使い切り予想':`あと約${f.left}日`,'big');p(f.date?`予想 ${f.date} · 開封 ${i.opened}`:'新しい物を開けたら、開封を記録してください。');p(f.samples?`直近${f.samples}回の平均: ${f.duration}日`:`初期の予想: ${f.duration}日（まだ履歴なし）`);if(i.opened)action('今日使い切った',()=>change(i.id,x=>{x.cycles.push({start:x.opened,end:today()});x.opened='';},'使用期間を記録しました。次の開封も記録できます。'),days(i.opened,today())<1,true);else{action(i.stock?'ストックを今日開封':'購入分を今日開封',()=>change(i.id,x=>{x.opened=today();x.stock=Math.max(0,x.stock-1);}),false,true);if(i.cycles.length)action('使い切りを取り消す',()=>change(i.id,x=>{x.opened=x.cycles.pop().start;}));}action('ストック ＋1',()=>change(i.id,x=>x.stock++),i.stock>=99);if(i.opened===today())p('開封当日の使い切りは、使用日数を計算できないため記録できません。');if(i.cycles.length)body.append(h('details',{},h('summary',{},'使用期間の履歴'),h('ul',{},i.cycles.slice(-5).reverse().map(c=>h('li',{},`${c.start} → ${c.end}（${days(c.start,c.end)}日）`)))));break;}
  }
- if(i.note)p(i.note,'note');body.append(actions,h('div',{class:'edit-actions'},button('編集',()=>openEditor(i)),button('削除',()=>{if(confirm(`「${i.name}」を履歴ごと削除しますか？`)){if(save({...state,items:state.items.filter(x=>x.id!==i.id)}))say('削除しました。');}},{class:'danger'})));
+ if(i.note)p(i.note,'note');body.append(actions,h('div',{class:'edit-actions'},button('編集',()=>openEditor(i)),button('削除',()=>{if(!confirm(`「${i.name}」を履歴ごと削除しますか？`))return;const at=state.items.findIndex(x=>x.id===i.id);if(save({...state,items:state.items.filter(x=>x.id!==i.id)}))say(`「${i.name}」を削除しました。`,()=>{if(state.items.some(x=>x.id===i.id))return;const items=[...state.items];items.splice(Math.min(at,items.length),0,i);if(save({...state,items}))say('元に戻しました。');});},{class:'danger'})));
  return h('article',{class:`card${picked===i.id?' picked':''}`,'data-picked':picked===i.id?true:null},i.photo?h('img',{class:'cover',src:i.photo,alt:`${i.name}の写真`,loading:'lazy'}):null,body);
 }
 function openEditor(i){editing=i?.id||null;photo=i?.photo||'';imageJob++;$('#form').reset();$('#save').disabled=false;$('#form-error').textContent='';$('#photo-message').textContent=photo?'写真が登録されています。':'';$('#editor-title').textContent=i?'記録を編集':config.add;for(const f of config.fields){const control=$(`#field-${f.key}`);control.value=i?i[f.key]:(typeof f.value==='function'?f.value():(f.value??f.options?.[0][0]??''));if(f.type==='date')control.max=today();}$('#editor').showModal();}

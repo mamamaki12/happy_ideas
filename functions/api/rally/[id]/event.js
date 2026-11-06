@@ -1,5 +1,6 @@
 // POST /api/rally/:id/event  { device, type, idx } — 参加者の端末から、開始・スタンプ・完走を匿名で送る
 import { json, readJson, sameOrigin, ID_RE, MAX_EVENTS_PER_RALLY } from '../_lib.js';
+import { overRateLimit, LIMITS } from '../../../../server/limits.js';
 
 const DEVICE_RE = /^[a-f0-9]{16,32}$/;
 export async function onRequestPost({ request, env, params }) {
@@ -11,6 +12,10 @@ export async function onRequestPost({ request, env, params }) {
   if (!rally) return json({ error: 'not found' }, 404);
   const idx = b.type === 'stamp' ? b.idx : -1;
   if (b.type === 'stamp' && !(Number.isInteger(idx) && idx >= 0 && idx < rally.points)) return json({ error: 'invalid' }, 400);
+  // 初めて見る端末（＝新しい参加者）は、同じ回線から1日 LIMITS.rallyDevice 台まで。
+  // 端末IDは自己申告なので、IDを変えながら送るだけで参加人数を水増しできないようにする（同じ端末の2回目以降は数えない）
+  const known = await env.DB.prepare('SELECT 1 AS x FROM events WHERE rally_id = ? AND device = ? LIMIT 1').bind(params.id, b.device).first();
+  if (!known && await overRateLimit(env, request, 'rally-device', LIMITS.rallyDevice)) return json({ error: 'limit' }, 429);
   const { n } = await env.DB.prepare('SELECT COUNT(*) AS n FROM events WHERE rally_id = ?').bind(params.id).first();
   if (n >= MAX_EVENTS_PER_RALLY) return json({ error: 'limit' }, 429);
   const day = new Date().toISOString().slice(0, 10);

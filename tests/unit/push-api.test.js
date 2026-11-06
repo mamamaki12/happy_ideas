@@ -62,3 +62,24 @@ test('push: 時刻が来たものだけ送り、文面に予定の中身は入�
   // 1時間後に event が送られる
   assert.equal((await runDue(env, { now: now + 3600001, fetchImpl })).sent, 1);
 });
+
+test('push: 新しい購読は同じ回線から1日の上限まで（予定の更新は数えない）', async () => {
+  const { LIMITS } = await import('../../server/limits.js');
+  const env = await vapidEnv(); const now = Date.now();
+  const from = (body, ip = '203.0.113.30') => new Request(`${ORIGIN}/api/push/subscribe`, { method: 'POST', body: JSON.stringify(body), headers: { 'content-type': 'application/json', origin: ORIGIN, 'cf-connecting-ip': ip } });
+  const users = [];
+  for (let i = 0; i <= LIMITS.pushSubscribe; i++) users.push(await makeUser());
+  for (const u of users.slice(0, -1)) assert.equal((await subscribe({ request: from({ subscription: u.sub, reminders: [] }), env })).status, 200);
+  assert.equal((await subscribe({ request: from({ subscription: users.at(-1).sub, reminders: [] }), env })).status, 429);
+  // 登録済みの購読の予定の更新はできる。別の回線からの新しい購読もできる
+  assert.equal((await subscribe({ request: from({ subscription: users[0].sub, reminders: [{ at: now + 60000, kind: 'pay' }] }), env })).status, 200);
+  assert.equal((await subscribe({ request: from({ subscription: users.at(-1).sub, reminders: [] }, '198.51.100.30'), env })).status, 200);
+});
+
+test('push: Push サービスからの転送（3xx）はたどらない', async () => {
+  const env = await vapidEnv(); const u = await makeUser();
+  await subscribe({ request: req('POST', { subscription: u.sub, reminders: [{ at: Date.now() + 1000, kind: 'pay' }] }), env });
+  const seen = [];
+  await runDue(env, { now: Date.now() + 5000, fetchImpl: async (url, init) => { seen.push(init.redirect); return new Response(null, { status: 201 }); } });
+  assert.deepEqual(seen, ['manual']);
+});

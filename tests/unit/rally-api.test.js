@@ -58,3 +58,32 @@ test('rally-api: 不正な入力・他サイトからの送信を拒否', async 
   assert.equal((await send(env, { device: dev, type: "start'); DROP TABLE events;--" })).status, 400);
   assert.equal((await (await getStats(env)).json()).starts, 0);
 });
+
+test('rally-api: 端末IDを変えながら送っても、同じ回線からの新しい参加者は1日の上限まで（水増し対策）', async () => {
+  const { LIMITS } = await import('../../server/limits.js');
+  const env = await setup();
+  const ip = { 'cf-connecting-ip': '2001:db8:aa:1::1' };
+  const dev = (i) => i.toString(16).padStart(16, '0');
+  for (let i = 0; i < LIMITS.rallyDevice; i++) assert.equal((await send(env, { device: dev(i), type: 'start' }, 'rally001', ip)).status, 202);
+  // 上限を超えた新しい端末は数えない。IPv6 のアドレスの後ろ半分を変えても同じ回線
+  assert.equal((await send(env, { device: dev(99999), type: 'start' }, 'rally001', { 'cf-connecting-ip': '2001:db8:aa:1:ffff::9' })).status, 429);
+  // すでに参加している端末のスタンプ・完走は、上限のあとも記録できる
+  assert.equal((await send(env, { device: dev(0), type: 'stamp', idx: 0 }, 'rally001', ip)).status, 202);
+  assert.equal((await send(env, { device: dev(0), type: 'complete' }, 'rally001', ip)).status, 202);
+  // 別の回線の参加者は記録できる
+  assert.equal((await send(env, { device: dev(88888), type: 'start' }, 'rally001', { 'cf-connecting-ip': '198.51.100.20' })).status, 202);
+  const s = await (await getStats(env)).json();
+  assert.equal(s.starts, LIMITS.rallyDevice + 1); assert.equal(s.completes, 1); assert.equal(s.stamps[0], 1);
+});
+
+test('rally-api: 新しいラリーの登録は同じ回線から1日の上限まで（本人の更新は数えない）', async () => {
+  const { LIMITS } = await import('../../server/limits.js');
+  const env = { DB: fakeD1(new URL('../../server/schema.sql', import.meta.url).pathname) };
+  const ip = { 'cf-connecting-ip': '203.0.113.77' };
+  const keyHash = await sha256hex(KEY);
+  const reg = (id, points = 3) => register({ request: req('/api/rally', { body: { id, keyHash, points }, headers: ip }), env });
+  for (let i = 0; i < LIMITS.rallyCreate; i++) assert.equal((await reg(`spam${String(i).padStart(4, '0')}`)).status, 201);
+  assert.equal((await reg('spam9999')).status, 429);
+  assert.equal((await reg('spam0000', 5)).status, 200); // 登録済みのラリーの更新はできる
+  assert.equal((await register({ request: req('/api/rally', { body: { id: 'other001', keyHash, points: 3 }, headers: { 'cf-connecting-ip': '203.0.113.78' } }), env })).status, 201);
+});

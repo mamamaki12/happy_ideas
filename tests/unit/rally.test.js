@@ -46,3 +46,15 @@ test('rally: スタンプの判定（範囲・精度・移動速度）', () => {
   assert.equal(tryStamp(rally, { 0: {}, 1: {} }, at(0, 0)).code, 'done');
   assert.equal(tryStamp(rally, {}, at(35.6812, 139.7671, 300)).code, 'accuracy');
 });
+
+test('rally: 管理用リンク（#edit=）は、ラリーと同じ検査をして、鍵は48桁の16進数だけ受け付ける', async () => {
+  const { packRally, unpackDraft } = await import('../../products/rally/logic.js');
+  const d = { id: 'ab12cd34', t: '駅前', d: '', g: '', from: '', to: '', c: '#123456', p: [{ n: 'A', h: '', a: 35.6, o: 139.7, r: 80 }], key: 'f'.repeat(48), statsOn: true };
+  const ok = await unpackDraft(await packRally(d));
+  assert.equal(ok.key, 'f'.repeat(48)); assert.equal(ok.statsOn, true); assert.equal(ok.p.length, 1);
+  const noKey = await unpackDraft(await packRally({ ...d, key: '<script>' }));
+  assert.equal(noKey.key, undefined); assert.equal(noKey.statsOn, undefined);
+  assert.equal(await unpackDraft(await packRally({ ...d, id: '../../x' })), null);
+  assert.equal(await unpackDraft(await packRally({ ...d, p: [] })), null);
+  assert.equal(await unpackDraft('not base64!'), null);
+});

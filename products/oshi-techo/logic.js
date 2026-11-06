@@ -6,6 +6,12 @@ export const ymd = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.g
 const dayNum = (s) => Math.round(new Date(`${s}T00:00:00`).getTime() / 86400000);
 export const daysBetween = (a, b) => dayNum(b) - dayNum(a);
 
+/** バックアップをすすめるか（記録が5件以上あり、30日以上書き出していない。「あとで」を押したらその日まで出さない） */
+export function backupDue(meta, count, today) {
+  if (count < 5 || (meta?.snooze && meta.snooze > today)) return false;
+  return !meta?.last || daysBetween(meta.last, today) >= 30;
+}
+
 /** 次の予定（今日以降で一番近いもの） */
 export function nextEvent(entries, today) {
   return entries.filter((e) => e.type === 'event' && e.date >= today).sort((a, b) => a.date.localeCompare(b.date))[0] || null;

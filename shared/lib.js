@@ -83,7 +83,8 @@ export function toast(msg, ms = 2600) {
   if (!wrap) { wrap = h('div', { class: 'toast-wrap', role: 'status', 'aria-live': 'polite' }); document.body.append(wrap); }
   const t = h('div', { class: 'toast' }, msg);
   wrap.append(t);
-  setTimeout(() => t.remove(), ms);
+  // 長い文（許可の案内など）は読み終わるまで出しておく（1文字あたり約0.12秒、最大10秒）
+  setTimeout(() => t.remove(), Math.max(ms, Math.min(10000, String(msg).length * 120)));
 }
 
 /** エラー表示（要素の先頭に出す） */
@@ -166,11 +167,16 @@ export const vibrate = (p) => { try { navigator.vibrate?.(p); } catch { /* noop 
 export function getPosition(opts = {}) {
   return new Promise((res, rej) => {
     if (!('geolocation' in navigator)) return rej(new Error('この端末は位置情報に対応していません'));
-    navigator.geolocation.getCurrentPosition(res, (e) => rej(new Error(geoErrorText(e))), { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000, ...opts });
+    // code（1: 許可されていない 2: 取れない 3: 時間切れ）も渡す。アプリ側で言語や案内を変えられるように
+    navigator.geolocation.getCurrentPosition(res, (e) => rej(Object.assign(new Error(geoErrorText(e)), { code: e?.code })), { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000, ...opts });
   });
 }
 export function geoErrorText(e) {
-  return { 1: '位置情報の利用が許可されていません', 2: '位置を取得できませんでした', 3: '位置情報の取得がタイムアウトしました' }[e?.code] || '位置情報エラー';
+  return {
+    1: '位置情報の利用が許可されていません。ブラウザやスマホの設定で、このサイトの位置情報を「許可」にしてから、もう一度お試しください',
+    2: '位置を取得できませんでした。屋外など空が見える場所で、もう一度お試しください',
+    3: '位置情報の取得がタイムアウトしました。もう一度お試しください',
+  }[e?.code] || '位置情報エラー';
 }
 export { distance, bearing } from './geo.js';
 export const fmtDistance = (m) => (m < 1000 ? `${Math.round(m)} m` : `${(m / 1000).toFixed(m < 10000 ? 2 : 1)} km`);

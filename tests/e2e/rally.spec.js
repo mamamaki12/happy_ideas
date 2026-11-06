@@ -87,3 +87,16 @@ test('参加者画面を英語に切り替えられる（訪日客向け）', as
   await page.getByRole('button', { name: '🌐 日本語' }).click();
   await expect(page.getByRole('button', { name: '📍 スタンプを押す' })).toBeVisible();
 });
+
+test('位置情報が許可されていないときは、参加者の言語で直し方を案内する', async ({ page, browser }) => {
+  const url = await makeRally(page);
+  const ctx = await browser.newContext({ locale: 'en-US', permissions: [], viewport: { width: 390, height: 844 } }); // 位置情報を許可していない端末
+  const p = await ctx.newPage();
+  await p.goto(url);
+  await p.getByRole('button', { name: '📍 Get stamp' }).click();
+  await expect(p.getByText(/Location access is blocked.*settings/)).toBeVisible();
+  await p.getByRole('button', { name: '🌐 日本語' }).click();
+  await p.getByRole('button', { name: '📍 スタンプを押す' }).click();
+  await expect(p.getByText(/位置情報が許可されていないため.*設定/)).toBeVisible();
+  await ctx.close();
+});

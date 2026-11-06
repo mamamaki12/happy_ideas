@@ -88,3 +88,16 @@ test('Service Worker: push を受けると通知を出し、外部URLへは飛�
   expect(b.title.length).toBe(80); // 長すぎる題名は切る
   expect(b.url).not.toContain('evil.example'); // 外部URLはサイトのトップに置き換え
 });
+
+test('Service Worker: 古い自分のキャッシュだけ消し、同じサイトのほかのアプリのキャッシュは消さない', async ({ page }) => {
+  // GitHub Pages では <ユーザー名>.github.io の下のアプリ全部がキャッシュの置き場所を共有する
+  await page.goto('/products/use-value/'); // このページは Service Worker を登録しない
+  const others = ['temoto-vendor-models', 'temoto-photo-v2', 'tech-feed-v1', 'other-app-v1']; // ほかのアプリのキャッシュ（AIモデルなど大きいものもある）
+  await page.evaluate(async (names) => { for (const n of [...names, 'happy-ideas-v1', 'happy-ideas-v3']) await caches.open(n); }, others);
+  await page.goto('/index.html');
+  await page.evaluate(() => navigator.serviceWorker.ready);
+  await expect.poll(() => page.evaluate(() => caches.keys())).not.toContain('happy-ideas-v3');
+  const keys = await page.evaluate(() => caches.keys());
+  expect(keys).not.toContain('happy-ideas-v1');
+  for (const n of others) expect(keys).toContain(n);
+});

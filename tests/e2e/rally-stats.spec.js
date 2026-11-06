@@ -7,11 +7,11 @@ import { onRequestPost as event } from '../../functions/api/rally/[id]/event.js'
 import { onRequestGet as stats } from '../../functions/api/rally/[id]/stats.js';
 import { readQr, gotoFresh } from './helpers.js';
 
-async function attachApi(context) {
-  const env = { DB: fakeD1(new URL('../../server/schema.sql', import.meta.url).pathname) };
+async function attachApi(context, env = { DB: fakeD1(new URL('../../server/schema.sql', import.meta.url).pathname) }) {
   await context.route('**/api/rally**', async (route) => {
     try { await handle(route); } catch (e) { console.log('API handler error', e); await route.fulfill({ status: 500, body: String(e) }); }
   });
+
   async function handle(route) {
     const r = route.request();
     const url = new URL(r.url());
@@ -72,4 +72,57 @@ test('集計サーバーがない（GitHub Pages など）と、集計なしで�
   await page.getByRole('button', { name: '参加用のURLとQRを作る' }).click();
   await expect(page.getByText('集計サーバーがないため')).toBeVisible();
   await expect(page.getByRole('heading', { name: '📊 参加状況' })).toHaveCount(0);
+});
+
+test('集計サーバーが今日の登録の上限で断ったときは、そう伝えて集計なしで公開する', async ({ page, context }) => {
+  await context.route('**/api/rally', (route) => route.fulfill({ status: 429, contentType: 'application/json', body: '{"error":"limit"}' }));
+  await page.goto('/products/rally/');
+  await page.getByLabel('名前', { exact: true }).fill('時計台');
+  await page.getByRole('button', { name: '📍 いまいる場所を追加' }).click();
+  await page.getByRole('button', { name: '参加用のURLとQRを作る' }).click();
+  await expect(page.getByText(/上限に達したため、集計なしで作りました/)).toBeVisible();
+  await expect(page.getByText('このサイトには集計サーバーがないため')).toHaveCount(0);
+});
+
+test('管理用リンクで、別の端末でも下書きの続きと参加状況が見られる（鍵はアドレスバーに残さない）', async ({ browser }) => {
+  test.setTimeout(60000);
+  const env = { DB: fakeD1(new URL('../../server/schema.sql', import.meta.url).pathname) }; // 同じサーバーを共有する
+  const opts = { permissions: ['geolocation', 'clipboard-read', 'clipboard-write'], geolocation: { latitude: 35.681236, longitude: 139.767125, accuracy: 10 }, locale: 'ja-JP', timezoneId: 'Asia/Tokyo' };
+  const oldPhone = await browser.newContext(opts); await attachApi(oldPhone, env);
+  const page = await oldPhone.newPage();
+  await page.goto('/products/rally/');
+  await page.getByLabel('ラリーの名前').fill('引っ越しテスト');
+  await page.getByLabel('名前', { exact: true }).fill('A地点');
+  await page.getByRole('button', { name: '📍 いまいる場所を追加' }).click();
+  await page.getByRole('button', { name: '参加用のURLとQRを作る' }).click();
+  await expect(page.getByText('参加状況の集計がオンです')).toBeVisible();
+  await page.getByRole('button', { name: '🔳 QRを表示' }).click();
+  const url = await readQr(page, jsQR);
+  await page.getByRole('button', { name: '閉じる' }).click();
+  const p = await oldPhone.newPage(); // 参加者が1人
+  await p.addInitScript(() => { for (const k of Object.keys(localStorage)) if (k.startsWith('happy:rally:') && k !== 'happy:rally:draft') localStorage.removeItem(k); });
+  await gotoFresh(p, url); await p.waitForTimeout(300); await p.close();
+  await page.reload();
+  await page.getByText('🔑 下書きを守る・別の端末で続ける（管理用リンク）').click();
+  await page.getByRole('button', { name: '🔑 管理用リンクを保存' }).click();
+  // リンクは中身を縮めてからコピーするので、クリップボードに入るまで待つ
+  let admin = null;
+  await expect.poll(async () => { admin = (await page.evaluate(() => navigator.clipboard.readText())).match(/http:\/\/\S+#edit=\S+/)?.[0] ?? null; return admin; }).not.toBeNull();
+  expect(admin).not.toBe(url);
+  await oldPhone.close();
+
+  const newPhone = await browser.newContext(opts); await attachApi(newPhone, env);
+  const n = await newPhone.newPage();
+  n.on('dialog', (d) => d.accept());
+  await n.goto(admin);
+  await expect(n.locator('.cp-list li', { hasText: 'A地点' })).toBeVisible();
+  await expect(n.getByLabel('ラリーの名前')).toHaveValue('引っ越しテスト');
+  expect(n.url()).not.toContain('#edit='); // 鍵の入ったURLは残さない
+  await n.getByRole('button', { name: '最新にする' }).click();
+  await expect(n.locator('.stat').nth(0)).toContainText('1'); // 前の端末で作ったラリーの参加状況が見える
+  // 壊れた管理用リンクは読み込まない
+  await n.goto('/products/rally/#edit=broken!!');
+  await expect(n.getByText('管理用リンクが壊れているか')).toBeVisible();
+  await expect(n.locator('.cp-list li', { hasText: 'A地点' })).toBeVisible();
+  await newPhone.close();
 });
