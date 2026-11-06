@@ -105,7 +105,9 @@ test('管理用リンクで、別の端末でも下書きの続きと参加状�
   await page.reload();
   await page.getByText('🔑 下書きを守る・別の端末で続ける（管理用リンク）').click();
   await page.getByRole('button', { name: '🔑 管理用リンクを保存' }).click();
-  const admin = (await page.evaluate(() => navigator.clipboard.readText())).match(/http:\/\/\S+#edit=\S+/)[0];
+  // リンクは中身を縮めてからコピーするので、クリップボードに入るまで待つ
+  let admin = null;
+  await expect.poll(async () => { admin = (await page.evaluate(() => navigator.clipboard.readText())).match(/http:\/\/\S+#edit=\S+/)?.[0] ?? null; return admin; }).not.toBeNull();
   expect(admin).not.toBe(url);
   await oldPhone.close();
 
