@@ -42,9 +42,9 @@ test('モトログ: 保存済みの記録が読めないときは、上書きし
   await page.getByRole('button', { name: 'サンプルを追加' }).click();
   await expect(page.getByRole('status')).toContainText('保存を止めています');
   expect(await page.evaluate(() => localStorage.getItem('happy-ideas-motolog-v1'))).toContain('2999-01-01'); // 元の記録は残る
-  // バックアップからの復元はできる
-  await page.locator('#import').setInputFiles({ name: 'ok.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify({ version: 1, items: [shoe()] })) });
+  // バックアップからの復元はできる（置き換えの確認は、ファイルを選んだ直後に出るので先に受け付けておく）
   page.on('dialog', (d) => d.accept());
+  await page.locator('#import').setInputFiles({ name: 'ok.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify({ version: 1, items: [shoe()] })) });
   await expect(page.locator('article')).toHaveCount(1);
   await expect(page.getByRole('alert').filter({ hasText: '保存を止めています' })).toHaveCount(0);
 });
