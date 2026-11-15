@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="description" content="季語のお題で一句。自分の句帳に書きため、気に入った句はみんなの広場へ。五・七・五の音の数も数えます。登録不要の無料アプリ。">
+<meta name="theme-color" content="#2f5d50"><title>句ひろば — 一句よんで、ひろばに置こう</title>
+<link rel="icon" href="../../shared/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="style.css"><script type="module" src="app.js"></script>
+</head>
+<body>
+<header class="top"><a href="../../">← Happy Ideas</a><span>俳句を、気軽に</span></header>
+<main>
+<section class="hero">
+  <p class="eyebrow">句ひろば</p>
+  <h1>一句よんで、<br>ひろばに置こう。</h1>
+  <p>季語のお題で、週に一句。自分の句帳に書きためて、<br>気に入った句はみんなの広場へ。</p>
+  <div class="hero-actions"><button id="write" class="primary">＋ 一句よむ</button></div>
+</section>
+
+<section class="topic" aria-labelledby="h-topic">
+  <h2 id="h-topic">今週のお題</h2>
+  <p class="topic-word"><span id="topic-word"></span><small id="topic-season"></small></p>
+  <p id="topic-hint" class="topic-hint"></p>
+  <button id="write-topic">このお題でよむ</button>
+</section>
+
+<section id="backup-reminder" class="reminder" aria-label="バックアップのおすすめ"></section>
+
+<section aria-labelledby="h-plaza">
+  <div class="section-head"><h2 id="h-plaza">みんなの広場</h2>
+    <div class="tabs" role="group" aria-label="広場の表示"><button id="tab-new" aria-pressed="true">新着</button><button id="tab-topic" aria-pressed="false"></button></div>
+  </div>
+  <p id="plaza-status" class="plaza-status" role="status"></p>
+  <div id="plaza" class="cards"></div>
+  <button id="more" hidden>もっと見る</button>
+</section>
+
+<section aria-labelledby="h-book">
+  <div class="section-head"><h2 id="h-book">わたしの句帳</h2><span id="book-count" class="muted"></span></div>
+  <div id="book" class="cards"></div>
+</section>
+
+<section class="panel" aria-labelledby="h-rules">
+  <h2 id="h-rules">広場のきまり</h2>
+  <ul>
+    <li>人を傷つける句、特定の人がわかる内容、宣伝や URL は出さないでください。</li>
+    <li>別々の人から3回「報告」されると、その句は自動で見えなくなります。</li>
+    <li>広場に出した句は、出した端末の「広場から下げる」でいつでも消せます（句帳には残ります）。</li>
+    <li>写真は小さく縮め、撮った場所などの情報を取り除いてから送ります。人の顔や家がわかる写真は避けてください。</li>
+  </ul>
+</section>
+
+<section class="panel backup" aria-labelledby="h-backup">
+  <div><h2 id="h-backup">句帳を大切に</h2><p>句帳はこの端末のブラウザの中だけに保存します。ブラウザのデータを消すと句帳も消えるので、ときどきバックアップを保存してください。</p><p id="backup-last" class="muted"></p></div>
+  <div class="row"><button id="export">バックアップ保存</button><label class="file-button">バックアップを復元<input id="import" type="file" accept="application/json,.json"></label></div>
+</section>
+<p class="footnote">句帳の句・よみ・メモ・写真は端末の中だけに保存します。「ひろばにも出す」を選んだときだけ、句・季語・俳号・写真をこのサイトのサーバーに送り、広場でだれでも見られるようにします。IP アドレスは、乱用を防ぐための回数の確認にだけ使い、そのままでは保存しません。<a href="../privacy.html">プライバシーポリシー</a></p>
+</main>
+<p id="status" role="status" aria-live="polite"></p>
+
+<dialog id="write-dlg" aria-labelledby="write-title"><form id="write-form">
+  <div class="section-head"><h2 id="write-title">一句よむ</h2><button type="button" class="close" data-close aria-label="閉じる">✕</button></div>
+  <label>句<textarea name="text" maxlength="40" rows="2" required placeholder="古池や 蛙飛びこむ 水の音"></textarea></label>
+  <p id="mora" class="mora" aria-live="polite"></p>
+  <label>よみ（ひらがな・任意。音の数を数えます）<input name="yomi" maxlength="80" placeholder="ふるいけや かわずとびこむ みずのおと"></label>
+  <div class="fields">
+    <label>季語（任意）<input name="kigo" maxlength="12" list="kigo-list"></label>
+    <label>日付<input name="date" type="date" required></label>
+  </div>
+  <datalist id="kigo-list"></datalist>
+  <div class="photo-row">
+    <label class="file-button">写真を添える（任意）<input id="photo-input" type="file" accept="image/*"></label>
+    <div id="photo-preview" class="photo-preview" hidden><img id="photo-img" alt="添える写真"><button type="button" id="photo-remove">写真を外す</button></div>
+  </div>
+  <label>メモ（任意・句帳だけ）<textarea name="memo" maxlength="300" rows="2" placeholder="どこで・何を見てよんだか"></textarea></label>
+  <fieldset id="post-box" hidden><legend>みんなの広場</legend>
+    <label class="check"><input type="checkbox" name="post">ひろばにも出す</label>
+    <label>俳号（任意・12文字まで）<input name="name" maxlength="12" placeholder="よみ人しらず"></label>
+    <p class="muted">句・季語・俳号・写真がだれでも見られるようになります。「広場のきまり」を守ってください。</p>
+  </fieldset>
+  <p id="write-error" class="error" role="alert"></p>
+  <div class="row"><button class="primary" type="submit">句帳に保存</button></div>
+</form></dialog>
+</body>
+</html>

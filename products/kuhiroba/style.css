@@ -1,0 +1,85 @@
+:root{color-scheme:light;--ink:#1f2b27;--muted:#53625c;--accent:#2f5d50;--paper:#f4f1e8;--line:#d8d2c2;--soft:#e4ede8;--gold:#8a6a1f}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:system-ui,"Hiragino Sans","BIZ UDPGothic",sans-serif;line-height:1.7}
+.top,main{max-width:960px;margin:auto;padding:18px 20px}
+.top{display:flex;justify-content:space-between;font-size:13px}
+a{color:var(--accent)}
+h1,.tate,.topic-word{font-family:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif}
+.hero{padding:20px 0 26px}
+.eyebrow{letter-spacing:.2em;font-size:13px;font-weight:700;color:var(--accent);margin:0}
+h1{font-size:clamp(30px,6.5vw,52px);line-height:1.3;margin:12px 0}
+.hero p{color:var(--muted);font-size:16px}
+.hero-actions,.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button,.file-button{font:inherit;cursor:pointer;border:1px solid #b9c7c0;border-radius:12px;padding:10px 16px;background:#fff;color:var(--ink);font-size:15px;font-weight:600}
+button:hover,.file-button:hover{background:var(--soft)}
+button:focus-visible,input:focus-visible,textarea:focus-visible,.file-button:focus-within{outline:3px solid #b5852d;outline-offset:2px}
+button:disabled{opacity:.5;cursor:not-allowed}
+.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.primary:hover{background:#244a40}
+section{margin-bottom:30px}
+.section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+h2{font-size:20px;margin:0}
+.muted{color:var(--muted);font-size:14px}
+.topic{background:#fff;border:1px solid var(--line);border-left:6px solid var(--gold);border-radius:18px;padding:18px 20px}
+.topic h2{font-size:14px;color:var(--gold);letter-spacing:.1em}
+.topic-word{font-size:34px;margin:4px 0}
+.topic-word small{font-size:14px;color:var(--muted);margin-left:8px;font-family:system-ui,sans-serif}
+.topic-hint{color:var(--muted);margin:0 0 12px}
+.tabs{display:flex;gap:6px}
+.tabs button{padding:6px 12px;font-size:14px;border-radius:999px}
+.tabs button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.plaza-status{color:var(--muted);font-size:14px}
+.plaza-status:empty{display:none}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.card{background:#fffdf8;border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;align-items:center;min-width:0}
+.photo{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px;margin-bottom:8px;background:var(--soft)}
+.tate{writing-mode:vertical-rl;white-space:pre-line;height:10em;max-width:100%;margin:6px auto 10px;font-size:21px;line-height:1.8;letter-spacing:.04em;overflow-wrap:anywhere}
+.meta{font-size:13px;color:var(--muted);text-align:center;margin:0}
+.memo{font-size:13px;color:var(--muted);white-space:pre-wrap;overflow-wrap:anywhere;margin:6px 0 0;align-self:stretch}
+.badge{font-size:12px;color:var(--accent);background:var(--soft);border-radius:999px;padding:2px 10px;margin:6px 0 0}
+.actions{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:10px}
+.actions button{font-size:13px;padding:6px 10px}
+.like[aria-pressed="true"]{color:#a12846;border-color:#e2a9b8}
+.empty{grid-column:1/-1;background:#fff;border:1px dashed #c3bfb2;border-radius:14px;padding:22px;text-align:center;color:var(--muted)}
+#more{display:block;margin:14px auto 0}
+#more[hidden]{display:none}
+.panel{background:#fff;border:1px solid var(--line);border-radius:18px;padding:20px}
+.panel ul{padding-left:20px;margin:10px 0 0;font-size:14px}
+.backup{display:flex;gap:16px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+.backup>div:first-child{flex:1;min-width:240px}
+.backup p{font-size:14px;color:var(--muted)}
+.file-button input{display:block;width:180px;font-size:11px;margin-top:6px}
+.footnote{font-size:12px;color:var(--muted)}
+.reminder{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:14px 16px;background:#fff;border:1px solid #b9c7c0;border-radius:14px}
+.reminder:empty{display:none}
+.reminder p{flex:1;min-width:220px;margin:0;font-size:14px}
+.load-error{padding:14px 16px;border-radius:12px;background:#fbeaea;color:#8a2b2b;font-size:14px}
+dialog{border:0;border-radius:20px;padding:22px;width:min(560px,calc(100% - 24px));max-height:92vh;background:#fffdf8;color:var(--ink)}
+dialog::backdrop{background:#14201ccc}
+form label{display:flex;flex-direction:column;gap:6px;font-size:14px;margin:12px 0}
+form label.check{flex-direction:row;align-items:center;gap:8px}
+.check input{width:20px;height:20px;margin:0;flex:none}
+input,textarea{font:inherit;font-size:16px;padding:10px;border:1px solid #b9c7c0;border-radius:10px;background:#fff;color:var(--ink);max-width:100%}
+textarea[name="text"]{font-family:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;font-size:19px}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mora{font-size:14px;color:var(--accent);margin:-6px 0 0;min-height:1.2em}
+.photo-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:12px 0}
+form .photo-row label.file-button{margin:0;display:inline-block}
+.photo-preview{display:flex;align-items:center;gap:10px}
+.photo-preview[hidden]{display:none}
+.photo-preview img{width:96px;height:72px;object-fit:cover;border-radius:8px}
+fieldset{border:1px solid var(--line);border-radius:12px;padding:6px 12px;margin:12px 0}
+legend{font-size:14px;font-weight:700;padding:0 4px}
+.close{padding:6px 12px}
+.error{color:#a12828;font-size:14px}
+.error:empty{display:none}
+#status:empty{display:none}
+#status{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);padding:12px 20px;background:#1f2b27;color:#fff;border-radius:14px;max-width:92%;z-index:3;box-shadow:0 8px 30px #0003}
+#status .undo{margin-left:10px;padding:6px 12px;font-size:13px}
+@media (max-width:640px){
+  .top span{display:none}
+  .cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .card{padding:12px 8px}
+  .tate{font-size:18px;height:10em}
+  .fields{grid-template-columns:1fr}
+}

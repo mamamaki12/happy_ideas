@@ -10,11 +10,12 @@ export async function sha256hex(s) {
   const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
   return [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, '0')).join('');
 }
-/** 本文を読む（4KBまで・JSONのみ） */
-export async function readJson(request) {
+/** 本文を読む（JSONのみ。ふだんは4KBまで） */
+export async function readJson(request, max = 4096) {
   if (!(request.headers.get('content-type') || '').includes('application/json')) throw new Error('content-type');
+  if (Number(request.headers.get('content-length') || 0) > max) throw new Error('too large');
   const text = await request.text();
-  if (text.length > 4096) throw new Error('too large');
+  if (text.length > max) throw new Error('too large');
   return JSON.parse(text);
 }
 /** 同じオリジン以外からの書き込みを拒否（CSRF・他サイトからの水増し対策） */

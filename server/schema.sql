@@ -49,3 +49,32 @@ CREATE TABLE IF NOT EXISTS rate_limits (
   n INTEGER NOT NULL DEFAULT 0,
   PRIMARY KEY (k, day)
 );
+
+-- 句ひろば（俳句の広場）。投稿した句・俳号・季語・写真（小さく縮めた JPEG）だけを持つ。メールや名前の登録はない。
+-- token_hash は投稿した端末だけが持つ削除用の合言葉の SHA-256（合言葉そのものは保存しない）。
+CREATE TABLE IF NOT EXISTS haiku (
+  id TEXT PRIMARY KEY,           -- ランダムな32文字
+  text TEXT NOT NULL,
+  kigo TEXT NOT NULL DEFAULT '',
+  name TEXT NOT NULL,
+  has_photo INTEGER NOT NULL DEFAULT 0,
+  token_hash TEXT NOT NULL,
+  likes INTEGER NOT NULL DEFAULT 0,
+  reports INTEGER NOT NULL DEFAULT 0,
+  hidden INTEGER NOT NULL DEFAULT 0,  -- 報告が3件たまると1（表示しない）
+  created INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS haiku_feed ON haiku (hidden, created);
+CREATE INDEX IF NOT EXISTS haiku_kigo ON haiku (kigo, hidden, created);
+CREATE TABLE IF NOT EXISTS haiku_photos (
+  id TEXT PRIMARY KEY,           -- haiku.id
+  data TEXT NOT NULL             -- JPEG の Base64
+);
+-- いいね・報告（同じ端末・同じ回線から何度押しても1回）。
+-- いいねの who は端末のランダムなID、報告の who は「句ごとに変わる回線のハッシュ」（句をまたいで同じ人を追えない）
+CREATE TABLE IF NOT EXISTS haiku_marks (
+  haiku_id TEXT NOT NULL,
+  who TEXT NOT NULL,
+  kind TEXT NOT NULL CHECK (kind IN ('like', 'report')),
+  UNIQUE (haiku_id, who, kind)
+);

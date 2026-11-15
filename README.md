@@ -1,5 +1,15 @@
 # happy_ideas
 
+## 新作: 家族の記録と、俳句の広場
+
+| アプリ | できること |
+|---|---|
+| [法要ごよみ](products/hoyo/) | 命日から初七日〜五十回忌と祥月命日を計算（関西式の数え方にも対応）。法要ごとの準備の目安・直前の土曜日へのずらし・お布施のメモ、家族のカレンダー用ファイル（.ics）、家族へのリンク共有 |
+| [ぽんぽん日記](products/ponpon/) | 子どものうんち（7段階のかたさ）・おくすり・トイレにすわったをワンタップで記録。何日出ていないか、月のカレンダー、ごほうびシール、受診のときに見せる2週間・4週間のまとめ（印刷・文章コピー） |
+| [句ひろば](products/kuhiroba/) | 季語のお題（週替わり）で一句。五・七・五の音の数、写真を添えた句帳、みんなの広場（いいね・報告で自動非表示・自分の句を下げる） |
+
+法要ごよみとぽんぽん日記は、記録を端末の中だけに保存します。句ひろばの「みんなの広場」は、下の Cloudflare Pages の設定をしたときだけ動き、GitHub Pages では「準備中」と出て句帳だけ使えます。
+
 ## 暮らしの新作アプリ6つ
 
 | アプリ | できること |
@@ -54,16 +64,16 @@ python3 -m http.server 4173   # = npm run serve。http://localhost:4173 で開�
 
 iPhone で通知を試すときは、Safari の共有ボタンから「ホーム画面に追加」してから開いてください。
 
-### 参加人数の集計も使う場合（Cloudflare Pages）
+### 参加人数の集計・句ひろばの広場も使う場合（Cloudflare Pages）
 
-ラリーメーカーの「参加状況」（参加・完走の人数）は、小さなサーバー（Cloudflare Pages Functions + D1）があるときだけ動きます。GitHub Pages では自動的にオフになり、それ以外の機能はそのまま使えます。
+ラリーメーカーの「参加状況」（参加・完走の人数）と、句ひろばの「みんなの広場」は、小さなサーバー（Cloudflare Pages Functions + D1）があるときだけ動きます。GitHub Pages では自動的にオフ（句ひろばは「準備中」の表示）になり、それ以外の機能はそのまま使えます。
 
 1. Cloudflare Pages でこのリポジトリをつなぎ、ビルドコマンド `npm run site`、出力ディレクトリ `_site`
 2. `npx wrangler d1 create happy-ideas` → `wrangler.toml` に database_id を記入
 3. `npx wrangler d1 execute happy-ideas --remote --file=server/schema.sql`（新しい版に更新したときも、もう一度実行してください。足りない表を足すだけで、記録は消えません）
 4. Pages の設定で D1 バインディング `DB` を追加
 
-集計APIのコードは [`functions/api/rally/`](functions/api/rally/)、テストは `tests/unit/rally-api.test.js`（本物のSQLiteで実行）。
+集計APIのコードは [`functions/api/rally/`](functions/api/rally/)、テストは `tests/unit/rally-api.test.js`（本物のSQLiteで実行）。句ひろばの広場のAPIは [`functions/api/haiku/`](functions/api/haiku/)、テストは `tests/unit/haiku-api.test.js`。投稿・いいね・報告は同じ回線から1日の上限まで（`server/limits.js`）、別々の回線から3件報告された句は自動で非表示になります。
 
 推し活手帳の**サーバー通知**も同じ D1 を使います。`node scripts/vapid-keys.mjs` で鍵を作り、Pages の環境変数に `VAPID_PUBLIC_KEY`、通知送信用 Worker（[`wrangler.push.toml`](wrangler.push.toml)、15分ごとのCron）に公開鍵・秘密鍵を `wrangler secret` で登録します。
 

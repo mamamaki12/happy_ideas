@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="description" content="命日を入れるだけで、四十九日・一周忌・三回忌などの法要の日と準備の目安がわかる無料アプリ。家族のカレンダーに入れたり、リンクで共有したりできます。登録不要。">
+<meta name="theme-color" content="#3d3a5c"><title>法要ごよみ — 命日から、法要の日と準備がわかる</title>
+<link rel="icon" href="../../shared/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="style.css"><script type="module" src="app.js"></script>
+</head>
+<body>
+<header class="top"><a href="../../">← Happy Ideas</a><span>家族で迎える法要のために</span></header>
+<main>
+<section class="hero">
+  <p class="eyebrow">法要ごよみ</p>
+  <h1>命日から、<br>法要の日と準備がわかる。</h1>
+  <p>四十九日・一周忌・三回忌…の日にちを自動で計算します。<br>準備の目安、お布施のメモ、家族のカレンダーへの登録まで。</p>
+  <div class="hero-actions"><button id="add" class="primary">＋ 故人を登録</button><button id="demo">サンプルを見る</button></div>
+</section>
+<section id="incoming" class="incoming" aria-label="共有された予定"></section>
+<section id="backup-reminder" class="reminder" aria-label="バックアップのおすすめ"></section>
+<section aria-labelledby="h-up"><div class="section-head"><h2 id="h-up">これからの法要</h2></div><div id="upcoming" class="list"></div></section>
+<section aria-labelledby="h-people"><div class="section-head"><h2 id="h-people">故人</h2></div><div id="people" class="cards"></div></section>
+<section class="panel" aria-labelledby="h-cal">
+  <h2 id="h-cal">家族のカレンダーに入れる</h2>
+  <p>これから10年分の法要と祥月命日を、カレンダー用のファイル（.ics）にします。iPhone はファイルを開くと「カレンダーに追加」、Google カレンダーはパソコンの「設定 → インポート」から入れられます。法要は30日前、祥月命日は前日にお知らせが出ます（対応しているカレンダーのみ）。</p>
+  <div class="row"><button id="ics" class="primary">カレンダー用ファイルを保存</button><button id="share-all">家族にリンクを送る</button></div>
+</section>
+<section class="panel backup" aria-labelledby="h-backup">
+  <div><h2 id="h-backup">記録を大切に</h2><p>記録はこの端末のブラウザの中だけに保存し、外には送りません。ブラウザのデータを消すと記録も消えるので、バックアップを残してください。</p><p id="backup-last" class="muted"></p></div>
+  <div class="row"><button id="export">バックアップ保存</button><label class="file-button">バックアップを復元<input id="import" type="file" accept="application/json,.json"></label></div>
+</section>
+<p class="footnote">日にちは一般的な数え方（命日を1日目とする。年忌は一周忌が満1年、三回忌からは満2年・6年…）で計算しています。地域・宗派・お寺によって違うことがあるので、最終的な日取りはお寺と相談してください。準備の目安も一般的な例です。<a href="../privacy.html">プライバシーポリシー</a></p>
+</main>
+<p id="status" role="status" aria-live="polite"></p>
+
+<dialog id="person-dlg" aria-labelledby="person-title"><form id="person-form">
+  <div class="section-head"><h2 id="person-title">故人を登録</h2><button type="button" class="close" data-close aria-label="閉じる">✕</button></div>
+  <label>お名前（呼び名でも）<input name="name" maxlength="40" required placeholder="山田 一郎"></label>
+  <label>命日<input name="death" type="date" required min="1900-01-01"></label>
+  <div class="fields"><label>続柄（任意）<input name="relation" maxlength="20" placeholder="父"></label><label>戒名・法名（任意）<input name="kaimyo" maxlength="60"></label></div>
+  <label class="check"><input name="kansai" type="checkbox"> 七日ごとの法要を、命日の前日から数える（関西の一部など）</label>
+  <label>メモ（任意）<textarea name="memo" maxlength="500" placeholder="お寺の名前や連絡先、宗派など"></textarea></label>
+  <p id="person-error" class="error" role="alert"></p>
+  <button class="primary" type="submit">保存する</button>
+</form></dialog>
+
+<dialog id="event-dlg" aria-labelledby="event-title"><form id="event-form">
+  <div class="section-head"><h2 id="event-title">法要</h2><button type="button" class="close" data-close aria-label="閉じる">✕</button></div>
+  <p id="event-sub" class="muted"></p>
+  <div class="fields"><label>行う日<input name="date" type="date" required></label><label>時刻（任意）<input name="time" type="time"></label></div>
+  <div class="row small"><button type="button" id="to-weekend">直前の土曜日にする</button><button type="button" id="to-original">本来の日に戻す</button></div>
+  <label>場所（任意）<input name="place" maxlength="60" placeholder="自宅・○○寺・会館"></label>
+  <fieldset id="tasks"><legend>準備の目安</legend></fieldset>
+  <label>お布施など（円・任意）<input name="ofuse" type="number" min="0" max="10000000" step="1" inputmode="numeric"></label>
+  <label>メモ（任意）<textarea name="memo" maxlength="500" placeholder="参列する人、会食の人数、引き出物の数など"></textarea></label>
+  <label class="check"><input name="done" type="checkbox"> この法要は済んだ</label>
+  <p id="event-error" class="error" role="alert"></p>
+  <button class="primary" type="submit">保存する</button>
+</form></dialog>
+
+<dialog id="list-dlg" aria-labelledby="list-title">
+  <div class="section-head"><h2 id="list-title">法要の一覧</h2><button type="button" class="close" data-close aria-label="閉じる">✕</button></div>
+  <ol id="all-list" class="all-list"></ol>
+</dialog>
+</body>
+</html>
