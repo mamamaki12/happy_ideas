@@ -5,33 +5,40 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="description" content="命日を入れるだけで、四十九日・一周忌・三回忌などの法要の日と準備の目安がわかる無料アプリ。家族のカレンダーに入れたり、リンクで共有したりできます。登録不要。">
-<meta name="theme-color" content="#3d3a5c"><title>法要ごよみ — 命日から、法要の日と準備がわかる</title>
+<meta name="theme-color" content="#f5f1e8"><title>法要ごよみ — 命日から、法要の日と準備がわかる</title>
 <link rel="icon" href="../../shared/icon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="style.css"><script type="module" src="app.js"></script>
 </head>
 <body>
-<header class="top"><a href="../../">← Happy Ideas</a><span>家族で迎える法要のために</span></header>
+<header class="mast">
+  <a class="back" href="../../">← Happy Ideas</a>
+  <div class="mast-title">
+    <span class="seal" aria-hidden="true">暦</span>
+    <h1>法要ごよみ</h1>
+  </div>
+  <p class="lead">命日を入れると、四十九日や一周忌がいつになるかわかります。何をいつまでに用意すればいいかも、いっしょに。</p>
+  <p class="mast-actions"><button id="add" class="primary">＋ 故人を登録</button> <button id="demo" class="link">サンプルを見る</button></p>
+</header>
 <main>
-<section class="hero">
-  <p class="eyebrow">法要ごよみ</p>
-  <h1>命日から、<br>法要の日と準備がわかる。</h1>
-  <p>四十九日・一周忌・三回忌…の日にちを自動で計算します。<br>準備の目安、お布施のメモ、家族のカレンダーへの登録まで。</p>
-  <div class="hero-actions"><button id="add" class="primary">＋ 故人を登録</button><button id="demo">サンプルを見る</button></div>
+<section id="incoming" class="note-box" aria-label="共有された予定"></section>
+<section id="backup-reminder" class="note-box" aria-label="バックアップのおすすめ"></section>
+<section class="block" aria-labelledby="h-up"><h2 id="h-up">これからの法要</h2><div id="upcoming" class="almanac"></div></section>
+<section class="block" aria-labelledby="h-people"><h2 id="h-people">故人</h2><div id="people" class="ledger"></div></section>
+<section class="block two" aria-labelledby="h-cal">
+  <div>
+    <h2 id="h-cal">家族のカレンダーに入れる</h2>
+    <p>10年分の法要と祥月命日を、カレンダーに入れるファイル（.ics）にします。法要は30日前、祥月命日は前日にお知らせが出ます。</p>
+    <p class="small">iPhone はファイルを開くと追加できます。Google カレンダーはパソコンの［設定］→［インポート］から。</p>
+    <p class="row"><button id="ics" class="primary">カレンダー用ファイルを保存</button> <button id="share-all">家族にリンクを送る</button></p>
+  </div>
+  <div>
+    <h2 id="h-backup">バックアップ</h2>
+    <p>記録はこのスマホのブラウザの中にだけあります。機種変更の前や、ときどき保存しておいてください。</p>
+    <p id="backup-last" class="small"></p>
+    <p class="row"><button id="export">バックアップ保存</button> <label class="file-button">バックアップから戻す<input id="import" type="file" accept="application/json,.json"></label></p>
+  </div>
 </section>
-<section id="incoming" class="incoming" aria-label="共有された予定"></section>
-<section id="backup-reminder" class="reminder" aria-label="バックアップのおすすめ"></section>
-<section aria-labelledby="h-up"><div class="section-head"><h2 id="h-up">これからの法要</h2></div><div id="upcoming" class="list"></div></section>
-<section aria-labelledby="h-people"><div class="section-head"><h2 id="h-people">故人</h2></div><div id="people" class="cards"></div></section>
-<section class="panel" aria-labelledby="h-cal">
-  <h2 id="h-cal">家族のカレンダーに入れる</h2>
-  <p>これから10年分の法要と祥月命日を、カレンダー用のファイル（.ics）にします。iPhone はファイルを開くと「カレンダーに追加」、Google カレンダーはパソコンの「設定 → インポート」から入れられます。法要は30日前、祥月命日は前日にお知らせが出ます（対応しているカレンダーのみ）。</p>
-  <div class="row"><button id="ics" class="primary">カレンダー用ファイルを保存</button><button id="share-all">家族にリンクを送る</button></div>
-</section>
-<section class="panel backup" aria-labelledby="h-backup">
-  <div><h2 id="h-backup">記録を大切に</h2><p>記録はこの端末のブラウザの中だけに保存し、外には送りません。ブラウザのデータを消すと記録も消えるので、バックアップを残してください。</p><p id="backup-last" class="muted"></p></div>
-  <div class="row"><button id="export">バックアップ保存</button><label class="file-button">バックアップを復元<input id="import" type="file" accept="application/json,.json"></label></div>
-</section>
-<p class="footnote">日にちは一般的な数え方（命日を1日目とする。年忌は一周忌が満1年、三回忌からは満2年・6年…）で計算しています。地域・宗派・お寺によって違うことがあるので、最終的な日取りはお寺と相談してください。準備の目安も一般的な例です。<a href="../privacy.html">プライバシーポリシー</a></p>
+<p class="footnote">日にちは、命日を1日目として数える一般的な数え方です（一周忌は満1年、三回忌からは満2年・6年…）。地域や宗派、お寺によって違うことがあるので、日取りはお寺と相談して決めてください。準備の目安も一般的な例です。<a href="../privacy.html">プライバシーポリシー</a></p>
 </main>
 <p id="status" role="status" aria-live="polite"></p>
 

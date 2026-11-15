@@ -60,6 +60,8 @@ const setPrefs = (patch) => { try { localStorage.setItem(PREFS_KEY, JSON.stringi
 const tate = (text, cls = 'tate') => el('p', { class: cls, lang: 'ja' }, text.split(' ').join('\n'));
 const moraText = (e) => { const m = countMora(e.yomi || e.text); return m ? `${m.parts.join('・')}（${m.total}音）` : ''; };
 const topic = topicFor(today());
+// 広場の準備ができるまで掛けておく、昔の名句（作者の没後100年以上）
+const SAMPLES = [['古池や 蛙飛びこむ 水の音', '芭蕉'], ['菜の花や 月は東に 日は西に', '蕪村'], ['やせ蛙 負けるな一茶 これにあり', '一茶'], ['柿食へば 鐘が鳴るなり 法隆寺', '子規']];
 
 function draw() {
   showLoadError();
@@ -69,24 +71,25 @@ function draw() {
 // ---- 句帳 ----
 function drawBook() {
   $('#book-count').textContent = data.entries.length ? `${data.entries.length}句` : '';
-  if (!data.entries.length) { $('#book').replaceChildren(el('div', { class: 'empty' }, el('p', {}, 'まだ句がありません。「＋ 一句よむ」から、最初の一句をどうぞ。'))); return; }
-  $('#book').replaceChildren(...data.entries.map((e) => el('article', { class: 'card' },
-    e.photo ? el('img', { src: e.photo, alt: '', class: 'photo' }) : null,
-    tate(e.text),
-    el('p', { class: 'meta' }, [e.date, e.kigo ? `季語「${e.kigo}」` : '', moraText(e)].filter(Boolean).join('・')),
-    e.memo ? el('p', { class: 'memo' }, e.memo) : null,
-    e.posted ? el('p', { class: 'badge' }, '広場に出しています') : null,
-    el('div', { class: 'actions' },
-      el('button', { type: 'button', onclick: () => openWrite(e) }, '直す'),
-      e.posted ? el('button', { type: 'button', onclick: () => withdraw(e) }, '広場から下げる')
-        : api ? el('button', { type: 'button', onclick: () => openWrite(e, { post: true }) }, 'ひろばに出す') : null,
-      el('button', { type: 'button', onclick: () => removeEntry(e) }, '削除')))));
+  if (!data.entries.length) { $('#book').replaceChildren(el('p', { class: 'empty' }, 'まだ一句もありません。「＋ 一句よむ」から、どうぞ。')); return; }
+  $('#book').replaceChildren(...data.entries.map((e) => el('article', { class: 'entry' },
+    e.photo ? el('img', { src: e.photo, alt: '', class: 'thumb' }) : null,
+    el('div', { class: 'entry-body' },
+      el('p', { class: 'ku' }, e.text.split(' ').join('　')),
+      el('p', { class: 'meta' }, [e.date, e.kigo ? `季語「${e.kigo}」` : '', moraText(e)].filter(Boolean).join('・')),
+      e.memo ? el('p', { class: 'memo' }, e.memo) : null,
+      e.posted ? el('p', { class: 'badge' }, '広場に出しています') : null,
+      el('p', { class: 'actions' },
+        el('button', { type: 'button', class: 'link', onclick: () => openWrite(e) }, '直す'),
+        e.posted ? el('button', { type: 'button', class: 'link', onclick: () => withdraw(e) }, '広場から下げる')
+          : api ? el('button', { type: 'button', class: 'link', onclick: () => openWrite(e, { post: true }) }, 'ひろばに出す') : null,
+        el('button', { type: 'button', class: 'link quiet', onclick: () => removeEntry(e) }, '削除'))))));
 }
 function drawBackup() {
   const meta = backupMeta(); const box = $('#backup-reminder');
   $('#backup-last').textContent = meta.last ? `最後のバックアップ: ${meta.last}` : 'まだバックアップを保存していません。';
   if (!backupDue(meta, data.entries.length)) { box.replaceChildren(); return; }
-  box.replaceChildren(el('p', {}, '句帳はこの端末の中だけにあります。機種変更やブラウザのデータ削除に備えて、バックアップを保存しておきましょう。'),
+  box.replaceChildren(el('p', {}, '句帳はこのスマホの中にしかありません。そろそろバックアップを保存しておくと安心です。'),
     el('button', { type: 'button', class: 'primary', onclick: () => $('#export').click() }, 'バックアップを保存'),
     el('button', { type: 'button', onclick: () => { setBackupMeta({ snooze: new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10) }); drawBackup(); } }, 'あとで'));
 }
@@ -173,7 +176,7 @@ $('#write-form').addEventListener('submit', async (ev) => {
 async function call(path, body) {
   const res = await fetch(`${API}${path}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body), credentials: 'omit' });
   const json = await res.json().catch(() => ({}));
-  if (!res.ok) throw Object.assign(new Error(json.message || '広場に届きませんでした。時間をおいて、もう一度お試しください。'), { status: res.status });
+  if (!res.ok) throw Object.assign(new Error(json.message || '広場に届きませんでした。少しあとで、もう一度どうぞ。'), { status: res.status });
   return json;
 }
 async function postEntry(e, name) {
@@ -237,21 +240,22 @@ function drawPlaza() {
   $('#tab-topic').textContent = `お題「${topic.word}」`;
   for (const id of ['#tab-new', '#tab-topic']) $(id).disabled = !api;
   if (api === false) {
-    st.textContent = '広場は準備中です。いまは句帳に書きためておけます。準備ができたら、ここにみんなの句が並びます。';
-    $('#plaza').replaceChildren(); $('#more').hidden = true; return;
+    st.textContent = '広場は準備中です。いまは句帳に書きためておけます。準備ができるまで、昔の名句を掛けておきます。';
+    $('#plaza').replaceChildren(...SAMPLES.map(([text, name]) => el('div', { class: 'hang sample' }, el('div', { class: 'slip' }, tate(text), el('p', { class: 'by' }, name)))));
+    $('#more').hidden = true; return;
   }
   const p = prefs(); const mine = new Set(data.entries.filter((e) => e.posted).map((e) => e.posted.id));
   const posts = feed.posts.filter((x) => !p.reported.includes(x.id));
   st.textContent = feed.loading && !posts.length ? '広場を読み込んでいます…' : !posts.length ? (feed.mode === 'topic' ? `お題「${topic.word}」の句はまだありません。最初の一句をどうぞ。` : 'まだ句がありません。最初の一句をどうぞ。') : '';
   $('#plaza').replaceChildren(...posts.map((x) => {
     const liked = p.liked.includes(x.id);
-    return el('article', { class: 'card' },
-      x.photo ? el('img', { src: `${API}/${x.id}/photo`, alt: '', class: 'photo', loading: 'lazy' }) : null,
-      tate(x.text),
-      el('p', { class: 'meta' }, [x.name, x.kigo ? `季語「${x.kigo}」` : '', new Date(x.created).toLocaleDateString('ja-JP')].filter(Boolean).join('・')),
-      el('div', { class: 'actions' },
+    return el('article', { class: 'hang' },
+      el('div', { class: 'slip' }, tate(x.text), el('p', { class: 'by' }, x.name)),
+      x.photo ? el('img', { src: `${API}/${x.id}/photo`, alt: '', class: 'thumb', loading: 'lazy' }) : null,
+      el('p', { class: 'meta' }, [x.kigo ? `季語「${x.kigo}」` : '', new Date(x.created).toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' })].filter(Boolean).join('・')),
+      el('p', { class: 'actions' },
         el('button', { type: 'button', class: 'like', 'aria-pressed': String(liked), 'aria-label': `いいね ${x.likes}`, onclick: () => likePost(x) }, liked ? '♥' : '♡', ` ${x.likes}`),
-        mine.has(x.id) ? el('span', { class: 'badge' }, 'わたしの句') : el('button', { type: 'button', onclick: () => reportPost(x) }, '報告')));
+        mine.has(x.id) ? el('span', { class: 'badge' }, 'わたしの句') : el('button', { type: 'button', class: 'link quiet', onclick: () => reportPost(x) }, '報告')));
   }));
   $('#more').hidden = !feed.next;
 }
@@ -281,7 +285,7 @@ function download(name, body, type) {
 $('#export').addEventListener('click', () => {
   if (loadError) { say('保存済みの句帳を読み込めていないため、バックアップを作れません。'); return; }
   download(`kuhiroba-${today()}.json`, JSON.stringify(data, null, 2), 'application/json');
-  setBackupMeta({ last: today() }); drawBackup(); say('バックアップの保存を開始しました。');
+  setBackupMeta({ last: today() }); drawBackup(); say('バックアップを保存しました。');
 });
 $('#import').addEventListener('change', async (ev) => {
   const file = ev.target.files[0]; if (!file) return;
@@ -294,6 +298,7 @@ $('#import').addEventListener('change', async (ev) => {
 
 // ---- はじめに ----
 $('#topic-word').textContent = topic.word;
+document.querySelector('.topic-slip').textContent = topic.word;
 $('#topic-season').textContent = `（${topic.season}の季語）`;
 $('#topic-hint').textContent = topic.hint;
 $('#write').addEventListener('click', () => openWrite());

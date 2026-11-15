@@ -5,25 +5,27 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="description" content="子どものうんちとおくすりを、ワンタップで記録できる無料アプリ。何日出ていないか、かたさの変化、ごほうびシール、受診のときに見せる2週間のまとめまで。登録不要で、記録は端末の中だけに保存します。">
-<meta name="theme-color" content="#b4521e"><title>ぽんぽん日記 — 子どものうんちとおくすりの記録</title>
+<meta name="theme-color" content="#fdfaf2"><title>ぽんぽん日記 — 子どものうんちとおくすりの記録</title>
 <link rel="icon" href="../../shared/icon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="style.css"><script type="module" src="app.js"></script>
 </head>
 <body>
-<header class="top"><a href="../../">← Happy Ideas</a><span>子どもの便秘とつきあう家族のために</span></header>
 <main>
-<section class="hero">
-  <p class="eyebrow">ぽんぽん日記</p>
-  <h1>子どものうんち、<br>ぽんっと記録。</h1>
-  <p>何日出ていないか、かたさ、おくすり。<br>がんばったらシールがもらえて、受診のときはまとめを見せるだけ。</p>
-  <div class="hero-actions"><button id="add-kid" class="primary">＋ 子どもを登録</button><button id="demo">サンプルを見る</button></div>
-</section>
+<header class="cover">
+  <a class="back" href="../../">← Happy Ideas</a>
+  <div class="label-card">
+    <h1>ぽんぽん日記</h1>
+    <p class="name-line">なまえ<span id="cover-name"></span></p>
+  </div>
+  <p class="lead">うんちが出たら、ぽんっと押すだけ。何日出ていないか、おくすりを飲んだかが残ります。病院では、まとめの紙を見せればだいじょうぶ。</p>
+  <p class="cover-actions"><button id="add-kid" class="primary">＋ 子どもを登録</button> <button id="demo" class="link">サンプルを見る</button></p>
+</header>
 <section id="backup-reminder" class="reminder" aria-label="バックアップのおすすめ"></section>
 
 <div id="app" hidden>
   <nav id="kids" class="kids" aria-label="記録する子ども"></nav>
 
-  <section class="today" aria-labelledby="today-title">
+  <section class="today page" aria-labelledby="today-title">
     <h2 id="today-title">きょう</h2>
     <p id="since" class="since"></p>
     <div class="quick">
@@ -31,11 +33,11 @@
       <button id="log-sit" class="big sit"><span aria-hidden="true">🚽</span>トイレにすわった</button>
       <button id="log-med" class="big med"><span aria-hidden="true">💊</span>おくすり</button>
     </div>
-    <h3 class="sub">きょうの記録</h3>
+    <h3 class="sub">きょう書いたこと</h3>
     <ul id="today-list" class="logs"></ul>
   </section>
 
-  <section class="panel" aria-labelledby="month-title">
+  <section class="page" aria-labelledby="month-title">
     <div class="month-head">
       <button id="prev-month" aria-label="前の月">‹</button>
       <h2 id="month-title"></h2>
@@ -48,21 +50,21 @@
     <ul id="day-list" class="logs"></ul>
   </section>
 
-  <section class="panel stickers-panel" aria-labelledby="h-stickers">
+  <section class="page sticker-page" aria-labelledby="h-stickers">
     <h2 id="h-stickers">シールちょう</h2>
     <p id="sticker-count"></p>
     <div id="stickers" class="stickers"></div>
   </section>
 
-  <section class="panel" aria-labelledby="h-report">
-    <h2 id="h-report">受診のときに見せるまとめ</h2>
-    <p class="muted">うんちの回数・かたさ・出なかった日数・おくすりを、表と文章にまとめます。印刷したり、文章をコピーして家族に送ったりできます。</p>
+  <section class="page" aria-labelledby="h-report">
+    <h2 id="h-report">病院で見せるまとめ</h2>
+    <p class="muted">回数、かたさ、何日出なかったか、おくすり。先生に聞かれることを1枚にまとめます。</p>
     <div class="row"><button id="report-14" class="primary">2週間分を作る</button><button id="report-28">4週間分を作る</button></div>
   </section>
   <section id="report" class="report" aria-labelledby="report-title" hidden>
     <div class="section-head"><h2 id="report-title"></h2><button id="report-close" type="button">閉じる</button></div>
     <dl id="report-stats" class="stats"></dl>
-    <div class="table-wrap"><table>
+    <div class="table-wrap" tabindex="0" role="region" aria-label="毎日の記録の表（横に動かせます）"><table>
       <caption>日ごとの記録</caption>
       <thead><tr><th scope="col">日付</th><th scope="col">うんち</th><th scope="col">おくすり</th><th scope="col">メモ</th></tr></thead>
       <tbody id="report-rows"></tbody>
@@ -71,9 +73,11 @@
   </section>
 </div>
 
-<section class="panel backup" aria-labelledby="h-backup">
-  <div><h2 id="h-backup">記録を大切に</h2><p>記録はこの端末のブラウザの中だけに保存し、外には送りません。ブラウザのデータを消すと記録も消えるので、ときどきバックアップを保存してください。</p><p id="backup-last" class="muted"></p></div>
-  <div class="row"><button id="export">バックアップ保存</button><label class="file-button">バックアップを復元<input id="import" type="file" accept="application/json,.json"></label></div>
+<section class="page backup" aria-labelledby="h-backup">
+  <h2 id="h-backup">バックアップ</h2>
+  <p>記録はこのスマホのブラウザの中にだけあります。機種変更の前や、ときどき保存しておいてください。</p>
+  <p id="backup-last" class="muted"></p>
+  <p class="row"><button id="export">バックアップ保存</button> <label class="file-button">バックアップから戻す<input id="import" type="file" accept="application/json,.json"></label></p>
 </section>
 <p class="footnote">ぽんぽん日記は記録のための道具で、診断や治療をするものではありません。おくすりの量や回数は、医師の指示に従ってください。うんちに血が混じる、おなかを強く痛がる、吐く、おなかがふくれている、元気や食欲がないなど、気になることがあれば早めに小児科に相談してください。<a href="../privacy.html">プライバシーポリシー</a></p>
 </main>
