@@ -1,84 +1,117 @@
-:root{color-scheme:light;--ink:#2b2a3a;--muted:#5f5d6e;--accent:#3d3a5c;--paper:#f6f4ef;--line:#d9d5ca;--soft:#ebe7f3}
+/* 法要ごよみ: 和紙の暦と、家の過去帳のような見た目 */
+:root{color-scheme:light;--paper:#f5f1e8;--sheet:#fbf9f3;--ink:#2b2724;--sub:#625a51;--rule:#d6cdbd;--faint:#e8e1d3;--shu:#a3372b}
 *{box-sizing:border-box}
-body{margin:0;background:var(--paper);color:var(--ink);font-family:"Hiragino Mincho ProN","Yu Mincho",serif;line-height:1.7}
-button,input,select,textarea,.file-button,.top,.muted,.prep,.actions,.footnote,#status{font-family:system-ui,sans-serif}
-.top,main{max-width:960px;margin:auto;padding:20px}
-.top{display:flex;justify-content:space-between;font-size:13px}
-a{color:var(--accent)}
-.hero{padding:24px 0 32px}
-.eyebrow{letter-spacing:.2em;font-size:13px;font-weight:700;color:var(--accent);margin:0}
-h1{font-size:clamp(30px,6vw,52px);line-height:1.3;margin:14px 0}
-.hero p{color:var(--muted);font-size:16px}
-.hero-actions,.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-button,.file-button{cursor:pointer;border:1px solid #c9c4d8;border-radius:12px;padding:11px 16px;background:#fff;color:var(--ink);font-size:15px;font-weight:600}
-button:hover,.file-button:hover{background:var(--soft)}
-button:focus-visible,input:focus-visible,textarea:focus-visible,.file-button:focus-within{outline:3px solid #b5852d;outline-offset:2px}
-button:disabled{opacity:.5;cursor:not-allowed}
-.primary{background:var(--accent);border-color:var(--accent);color:#fff}
-.primary:hover{background:#524e78}
-section{margin-bottom:34px}
-.section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
-h2{font-size:20px;margin:0}
-.list{display:flex;flex-direction:column;gap:10px}
-.event{display:grid;grid-template-columns:140px 1fr auto;gap:14px;align-items:center;background:#fff;border:1px solid var(--line);border-left:5px solid var(--accent);border-radius:14px;padding:14px 16px}
-.event.shotsuki{border-left-color:#8c8a9c}
-.event.chuin{border-left-color:#7a6a3a}
-.when strong{display:block;font-size:22px;font-family:system-ui,sans-serif}
-.when span{font-size:13px;color:var(--muted);font-family:system-ui,sans-serif}
-.what h3{margin:0;font-size:18px;overflow-wrap:anywhere}
-.what p{margin:2px 0}
-.prep{font-size:13px;color:#4c4a1f;background:#f4efd9;border-radius:8px;padding:4px 8px;display:inline-block}
-.muted{color:var(--muted);font-size:13px}
-.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px}
-.card h3{margin:0 0 4px;font-size:20px;overflow-wrap:anywhere}
-.card h3 small{font-size:14px;font-weight:400;color:var(--muted)}
-.kaimyo{margin:0;font-size:15px}
-.next{font-family:system-ui,sans-serif;font-size:14px;background:var(--soft);border-radius:8px;padding:6px 10px}
-.note{white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;color:var(--muted)}
-.actions{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}
-.actions button{font-size:13px;padding:9px 4px}
-.empty{background:#fff;border:1px dashed #c3bfb2;border-radius:14px;padding:22px;text-align:center;color:var(--muted)}
-.panel{background:#fff;border:1px solid var(--line);border-radius:18px;padding:20px}
-.panel p{font-size:14px;color:var(--muted);font-family:system-ui,sans-serif}
-.backup{display:flex;gap:16px;flex-wrap:wrap;align-items:center;justify-content:space-between}
-.backup>div:first-child{flex:1;min-width:240px}
-.file-button input{display:block;width:180px;font-size:11px;margin-top:6px}
-.footnote{font-size:12px;color:var(--muted)}
-.reminder,.incoming{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:14px 16px;background:#fff;border:1px solid #c9c4d8;border-radius:14px}
-.reminder:empty,.incoming:empty{display:none}
-.reminder p,.incoming p{flex:1;min-width:220px;margin:0;font-size:14px;font-family:system-ui,sans-serif}
-.load-error{padding:14px 16px;border-radius:12px;background:#fbeaea;color:#8a2b2b;font-size:14px;font-family:system-ui,sans-serif}
-dialog{border:0;border-radius:20px;padding:22px;width:min(560px,calc(100% - 24px));max-height:92vh;background:#fdfcf9;color:var(--ink)}
-dialog::backdrop{background:#1d1b2bcc}
-form label{display:flex;flex-direction:column;gap:6px;font-size:14px;margin:12px 0;font-family:system-ui,sans-serif}
+html{background:var(--paper)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:"Hiragino Mincho ProN","Yu Mincho","YuMincho","Noto Serif JP",serif;line-height:1.8;font-size:16px}
+button,input,textarea,.file-button,.small,.sub,.prep,.until,.footnote,#status,.back,label,legend{font-family:"Hiragino Sans","Yu Gothic","Noto Sans JP",system-ui,sans-serif}
+a{color:var(--ink)}
+main,.mast{max-width:720px;margin:0 auto;padding:0 20px}
+
+/* 表紙 */
+.mast{padding-top:14px;padding-bottom:22px;border-bottom:3px double var(--ink);margin-bottom:28px}
+.back{font-size:13px;color:var(--sub)}
+.mast-title{display:flex;align-items:center;gap:14px;margin:26px 0 6px}
+.mast h1{font-size:34px;font-weight:600;letter-spacing:.12em;margin:0}
+.seal{display:inline-grid;place-items:center;width:42px;height:42px;border:2px solid var(--shu);color:var(--shu);font-size:24px;line-height:1;border-radius:3px;transform:rotate(-4deg)}
+.lead{margin:6px 0 18px;color:var(--sub);max-width:30em}
+.mast-actions{margin:0;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+
+/* ボタン: 角ばった墨の線。主なものだけ塗る */
+button,.file-button{cursor:pointer;font-size:15px;border:1px solid var(--ink);border-radius:2px;padding:9px 16px;background:transparent;color:var(--ink)}
+button:hover,.file-button:hover{background:#ece6d9}
+.primary{background:var(--ink);color:var(--sheet)}
+.primary:hover{background:#45403b}
+button:disabled{opacity:.4;cursor:not-allowed}
+button.link{border:0;padding:4px 0;background:none;text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:1px;font-size:14px}
+button.link:hover{color:var(--shu);background:none}
+button.link.quiet{color:var(--sub)}
+button:focus-visible,input:focus-visible,textarea:focus-visible,.file-button:focus-within{outline:2px solid var(--shu);outline-offset:3px}
+.file-button{display:inline-block;position:relative}
+.file-button input{position:absolute;inset:0;opacity:0;width:100%;cursor:pointer}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+
+/* 見出しは左に朱の短い線 */
+.block{margin-bottom:44px}
+h2{font-size:19px;font-weight:600;letter-spacing:.08em;margin:0 0 12px;display:flex;align-items:center;gap:10px}
+h2::before{content:"";width:4px;height:1.1em;background:var(--shu)}
+.small{font-size:13px;color:var(--sub)}
+.empty{color:var(--sub);padding:14px 0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+
+/* これからの法要: 日めくりのような日付と、罫線で区切った行 */
+.almanac{border-top:1px solid var(--ink)}
+.event{display:grid;grid-template-columns:64px 1fr;gap:16px;padding:16px 0 14px;border-bottom:1px solid var(--rule)}
+.day{margin:0;display:flex;flex-direction:column;align-items:center;border-right:1px solid var(--rule);padding-right:12px;line-height:1.2}
+.day .m{font-size:13px;color:var(--sub)}
+.day .d{font-size:32px;font-weight:600}
+.day .w{font-size:13px}
+.what h3{margin:0;font-size:19px;font-weight:600;overflow-wrap:anywhere}
+.what p{margin:0}
+.until{font-size:13px;color:var(--sub)}
+.until.soon{color:var(--shu);font-weight:700}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.sub{font-size:13px;color:var(--sub)}
+.prep{font-size:13px;margin-top:6px!important;padding-left:10px;border-left:2px solid var(--rule)}
+.event .link{margin-top:4px}
+.event.shotsuki h3{font-weight:400}
+
+/* 故人: 過去帳の頁 */
+.ledger{border-top:1px solid var(--ink)}
+.person{padding:18px 0;border-bottom:1px solid var(--rule)}
+.person h3{margin:0;font-size:22px;font-weight:600;letter-spacing:.04em;overflow-wrap:anywhere}
+.person h3 small{font-size:14px;font-weight:400;color:var(--sub)}
+.person p{margin:2px 0}
+.kaimyo{font-size:15px;letter-spacing:.1em}
+.next{margin-top:8px!important}
+.note{white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;color:var(--sub)}
+.actions{display:flex;flex-wrap:wrap;gap:4px 18px;margin-top:8px!important}
+
+/* カレンダーとバックアップ */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:32px;border-top:1px solid var(--ink);padding-top:22px}
+.two p{margin:0 0 10px}
+.footnote{font-size:12px;color:var(--sub);border-top:1px solid var(--rule);padding:14px 0 40px;line-height:1.7}
+
+/* お知らせ（届いた予定・バックアップのすすめ） */
+.note-box{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:14px 16px;margin-bottom:28px;background:var(--sheet);border:1px solid var(--ink);border-left:5px solid var(--shu)}
+.note-box:empty{display:none}
+.note-box p{flex:1;min-width:220px;margin:0;font-size:15px}
+.load-error{padding:14px 16px;border:1px solid var(--shu);color:#7d241b;background:#f8ebe6;font-size:14px}
+
+/* 入力の紙 */
+dialog{border:1px solid var(--ink);border-radius:2px;padding:22px 22px 26px;width:min(540px,calc(100% - 20px));max-height:92vh;background:var(--sheet);color:var(--ink);box-shadow:6px 6px 0 #0000001a}
+dialog::backdrop{background:#2b2724b3}
+.section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px;border-bottom:1px solid var(--rule);padding-bottom:8px}
+.section-head h2{margin:0}
+.close{border:0;font-size:18px;padding:4px 10px}
+form label{display:flex;flex-direction:column;gap:4px;font-size:14px;margin:14px 0}
 form label.check{flex-direction:row;align-items:flex-start;gap:10px}
-.check input{width:20px;height:20px;margin-top:2px;flex:none}
-input,textarea{font-size:16px;padding:10px;border:1px solid #c9c4d8;border-radius:10px;background:#fff;color:var(--ink);max-width:100%}
-textarea{min-height:70px}
-.fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-fieldset{border:1px solid var(--line);border-radius:12px;padding:6px 12px;margin:12px 0}
-legend{font-size:14px;font-weight:700;font-family:system-ui,sans-serif;padding:0 4px}
-.task small{color:var(--muted);display:block}
-.row.small button{font-size:13px;padding:8px 12px}
-.close{padding:6px 12px}
-.error{color:#a12828;font-size:14px;font-family:system-ui,sans-serif}
+.check input{width:20px;height:20px;margin-top:2px;flex:none;accent-color:var(--ink)}
+input,textarea{font-size:16px;padding:9px 10px;border:0;border-bottom:1px solid var(--ink);border-radius:0;background:transparent;color:var(--ink);max-width:100%}
+textarea{min-height:70px;border:1px solid var(--rule)}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+fieldset{border:1px solid var(--rule);padding:6px 14px;margin:14px 0}
+legend{font-size:14px;font-weight:700;padding:0 6px}
+.task small{color:var(--sub);display:block}
+.row.small button{font-size:13px;padding:7px 12px}
+#event-sub{font-size:13px;color:var(--sub);margin:4px 0}
+.error{color:#9b2a1f;font-size:14px}
 .error:empty{display:none}
 .all-list{list-style:none;padding:0;margin:0}
-.all-list li{display:grid;grid-template-columns:150px 1fr auto;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid #ebe7de;font-family:system-ui,sans-serif;font-size:14px}
-.all-list li.past{color:var(--muted)}
-.all-list .label{font-weight:700}
-.all-list button{font-size:13px;padding:6px 10px}
+.all-list li{display:grid;grid-template-columns:150px 1fr auto;gap:8px;align-items:center;padding:9px 0;border-bottom:1px solid var(--rule);font-size:15px}
+.all-list li.past{color:var(--sub)}
+.all-list .label{font-weight:600}
+.all-list button{font-size:13px;padding:5px 10px}
+
 #status:empty{display:none}
-#status{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);padding:12px 20px;background:#2b2a3a;color:#fff;border-radius:14px;max-width:92%;z-index:3;box-shadow:0 8px 30px #0003}
-#status .undo{margin-left:10px;padding:6px 12px;font-size:13px}
+#status{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);padding:11px 18px;background:var(--ink);color:var(--sheet);border-radius:2px;max-width:92%;z-index:3;font-size:14px}
+#status .undo{margin-left:10px;padding:5px 12px;font-size:13px;color:var(--sheet);border-color:var(--sheet)}
+
 @media (max-width:640px){
-  .top span{display:none}
-  .event{grid-template-columns:1fr;gap:6px}
-  .event button{justify-self:start}
-  .cards{grid-template-columns:1fr}
+  .mast h1{font-size:30px}
+  .event{grid-template-columns:54px 1fr;gap:12px}
+  .day .d{font-size:28px}
+  .two{grid-template-columns:1fr;gap:28px}
   .fields{grid-template-columns:1fr}
   .all-list li{grid-template-columns:1fr auto}
   .all-list li>span:nth-child(2){grid-column:1}
 }
-@media print{.top,.hero-actions,.panel,#status,.actions,.event button{display:none}}
+@media print{.mast-actions,.two,.note-box,#status,.actions,.event .link,.back{display:none}body{background:#fff}}

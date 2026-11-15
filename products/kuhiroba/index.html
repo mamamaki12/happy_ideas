@@ -5,44 +5,50 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="description" content="季語のお題で一句。自分の句帳に書きため、気に入った句はみんなの広場へ。五・七・五の音の数も数えます。登録不要の無料アプリ。">
-<meta name="theme-color" content="#2f5d50"><title>句ひろば — 一句よんで、ひろばに置こう</title>
+<meta name="theme-color" content="#f1ece0"><title>句ひろば — 一句よんで、ひろばに置こう</title>
 <link rel="icon" href="../../shared/icon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="style.css"><script type="module" src="app.js"></script>
 </head>
 <body>
-<header class="top"><a href="../../">← Happy Ideas</a><span>俳句を、気軽に</span></header>
 <main>
-<section class="hero">
-  <p class="eyebrow">句ひろば</p>
-  <h1>一句よんで、<br>ひろばに置こう。</h1>
-  <p>季語のお題で、週に一句。自分の句帳に書きためて、<br>気に入った句はみんなの広場へ。</p>
-  <div class="hero-actions"><button id="write" class="primary">＋ 一句よむ</button></div>
-</section>
+<header class="mast">
+  <a class="back" href="../../">← Happy Ideas</a>
+  <div class="mast-grid">
+    <h1>句ひろば</h1>
+    <div class="mast-text">
+      <p class="lead">季語をひとつ決めて、五・七・五。うまく詠めなくても大丈夫です。書いた句は自分の句帳に残り、気に入ったものだけ広場に掛けられます。</p>
+      <p><button id="write" class="primary">＋ 一句よむ</button></p>
+    </div>
+  </div>
+</header>
 
 <section class="topic" aria-labelledby="h-topic">
-  <h2 id="h-topic">今週のお題</h2>
-  <p class="topic-word"><span id="topic-word"></span><small id="topic-season"></small></p>
-  <p id="topic-hint" class="topic-hint"></p>
-  <button id="write-topic">このお題でよむ</button>
+  <p class="topic-slip" aria-hidden="true"></p>
+  <div>
+    <h2 id="h-topic">今週のお題</h2>
+    <p class="topic-word"><span id="topic-word"></span><small id="topic-season"></small></p>
+    <p id="topic-hint" class="topic-hint"></p>
+    <button id="write-topic">このお題でよむ</button>
+  </div>
 </section>
 
 <section id="backup-reminder" class="reminder" aria-label="バックアップのおすすめ"></section>
 
-<section aria-labelledby="h-plaza">
+<section class="block" aria-labelledby="h-plaza">
   <div class="section-head"><h2 id="h-plaza">みんなの広場</h2>
     <div class="tabs" role="group" aria-label="広場の表示"><button id="tab-new" aria-pressed="true">新着</button><button id="tab-topic" aria-pressed="false"></button></div>
   </div>
   <p id="plaza-status" class="plaza-status" role="status"></p>
-  <div id="plaza" class="cards"></div>
+  <div id="plaza" class="pole"></div>
   <button id="more" hidden>もっと見る</button>
 </section>
 
-<section aria-labelledby="h-book">
+<section class="block" aria-labelledby="h-book">
   <div class="section-head"><h2 id="h-book">わたしの句帳</h2><span id="book-count" class="muted"></span></div>
-  <div id="book" class="cards"></div>
+  <div id="book" class="book"></div>
 </section>
 
-<section class="panel" aria-labelledby="h-rules">
+<section class="block small-print" aria-labelledby="h-rules">
   <h2 id="h-rules">広場のきまり</h2>
   <ul>
     <li>人を傷つける句、特定の人がわかる内容、宣伝や URL は出さないでください。</li>
@@ -52,9 +58,11 @@
   </ul>
 </section>
 
-<section class="panel backup" aria-labelledby="h-backup">
-  <div><h2 id="h-backup">句帳を大切に</h2><p>句帳はこの端末のブラウザの中だけに保存します。ブラウザのデータを消すと句帳も消えるので、ときどきバックアップを保存してください。</p><p id="backup-last" class="muted"></p></div>
-  <div class="row"><button id="export">バックアップ保存</button><label class="file-button">バックアップを復元<input id="import" type="file" accept="application/json,.json"></label></div>
+<section class="block small-print" aria-labelledby="h-backup">
+  <h2 id="h-backup">バックアップ</h2>
+  <p>句帳はこのスマホのブラウザの中にだけあります。機種変更の前や、ときどき保存しておいてください。</p>
+  <p id="backup-last" class="muted"></p>
+  <p class="row"><button id="export">バックアップ保存</button> <label class="file-button">バックアップから戻す<input id="import" type="file" accept="application/json,.json"></label></p>
 </section>
 <p class="footnote">句帳の句・よみ・メモ・写真は端末の中だけに保存します。「ひろばにも出す」を選んだときだけ、句・季語・俳号・写真をこのサイトのサーバーに送り、広場でだれでも見られるようにします。IP アドレスは、乱用を防ぐための回数の確認にだけ使い、そのままでは保存しません。<a href="../privacy.html">プライバシーポリシー</a></p>
 </main>

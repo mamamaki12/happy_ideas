@@ -65,39 +65,44 @@ function drawUpcoming() {
   const from = addDays(today(), -1);
   const list = upcoming(data.people, from, 400).filter((ev) => !(data.events[ev.key]?.done) && (data.events[ev.key]?.date || ev.date) >= today()).slice(0, 12);
   if (!list.length) {
-    $('#upcoming').replaceChildren(el('div', { class: 'empty' }, el('p', {}, data.people.length ? 'この1年に予定している法要はありません。故人のカードの「法要の一覧」から先の予定も見られます。' : '故人を登録すると、ここにこれからの法要が並びます。')));
+    $('#upcoming').replaceChildren(el('p', { class: 'empty' }, data.people.length ? 'この1年のうちに予定している法要はありません。先の予定は「法要の一覧」から見られます。' : '故人を登録すると、ここにこれからの法要が日付順に並びます。'));
     return;
   }
+  const t = today();
   $('#upcoming').replaceChildren(...list.map((ev) => {
     const p = person(ev.person); const st = data.events[ev.key] || {};
     const date = st.date || ev.date;
     const tasks = prepFor(ev.kind); const doneTasks = tasks.filter(([id]) => st.tasks?.[id]).length;
     const nextTask = tasks.find(([id]) => !st.tasks?.[id]);
+    const soon = diffDays(t, date) <= 30;
+    const [, m, d] = date.split('-').map(Number);
     return el('article', { class: `event ${ev.group}` },
-      el('div', { class: 'when' }, el('strong', {}, untilText(date)), el('span', {}, dateText(date))),
+      el('p', { class: 'day', 'aria-hidden': 'true' }, el('span', { class: 'm' }, `${m}月`), el('span', { class: 'd' }, d), el('span', { class: 'w' }, weekday(date))),
       el('div', { class: 'what' },
+        el('p', { class: `until${soon ? ' soon' : ''}` }, untilText(date), el('span', { class: 'sr' }, ` ${dateText(date)}`)),
         el('h3', {}, `${p.name}さん ${ev.label}`),
-        el('p', { class: 'muted' }, [wareki(date), st.date && st.date !== ev.date ? `（本来の日 ${dateText(ev.date)}）` : '', st.time ? ` ${st.time}` : '', st.place ? ` ・${st.place}` : ''].join('')),
-        tasks.length ? el('p', { class: 'prep' }, `準備 ${doneTasks}/${tasks.length}`, nextTask ? ` ・次は「${nextTask[1]}」（${dateText(addDays(date, -nextTask[2]))}まで）` : ' ・すべて済み') : null),
-      el('button', { type: 'button', onclick: () => openEvent(ev) }, ev.group === 'shotsuki' ? 'メモ' : '準備を開く'));
+        el('p', { class: 'sub' }, [wareki(date), st.date && st.date !== ev.date ? `本来は${dateText(ev.date)}` : '', st.time || '', st.place || ''].filter(Boolean).join('　')),
+        tasks.length ? el('p', { class: 'prep' }, `準備 ${doneTasks}/${tasks.length}`, nextTask ? `　次は「${nextTask[1]}」${dateText(addDays(date, -nextTask[2]))}まで` : '　すべて済み') : null,
+        el('button', { type: 'button', class: 'link', onclick: () => openEvent(ev) }, ev.group === 'shotsuki' ? 'メモ' : '準備を開く')));
   }));
 }
 
 function drawPeople() {
-  if (!data.people.length) { $('#people').replaceChildren(); return; }
+  if (!data.people.length) { $('#people').replaceChildren(el('p', { class: 'empty' }, '故人を登録すると、ここに並びます。')); return; }
   $('#people').replaceChildren(...data.people.map((p) => {
     const next = memorials(p).find((m) => m.date >= today());
-    return el('article', { class: 'card' },
-      el('h3', {}, p.name, p.relation ? el('small', {}, `（${p.relation}）`) : null),
+    return el('article', { class: 'person' },
+      el('h3', {}, p.name, p.relation ? el('small', {}, `　${p.relation}`) : null),
       p.kaimyo ? el('p', { class: 'kaimyo' }, p.kaimyo) : null,
-      el('p', {}, `命日 ${dateText(p.death)}`, el('br'), el('span', { class: 'muted' }, `${wareki(p.death)}・月命日は毎月${Number(p.death.slice(8))}日`)),
-      next ? el('p', { class: 'next' }, `次の法要: ${next.label} ${dateText(next.date)}`) : el('p', { class: 'next' }, '五十回忌まで済んでいます。'),
+      el('p', {}, `命日　${dateText(p.death)}`),
+      el('p', { class: 'small' }, `${wareki(p.death)}・月命日は毎月${Number(p.death.slice(8))}日`),
+      next ? el('p', { class: 'next' }, `次の法要: ${next.label}　${dateText(next.date)}`) : el('p', { class: 'next' }, '五十回忌まで済んでいます。'),
       p.memo ? el('p', { class: 'note' }, p.memo) : null,
-      el('div', { class: 'actions' },
-        el('button', { type: 'button', onclick: () => openList(p) }, '法要の一覧'),
-        el('button', { type: 'button', onclick: () => shareLink([p]) }, '家族に送る'),
-        el('button', { type: 'button', onclick: () => openPerson(p) }, '編集'),
-        el('button', { type: 'button', onclick: () => removePerson(p) }, '削除')));
+      el('p', { class: 'actions' },
+        el('button', { type: 'button', class: 'link', onclick: () => openList(p) }, '法要の一覧'),
+        el('button', { type: 'button', class: 'link', onclick: () => shareLink([p]) }, '家族に送る'),
+        el('button', { type: 'button', class: 'link', onclick: () => openPerson(p) }, '編集'),
+        el('button', { type: 'button', class: 'link quiet', onclick: () => removePerson(p) }, '削除')));
   }));
 }
 
@@ -106,7 +111,7 @@ function drawBackup() {
   $('#backup-last').textContent = meta.last ? `最後のバックアップ: ${meta.last}` : 'まだバックアップを保存していません。';
   const real = data.people.filter((p) => !p.id.startsWith('demo-')).length;
   if (!backupDue(meta, real)) { box.replaceChildren(); return; }
-  box.replaceChildren(el('p', {}, '記録はこの端末の中だけにあります。機種変更やブラウザのデータ削除に備えて、バックアップを保存しておきましょう。'),
+  box.replaceChildren(el('p', {}, '記録はこのスマホの中にしかありません。そろそろバックアップを保存しておくと安心です。'),
     el('button', { type: 'button', class: 'primary', onclick: () => $('#export').click() }, 'バックアップを保存'),
     el('button', { type: 'button', onclick: () => { setBackupMeta({ snooze: addDays(today(), 7) }); drawBackup(); } }, 'あとで'));
 }
@@ -245,7 +250,7 @@ $('#ics').addEventListener('click', async () => {
 $('#export').addEventListener('click', () => {
   if (loadError) { say('保存済みの記録を読み込めていないため、バックアップを作れません。'); return; }
   download(`hoyo-${today()}.json`, JSON.stringify(data, null, 2), 'application/json');
-  setBackupMeta({ last: today() }); drawBackup(); say('バックアップの保存を開始しました。');
+  setBackupMeta({ last: today() }); drawBackup(); say('バックアップを保存しました。');
 });
 $('#import').addEventListener('change', async (e) => {
   const file = e.target.files[0]; if (!file) return;

@@ -64,6 +64,7 @@ function draw() {
   $('#demo').hidden = data.kids.some((k) => k.id.startsWith('demo-'));
   drawBackup();
   const k = kid();
+  $('#cover-name').textContent = k ? k.name : '';
   if (!k) return;
   ui.kid = k.id;
   drawKids(k); drawToday(k); drawCalendar(k); drawStickers(k);
@@ -153,7 +154,7 @@ function drawBackup() {
   $('#backup-last').textContent = meta.last ? `最後のバックアップ: ${meta.last}` : 'まだバックアップを保存していません。';
   const real = data.logs.filter((l) => !l.kid.startsWith('demo-')).length;
   if (!backupDue(meta, real)) { box.replaceChildren(); return; }
-  box.replaceChildren(el('p', {}, '記録はこの端末の中だけにあります。機種変更やブラウザのデータ削除に備えて、バックアップを保存しておきましょう。'),
+  box.replaceChildren(el('p', {}, '記録はこのスマホの中にしかありません。そろそろバックアップを保存しておくと安心です。'),
     el('button', { type: 'button', class: 'primary', onclick: () => $('#export').click() }, 'バックアップを保存'),
     el('button', { type: 'button', onclick: () => { setBackupMeta({ snooze: addDays(today(), 7) }); drawBackup(); } }, 'あとで'));
 }
@@ -301,7 +302,7 @@ function download(name, body, type) {
 $('#export').addEventListener('click', () => {
   if (loadError) { say('保存済みの記録を読み込めていないため、バックアップを作れません。'); return; }
   download(`ponpon-${today()}.json`, JSON.stringify(data, null, 2), 'application/json');
-  setBackupMeta({ last: today() }); drawBackup(); say('バックアップの保存を開始しました。');
+  setBackupMeta({ last: today() }); drawBackup(); say('バックアップを保存しました。');
 });
 $('#import').addEventListener('change', async (e) => {
   const file = e.target.files[0]; if (!file) return;
