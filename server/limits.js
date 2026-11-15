@@ -70,4 +70,7 @@ export const LIMITS = {
   rallyCreate: 20, // 新しいラリーの登録
   rallyDevice: 300, // ラリーに初めて参加する端末（学校の Wi-Fi など、同じ回線の参加者が多い場合も考えて多めに）
   pushSubscribe: 20, // 新しい通知の購読
+  haikuPost: 10, // 句ひろばへの投稿
+  haikuLike: 200, // 句ひろばの「いいね」（端末IDを変えながらの水増し対策）
+  haikuReport: 20, // 句ひろばの報告
 };
