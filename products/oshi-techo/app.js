@@ -348,7 +348,7 @@ function settings() {
     })(),
     h('section', { class: 'card' }, h('h2', {}, 'バックアップ'), h('p', { class: 'small muted' }, 'データはこの端末の中だけにあります。機種変更の前に書き出してください。'),
       h('div', { class: 'btn-row' }, h('button', { onclick: () => { exportBackup(); render(lastBackup, lastBackupText()); } }, '📤 書き出す'), h('button', { onclick: () => fileIn.click() }, '📥 読み込む')), fileIn, lastBackup),
-    h('p', { class: 'center small' }, h('a', { href: '../privacy.html' }, 'プライバシーポリシー'), ' ・ ', h('a', { href: '../../index.html' }, 'Happy Ideas のアイデア一覧へ')));
+    h('p', { class: 'center small' }, h('a', { href: '../privacy.html' }, 'プライバシーポリシー'), ' ・ ', h('a', { href: '../../index.html' }, 'ひらめき工房 のアイデア一覧へ')));
   drawList();
 }
 

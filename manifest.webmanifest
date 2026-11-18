@@ -1,6 +1,6 @@
 {
-  "name": "Happy Ideas — Webアプリの種",
-  "short_name": "Happy Ideas",
+  "name": "ひらめき工房 — Webアプリの種",
+  "short_name": "ひらめき工房",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

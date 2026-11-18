@@ -241,7 +241,7 @@ async function showLibrary() {
   db.usage().then((u) => { if (u) usage.textContent = `この端末で使っている容量: ${fmtBytes(u.used)}${u.quota ? `（上限の目安 ${fmtBytes(u.quota)}）` : ''}`; });
   render(app,
     h('header', { class: 'lib-head' },
-      h('a', { class: 'lib-back', href: '../../index.html' }, '← Happy Ideas'),
+      h('a', { class: 'lib-back', href: '../../index.html' }, '← ひらめき工房'),
       h('h1', {}, h('span', { class: 'logo', 'aria-hidden': 'true' }), 'てもとフォト'),
       h('p', { class: 'lib-lead' }, '写真を端末の外に出さずに編集。アップロードもアカウントも不要で、オフラインでも動きます。')),
     h('main', { class: 'lib-main' },

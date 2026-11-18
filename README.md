@@ -1,4 +1,4 @@
-# happy_ideas
+# ひらめき工房（happy_ideas）
 
 ## 新作: 家族の記録と、俳句の広場
 
