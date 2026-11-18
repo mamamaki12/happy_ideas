@@ -8,8 +8,8 @@ for (const c of Object.values(CONFIGS)) {
 <html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="theme-color" content="#27686c"><meta name="description" content="${c.lead}">
-<title>${c.name} — Happy Ideas</title><link rel="stylesheet" href="../daily-kit/style.css"><script type="module" src="../daily-kit/app.js"></script></head>
-<body data-app="${c.slug}"><header><a href="../../">← Happy Ideas</a><b id="brand">${c.name}</b></header>
+<title>${c.name} — ひらめき工房</title><link rel="stylesheet" href="../daily-kit/style.css"><script type="module" src="../daily-kit/app.js"></script></head>
+<body data-app="${c.slug}"><header><a href="../../">← ひらめき工房</a><b id="brand">${c.name}</b></header>
 <main><section class="hero"><div><p id="eyebrow" class="eyebrow"></p><h1 id="title">${c.name}</h1><p id="lead" class="lead">${c.lead}</p><button id="add" class="primary">＋ 登録</button></div><div class="art" aria-hidden="true"><span id="symbol"></span></div></section>
 <p id="load-error" role="alert"></p><section id="stats" class="stats" aria-label="記録のまとめ"></section>
 <section aria-label="記録一覧"><div class="bar"><h2>わたしの記録</h2><button id="demo">お試しデータを追加</button></div><input id="search" class="search" type="search" placeholder="キーワードで検索" aria-label="キーワードで検索"><div id="filters"></div><p id="count" aria-live="polite"></p><div id="cards" class="cards"></div></section>
