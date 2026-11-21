@@ -146,3 +146,4 @@ npm run check                     # ページの生成・セキュリティチ�
 | AIアプリで「AIからうまく答えが返ってきませんでした」 | APIキーが間違っている・残高や上限に達している。wrangler のターミナルの表示も確認 |
 | 書き換えた内容が反映されない | 強制再読み込み。4・5 の方法なら `npm run site` を実行し直す |
 | 前のデータが見えない | ポート番号やアドレスが違うと保存場所が別になる。同じアドレスで開く |
+| Windows で `npm run site` が「`sh` が見つからない」で止まる／`npm run unit` がテストを 1 件も実行しないまま成功になる | Windows の標準のシェルでは動かない書き方のため。npm のスクリプトを Git Bash で動かす設定にする（1回だけ）: `npm config set script-shell "C:\Program Files\Git\bin\bash.exe"` |
